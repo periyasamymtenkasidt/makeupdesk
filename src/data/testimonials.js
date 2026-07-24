@@ -1,0 +1,32 @@
+export const TESTIMONIALS = [
+  {
+    id: 1,
+    name: 'Priya Mehta',
+    event: 'Bridal Makeup · Mumbai',
+    rating: 5,
+    text: "I was absolutely stunned when I saw myself in the mirror. The team understood exactly what I wanted for my big day — dewy skin, subtle drama, and long-lasting coverage. Couldn't have asked for better!",
+    initials: 'PM',
+    color: '#e8a4b8',
+    bg: '#f5e6ee',
+  },
+  {
+    id: 2,
+    name: 'Anjali Sharma',
+    event: 'Party Makeup · Delhi',
+    rating: 5,
+    text: 'The WhatsApp quotation system is so smooth! Got my quote in minutes, paid advance via UPI, and the artist was at my doorstep on time. Makeup lasted all night — absolute perfection.',
+    initials: 'AS',
+    color: '#c9956c',
+    bg: '#f5e1c0',
+  },
+  {
+    id: 3,
+    name: 'Kavya Nair',
+    event: 'Pre-Wedding Shoot · Bangalore',
+    rating: 5,
+    text: "My pre-wedding photos look absolutely dreamy. The artist's colour-sense matched every outfit and the HD airbrush finish was camera-perfect. Booking again for the wedding — 100%!",
+    initials: 'KN',
+    color: '#d4728f',
+    bg: '#fde8f0',
+  },
+]
