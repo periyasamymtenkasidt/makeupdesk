@@ -2,7 +2,7 @@ import { STATUS_CONFIG } from '../../data/navigation'
 
 export function Badge({ status, children }) {
   const label = status || children
-  const cfg   = STATUS_CONFIG[label] ?? { color: '#8b6e7e', bg: 'rgba(139,110,126,0.1)' }
+  const cfg   = STATUS_CONFIG[label] ?? { color: 'var(--color-mauve)', bg: 'rgba(var(--rgb-mauve),0.1)' }
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: '5px',

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { Sparkles, AlertTriangle, Calendar, ChevronRight } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '../ui/Card'
 import { Button } from '../ui/Button'
@@ -26,6 +27,8 @@ const UPCOMING_TRIALS = [
 ]
 
 export default function SkinAlertsWidget() {
+  const navigate = useNavigate()
+
   return (
     <Card>
       <CardHeader>
@@ -34,13 +37,13 @@ export default function SkinAlertsWidget() {
             width: 34, height: 34, borderRadius: '10px',
             background: 'rgba(232,164,184,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            <Sparkles size={18} style={{ color: '#d4728f' }} />
+            <Sparkles size={18} style={{ color: 'var(--icon-client)' }} />
           </div>
           <div>
-            <h3 style={{ fontFamily: 'Playfair Display, serif', fontWeight: 600, color: '#2d1b2e', fontSize: '17px', margin: 0 }}>
+            <h3 style={{ fontFamily: 'Playfair Display, serif', fontWeight: 600, color: 'var(--dash-text-primary)', fontSize: '17px', margin: 0 }}>
               Bridal Trials & Skin Notes
             </h3>
-            <p style={{ fontSize: '12px', color: '#8b6e7e', margin: '2px 0 0' }}>
+            <p style={{ fontSize: '12px', color: 'var(--dash-text-secondary)', margin: '2px 0 0' }}>
               Client skin preferences & safety alerts
             </p>
           </div>
@@ -54,48 +57,47 @@ export default function SkinAlertsWidget() {
             style={{
               padding: '14px',
               borderRadius: '14px',
-              background: '#fdfbf9',
-              border: '1px solid rgba(201,149,108,0.14)',
+              background: 'var(--dash-surface)',
+              border: '1px solid var(--dash-border)',
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontWeight: 600, fontSize: '14px', color: '#2d1b2e' }}>
+              <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--dash-text-primary)' }}>
                 {item.client}
               </div>
               <span style={{
-                fontSize: '11px', fontWeight: 500, color: '#c9956c', background: 'rgba(201,149,108,0.1)',
-                padding: '2px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px'
+                fontSize: '11px', fontWeight: 600, color: 'var(--icon-booking)', background: 'var(--icon-booking-bg)',
+                padding: '3px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px'
               }}>
                 <Calendar size={11} /> {item.date}
               </span>
             </div>
 
-            <div style={{ fontSize: '12px', color: '#8b6e7e' }}>
-              Type: <strong style={{ color: '#2d1b2e', fontWeight: 500 }}>{item.event}</strong>
+            <div style={{ fontSize: '12px', color: 'var(--dash-text-secondary)' }}>
+              Type: <strong style={{ color: 'var(--dash-text-primary)', fontWeight: 600 }}>{item.event}</strong>
             </div>
 
-            {/* Allergy alert */}
             {item.allergies && item.allergies !== 'None reported' ? (
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
-                padding: '4px 10px', borderRadius: '8px',
-                background: 'rgba(220,38,38,0.08)', color: '#dc2626',
+                padding: '5px 10px', borderRadius: '8px',
+                background: 'var(--badge-rejected-bg)', color: 'var(--badge-rejected)',
                 fontSize: '11px', fontWeight: 600
               }}>
                 <AlertTriangle size={13} /> Safety Alert: {item.allergies}
               </div>
             ) : (
-              <div style={{ fontSize: '11px', color: '#059669', fontWeight: 500 }}>
+              <div style={{ fontSize: '11px', color: 'var(--badge-confirmed)', fontWeight: 600 }}>
                 ✓ No known product allergies
               </div>
             )}
 
-            {/* Preferred Look */}
             <div style={{
-              fontSize: '11px', color: '#a87655', background: 'rgba(168,118,85,0.06)',
+              fontSize: '11px', color: 'var(--dash-text-primary)', background: 'var(--icon-booking-bg)',
+              border: '1px solid var(--dash-border)',
               padding: '6px 10px', borderRadius: '8px', marginTop: '2px'
             }}>
               ✨ <strong>Preferred Look:</strong> {item.preferredLook} ({item.skinType})
@@ -103,7 +105,13 @@ export default function SkinAlertsWidget() {
           </div>
         ))}
 
-        <Button variant="ghost" size="xs" style={{ justifyContent: 'center', marginTop: '4px', color: '#c9956c' }}>
+        <Button
+          variant="ghost"
+          size="sm"
+          fullWidth
+          onClick={() => navigate('/dashboard/clients')}
+          style={{ justifyContent: 'center', marginTop: '4px' }}
+        >
           View All Client Profiles <ChevronRight size={14} />
         </Button>
       </CardBody>

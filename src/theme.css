@@ -1,0 +1,372 @@
+/* ==========================================
+   MakeupDesk Central Design System & Theme
+   ========================================== */
+
+:root {
+  /* ── Core Brand Palette ── */
+  --color-plum-50:  #faf5fb;
+  --color-plum-100: #f3e8f5;
+  --color-plum-200: #e7cfec;
+  --color-plum-300: #d4a8da;
+  --color-plum-700: #5c2f60;
+  --color-plum-800: #3d1f40;
+  --color-plum-900: #2d1b2e;
+  --color-plum-950: #1a0f1b;
+
+  --color-rose-gold:       #c9956c;
+  --color-rose-gold-light: #e8c4a0;
+  --color-rose-gold-dark:  #e0b088;
+
+  --color-blush:       #e8a4b8;
+  --color-blush-light: #f5e6ee;
+  --color-blush-dark:  #d4728f;
+
+  --color-champagne:      #f5e1c0;
+  --color-champagne-dark: #e8c99a;
+  --color-cream:          #fdf8f4;
+  --color-cream-dark:     #f0e8f0;
+
+  --color-mauve:    #a68b9a;
+  --color-lavender: #d4b8e8;
+
+  /* ── Dark Section & Surface Backgrounds ── */
+  --color-dark-bg:          #0e0710;
+  --color-dark-bg-alt:      #140c16;
+  --color-dark-bg-deep:     #0a050c;
+  --color-dark-bg-warm-1:   #0f0705;
+  --color-dark-bg-warm-2:   #160c08;
+  --color-dark-bg-warm-3:   #1c1009;
+  --color-dark-bg-emerald:  #0e1a14;
+  --color-dark-surface-1:   #100812;
+  --color-dark-surface-2:   #120914;
+  --color-dark-surface-3:   #08040a;
+  --color-dark-surface-4:   #050209;
+  --color-dark-surface-5:   #0a040c;
+  --color-dark-card-overlay:#0c0610;
+
+  /* ── Component Surfaces ── */
+  --color-card-bg:       #1c1020;
+  --color-card-bg-hover: #231428;
+  --color-input-bg:      #231428;
+  --color-dropdown-bg:   #180d1b;
+  --color-section-dark:  #1a0f1b;
+  --color-surface-hover: #201224;
+
+  /* ── Text Colors ── */
+  --color-text-main:       #2d1b2e;
+  --color-text-light:      #f4ebf6;
+  --color-text-cream:      #fdf8f4;
+  --color-text-muted:      #a68b9a;
+  --color-text-dark-btn:   #1f2937;
+
+  /* ── Semantic Status Colors ── */
+  --color-success:        #059669;
+  --color-emerald-400:    #34d399;
+  --color-emerald-500:    #10b981;
+  --color-warning:        #d97706;
+  --color-star-gold:      #f59e0b;
+  --color-danger:         #dc2626;
+  --color-danger-light:   #fca5a5;
+  --color-purple-600:     #7c3aed;
+
+  /* ── Brand Google Colors ── */
+  --color-google-blue:   #4285F4;
+  --color-google-green:  #34A853;
+  --color-google-yellow: #FBBC05;
+  --color-google-red:    #EA4335;
+
+  /* ── Composite RGB Variables ── */
+  --rgb-rose-gold:       201, 149, 108;
+  --rgb-rose-gold-light: 232, 196, 160;
+  --rgb-rose-gold-dark:  224, 176, 136;
+  --rgb-blush:           232, 164, 184;
+  --rgb-blush-dark:      212, 114, 143;
+  --rgb-blush-light:     245, 230, 238;
+  --rgb-champagne:       245, 225, 192;
+  --rgb-plum-900:        45, 27, 46;
+  --rgb-dark-bg:         14, 7, 16;
+  --rgb-danger:          220, 38, 38;
+  --rgb-success:         5, 150, 105;
+  --rgb-warning:         217, 119, 6;
+  --rgb-mauve:           166, 139, 154;
+
+  /* ── Common Gradients ── */
+  --gradient-rose-blush:  linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-blush) 100%);
+  --gradient-rose-dark:   linear-gradient(135deg, var(--color-rose-gold) 0%, var(--color-blush-dark) 100%);
+  --gradient-blush-rose:  linear-gradient(135deg, var(--color-blush-dark) 0%, var(--color-blush) 100%);
+  --gradient-dark-section:linear-gradient(180deg, var(--color-dark-bg) 0%, var(--color-dark-bg-alt) 100%);
+}
+
+/* ── Semantic Dashboard Tokens (dark default) ── */
+:root {
+  --dash-bg:               linear-gradient(180deg, #0f0a10 0%, #130c15 100%);
+  --dash-topbar-bg:        rgba(14, 7, 16, 0.92);
+  --dash-card-bg:          #1c1020;
+  --dash-surface:          #231428;
+  --dash-text-primary:     #ffffff;
+  --dash-text-secondary:   rgba(255, 255, 255, 0.85);
+  --dash-text-muted:       rgba(255, 255, 255, 0.72);
+  --dash-topbar-title:     #ffffff;
+  --dash-topbar-sub:       rgba(255, 255, 255, 0.8);
+  --dash-border:           rgba(201, 149, 108, 0.28);
+  --dash-border-subtle:    rgba(201, 149, 108, 0.22);
+  --dash-divider:          rgba(255, 255, 255, 0.1);
+  --dash-divider-alt:      rgba(255, 255, 255, 0.12);
+  --dash-row-hover:        rgba(255, 255, 255, 0.06);
+  --dash-filter-wrap:      rgba(255, 255, 255, 0.1);
+  --dash-filter-active-bg: rgba(255, 255, 255, 0.18);
+  --dash-filter-active-tx: #ffffff;
+  --dash-filter-muted-tx:  rgba(255, 255, 255, 0.75);
+  --dash-shadow:           rgba(0, 0, 0, 0.4);
+  --dash-shadow-hover:     rgba(0, 0, 0, 0.55);
+  --dash-time-badge-bg:    rgba(255, 255, 255, 0.1);
+  --dash-subtle-row-bg:    rgba(255, 255, 255, 0.06);
+  --dash-input-bg:         #231428;
+  --dash-input-text:       #ffffff;
+  --dash-label-text:       #e8c4a0;
+  --dash-modal-overlay:    rgba(14, 7, 16, 0.65);
+  --dash-ghost-bg:         rgba(255, 255, 255, 0.09);
+  --dash-ghost-hover-bg:   rgba(255, 255, 255, 0.15);
+  --dash-toggle-off:       rgba(255, 255, 255, 0.3);
+
+  /* ── Select Dropdown Option Tokens (dark default) ── */
+  --select-active-bg:   linear-gradient(135deg, #c9956c 0%, #a87249 100%);
+  --select-active-text: #ffffff;
+  --select-hover-bg:    rgba(201, 149, 108, 0.20);
+  --select-hover-text:  #e8c4a0;
+
+  /* ── Ghost Button Tokens (dark default) ── */
+  --btn-ghost-bg:     rgba(201, 149, 108, 0.15);
+  --btn-ghost-border: rgba(201, 149, 108, 0.38);
+  --btn-ghost-color:  #ffffff;
+
+  /* ── Theme-aware Icon Colors (bright / glowing for dark) ── */
+  --icon-booking:    #e8c4a0;
+  --icon-booking-bg: rgba(232, 196, 160, 0.22);
+  --icon-client:    #f472b6;
+  --icon-client-bg:  rgba(244, 114, 182, 0.18);
+  --icon-revenue:   #34d399;
+  --icon-revenue-bg: rgba(52, 211, 153, 0.18);
+  --icon-warning:   #fbbf24;
+  --icon-warning-bg: rgba(251, 191, 36, 0.18);
+  --icon-purple:    #c084fc;
+  --icon-purple-bg:  rgba(192, 132, 252, 0.18);
+  --icon-info:      #60a5fa;
+  --icon-info-bg:    rgba(96, 165, 250, 0.18);
+  --icon-cyan:      #22d3ee;
+  --icon-cyan-bg:    rgba(34, 211, 238, 0.18);
+
+  /* ── Theme-aware Status Badge Colors ── */
+  --badge-confirmed:  #34d399;
+  --badge-confirmed-bg: rgba(52, 211, 153, 0.18);
+  --badge-pending:    #fbbf24;
+  --badge-pending-bg: rgba(251, 191, 36, 0.18);
+  --badge-rejected:   #f87171;
+  --badge-rejected-bg: rgba(248, 113, 113, 0.18);
+  --badge-inquiry:    #c084fc;
+  --badge-inquiry-bg: rgba(192, 132, 252, 0.18);
+  --badge-reserved:   #a78bfa;
+  --badge-reserved-bg: rgba(167, 139, 250, 0.18);
+  --badge-sent:       #60a5fa;
+  --badge-sent-bg:    rgba(96, 165, 250, 0.18);
+  --badge-advance:    #22d3ee;
+  --badge-advance-bg: rgba(34, 211, 238, 0.18);
+  --badge-closed:     #cbd5e1;
+  --badge-closed-bg:  rgba(203, 213, 225, 0.22);
+
+  /* ── Theme-aware Location Badges ── */
+  --badge-venue:    #f472b6;
+  --badge-venue-bg: rgba(244, 114, 182, 0.18);
+  --badge-studio:   #e8c4a0;
+  --badge-studio-bg: rgba(232, 196, 160, 0.18);
+
+  /* ── Theme-aware Open Slot Colors ── */
+  --slot-open:    #34d399;
+  --slot-open-bg: rgba(52, 211, 153, 0.08);
+  --slot-open-border: rgba(52, 211, 153, 0.25);
+  --slot-open-badge-bg: rgba(52, 211, 153, 0.18);
+
+  /* ── Theme-aware Buffer Slot Colors ── */
+  --slot-buffer-bg: rgba(232, 196, 160, 0.12);
+  --slot-buffer-border: rgba(232, 196, 160, 0.25);
+
+  /* ── Sidebar Tokens (dark default) ── */
+  --sidebar-shadow:         none;
+  --sidebar-bg:             var(--color-section-dark);
+  --sidebar-logo-text:      #ffffff;
+  --sidebar-link-color:     rgba(255, 255, 255, 0.85);
+  --sidebar-link-muted:     rgba(255, 255, 255, 0.65);
+  --sidebar-link-hover-bg:  rgba(255, 255, 255, 0.06);
+  --sidebar-border:         rgba(255, 255, 255, 0.08);
+  --sidebar-border-subtle:  rgba(255, 255, 255, 0.06);
+  --sidebar-label-color:    rgba(201, 149, 108, 0.85);
+  --sidebar-accent-border:  rgba(201, 149, 108, 0.25);
+  --sidebar-masters-open:   rgba(201, 149, 108, 0.10);
+  --sidebar-signout-hover:  rgba(248, 113, 113, 0.10);
+
+  /* ── Shared Action Tokens ── */
+  --btn-primary-shadow:   rgba(var(--rgb-rose-gold), 0.35);
+  --dash-border-hover:    rgba(var(--rgb-rose-gold), 0.50);
+  --gradient-rose-bar:    linear-gradient(90deg, var(--color-rose-gold) 0%, var(--color-blush-dark) 100%);
+}
+
+[data-theme="light"] {
+  /* palette token overrides */
+  --color-text-light:  #2d1b2e;
+  --color-text-muted:  rgba(45, 27, 46, 0.65);
+  --color-card-bg:     #fdf8f4;
+  --color-input-bg:    #f5ede6;
+  --color-section-dark: #2d1b2e;
+  --color-rose-gold-dark: #9e6038;
+
+  --dash-bg:               linear-gradient(135deg, #fdf4ee 0%, #f5e8de 55%, #f0e2d6 100%);
+  --dash-topbar-bg:        rgba(253, 248, 244, 0.97);
+  --dash-card-bg:          #fefaf7;
+  --dash-surface:          #f5e9e0;
+  --dash-text-primary:     #2d1b2e;
+  --dash-text-secondary:   rgba(45, 27, 46, 0.72);
+  --dash-text-muted:       rgba(45, 27, 46, 0.6);
+  --dash-topbar-title:     #2d1b2e;
+  --dash-topbar-sub:       rgba(45, 27, 46, 0.65);
+  --dash-border:           rgba(201, 149, 108, 0.38);
+  --dash-border-subtle:    rgba(201, 149, 108, 0.22);
+  --dash-divider:          rgba(45, 27, 46, 0.08);
+  --dash-divider-alt:      rgba(45, 27, 46, 0.1);
+  --dash-row-hover:        rgba(45, 27, 46, 0.04);
+  --dash-filter-wrap:      rgba(201, 149, 108, 0.14);
+  --dash-filter-active-bg: #c9956c;
+  --dash-filter-active-tx: #ffffff;
+  --dash-filter-muted-tx:  #8b5a2b;
+  --dash-shadow:           rgba(201, 149, 108, 0.18);
+  --dash-shadow-hover:     rgba(201, 149, 108, 0.32);
+  --dash-border-hover:     rgba(201, 149, 108, 0.65);
+  --dash-time-badge-bg:    rgba(45, 27, 46, 0.06);
+  --dash-subtle-row-bg:    rgba(45, 27, 46, 0.04);
+  --dash-input-bg:         #fdf8f4;
+  --dash-input-text:       #2d1b2e;
+  --dash-label-text:       #8b5a2b;
+  --dash-modal-overlay:    rgba(45, 27, 46, 0.55);
+  --dash-ghost-bg:         rgba(45, 27, 46, 0.04);
+  --dash-ghost-hover-bg:   rgba(45, 27, 46, 0.08);
+  --dash-toggle-off:       #cbd5e1;
+
+  /* ── Select Dropdown Option Tokens (light override) ── */
+  --select-active-bg:   linear-gradient(135deg, #c9956c 0%, #a87249 100%);
+  --select-active-text: #ffffff;
+  --select-hover-bg:    rgba(201, 149, 108, 0.14);
+  --select-hover-text:  #8b5a2b;
+
+  /* ── Ghost Button Tokens (light override) ── */
+  --btn-ghost-bg:     rgba(45, 27, 46, 0.05);
+  --btn-ghost-border: rgba(45, 27, 46, 0.22);
+  --btn-ghost-color:  #2d1b2e;
+
+  /* ── Light Mode Icon Colors (deep / rich for white surfaces) ── */
+  --icon-booking:   #8b5a2b;
+  --icon-booking-bg: rgba(139, 90, 43, 0.12);
+  --icon-client:    #d4728f;
+  --icon-client-bg:  rgba(212, 114, 143, 0.12);
+  --icon-revenue:   #059669;
+  --icon-revenue-bg: rgba(5, 150, 105, 0.1);
+  --icon-warning:   #b45309;
+  --icon-warning-bg: rgba(180, 83, 9, 0.1);
+  --icon-purple:    #c9956c;
+  --icon-purple-bg:  rgba(201, 149, 108, 0.13);
+  --icon-info:      #9e6038;
+  --icon-info-bg:    rgba(158, 96, 56, 0.11);
+  --icon-cyan:      #a68b9a;
+  --icon-cyan-bg:    rgba(166, 139, 154, 0.13);
+
+  /* ── Light Mode Status Badge Colors ── */
+  --badge-confirmed:  #059669;
+  --badge-confirmed-bg: rgba(5, 150, 105, 0.1);
+  --badge-pending:    #b45309;
+  --badge-pending-bg: rgba(180, 83, 9, 0.1);
+  --badge-rejected:   #dc2626;
+  --badge-rejected-bg: rgba(220, 38, 38, 0.1);
+  --badge-inquiry:    #c9956c;
+  --badge-inquiry-bg: rgba(201, 149, 108, 0.13);
+  --badge-reserved:   #a68b9a;
+  --badge-reserved-bg: rgba(166, 139, 154, 0.13);
+  --badge-sent:       #9e6038;
+  --badge-sent-bg:    rgba(158, 96, 56, 0.11);
+  --badge-advance:    #8b5a2b;
+  --badge-advance-bg: rgba(139, 90, 43, 0.11);
+  --badge-closed:     #334155;
+  --badge-closed-bg:  rgba(51, 65, 85, 0.14);
+
+  /* ── Light Mode Location Badges ── */
+  --badge-venue:    #d4728f;
+  --badge-venue-bg: rgba(212, 114, 143, 0.12);
+  --badge-studio:   #8b5a2b;
+  --badge-studio-bg: rgba(139, 90, 43, 0.1);
+
+  /* ── Light Mode Open Slot Colors ── */
+  --slot-open:    #059669;
+  --slot-open-bg: rgba(5, 150, 105, 0.06);
+  --slot-open-border: rgba(5, 150, 105, 0.22);
+  --slot-open-badge-bg: rgba(5, 150, 105, 0.1);
+
+  /* ── Light Mode Buffer Slot Colors ── */
+  --slot-buffer-bg: rgba(139, 90, 43, 0.06);
+  --slot-buffer-border: rgba(139, 90, 43, 0.2);
+
+  /* ── Sidebar Tokens (light override) ── */
+  --sidebar-shadow:         2px 0 24px rgba(45, 27, 46, 0.08);
+  --sidebar-bg:             #fdf8f4;
+  --sidebar-logo-text:      var(--color-plum-900);
+  --sidebar-link-color:     rgba(45, 27, 46, 0.82);
+  --sidebar-link-muted:     rgba(45, 27, 46, 0.55);
+  --sidebar-link-hover-bg:  rgba(201, 149, 108, 0.1);
+  --sidebar-border:         rgba(201, 149, 108, 0.22);
+  --sidebar-border-subtle:  rgba(201, 149, 108, 0.13);
+  --sidebar-label-color:    rgba(139, 90, 43, 0.85);
+  --sidebar-accent-border:  rgba(139, 90, 43, 0.25);
+  --sidebar-masters-open:   rgba(139, 90, 43, 0.08);
+  --sidebar-signout-hover:  rgba(220, 38, 38, 0.06);
+
+  /* ── Shared Action Tokens (light override) ── */
+  --btn-primary-shadow:   rgba(var(--rgb-rose-gold), 0.28);
+}
+
+/* ── Tailwind v4 Theme Registrations ── */
+@theme {
+  --font-display: 'Playfair Display', serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  --color-plum-50:  var(--color-plum-50);
+  --color-plum-100: var(--color-plum-100);
+  --color-plum-200: var(--color-plum-200);
+  --color-plum-300: var(--color-plum-300);
+  --color-plum-700: var(--color-plum-700);
+  --color-plum-800: var(--color-plum-800);
+  --color-plum-900: var(--color-plum-900);
+  --color-plum-950: var(--color-plum-950);
+
+  --color-rose-gold:       var(--color-rose-gold);
+  --color-rose-gold-light: var(--color-rose-gold-light);
+  --color-rose-gold-dark:  var(--color-rose-gold-dark);
+
+  --color-blush:       var(--color-blush);
+  --color-blush-light: var(--color-blush-light);
+  --color-blush-dark:  var(--color-blush-dark);
+
+  --color-champagne:      var(--color-champagne);
+  --color-champagne-dark: var(--color-champagne-dark);
+  --color-cream:          var(--color-cream);
+  --color-cream-dark:     var(--color-cream-dark);
+
+  --color-mauve:          var(--color-mauve);
+  --color-card-bg:        var(--color-card-bg);
+  --color-input-bg:       var(--color-input-bg);
+  --color-dark-bg:        var(--color-dark-bg);
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

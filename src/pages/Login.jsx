@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft,
   CheckCircle2, AlertCircle, X, ShieldCheck, Zap, Star,
-  KeyRound, RefreshCw, Building2, User, Send, BellRing, Award
+  KeyRound, RefreshCw, Building2, User, BellRing, Award
 } from 'lucide-react'
-import bridePic from '../assets/images/GoldenBride.jpg'
+import bridePic from '../assets/images/Bride_1.png'
+import { CustomSelect } from '../components/ui/CustomSelect'
 
 const LIVE_NOTIFICATIONS = [
   { text: '✨ New Bridal Booking: Full Glam Package • ₹12,000 Advance Paid', time: 'Just now' },
@@ -41,9 +42,6 @@ export default function Login() {
   const [regEmail, setRegEmail]           = useState('')
   const [regPassword, setRegPassword]     = useState('')
   const [regSpecialty, setRegSpecialty]   = useState('Bridal & Glam')
-
-  const [magicEmail, setMagicEmail] = useState('')
-  const [magicSent, setMagicSent]   = useState(false)
 
   const [errorMessage, setErrorMessage] = useState('')
   const [toastMessage, setToastMessage] = useState(null)
@@ -121,13 +119,6 @@ export default function Login() {
       showToast(`🎉 Studio "${regStudioName}" created! Redirecting to setup…`)
       setTimeout(() => navigate('/dashboard'), 1200)
     }, 1400)
-  }
-
-  const handleMagicLinkSubmit = (e) => {
-    e.preventDefault(); setErrorMessage('')
-    if (!magicEmail.trim() || !magicEmail.includes('@')) { setErrorMessage('Please enter a valid email address.'); return }
-    setIsSubmitting(true)
-    setTimeout(() => { setIsSubmitting(false); setMagicSent(true); showToast(`Magic link sent to ${magicEmail}!`) }, 1200)
   }
 
   const handleGoogleSignIn = () => {
@@ -211,7 +202,8 @@ export default function Login() {
           <img
             src={bridePic}
             alt="Bridal beauty"
-            className="w-full h-full object-cover object-top animate-ken-burns"
+            className="w-full h-full object-cover animate-ken-burns"
+            style={{ objectPosition: 'center 8%' }}
           />
         </div>
 
@@ -313,7 +305,7 @@ export default function Login() {
         </div>
 
         {/* ── Content layer ── */}
-        <div className="relative z-10 flex flex-col h-full px-10 xl:px-14 py-10 justify-between">
+        <div className="relative z-10 flex flex-col h-full px-10 xl:px-14 py-7 justify-between">
 
           {/* Top: Logo + Back */}
           <div className="flex items-center justify-between">
@@ -334,21 +326,21 @@ export default function Login() {
 
           {/* Middle: Headline */}
           <div className="max-w-sm">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5"
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-3"
                  style={{ background: 'rgba(201,149,108,0.18)', border: '1px solid rgba(201,149,108,0.42)' }}>
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#c9956c' }} />
               <span style={{ fontSize: '10px', fontWeight: 700, color: '#e8c4a0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>India's #1 Studio CRM</span>
             </div>
-            <h1 className="font-display text-white" style={{ fontSize: 'clamp(28px, 3.2vw, 44px)', fontWeight: 800, lineHeight: 1.12, textShadow: '0 2px 14px rgba(0,0,0,0.65)' }}>
+            <h1 className="font-display text-white" style={{ fontSize: 'clamp(22px, 2.2vw, 32px)', fontWeight: 800, lineHeight: 1.15, textShadow: '0 2px 14px rgba(0,0,0,0.65)' }}>
               Your beauty studio,{' '}
               <span className="gradient-text italic">brilliantly managed.</span>
             </h1>
-            <p className="mt-4 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.62)', maxWidth: '320px', textShadow: '0 1px 6px rgba(0,0,0,0.55)' }}>
+            <p className="mt-2 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.62)', maxWidth: '320px', textShadow: '0 1px 6px rgba(0,0,0,0.55)' }}>
               Manage bridal bookings, send WhatsApp quotations &amp; track UPI payments — all in one place.
             </p>
 
             {/* Live notification */}
-            <div className="mt-6 flex items-start gap-3 p-3.5 rounded-2xl max-w-xs"
+            <div className="mt-3 flex items-start gap-3 p-3.5 rounded-2xl max-w-xs"
                  style={{ background: 'rgba(14,8,4,0.78)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' }}>
               <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                    style={{ background: 'linear-gradient(135deg, #c9956c, #d4728f)' }}>
@@ -487,12 +479,11 @@ export default function Login() {
                 <div style={{ position: 'absolute', top: 0, left: '15%', right: '15%', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,149,108,0.62), transparent)' }} />
 
                 {/* Tabs */}
-                <div className="grid grid-cols-3 gap-1 p-1 rounded-xl mb-4"
+                <div className="grid grid-cols-2 gap-1 p-1 rounded-xl mb-4"
                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                   {[
                     { id: 'signin',   label: 'Sign In' },
                     { id: 'register', label: 'Register' },
-                    { id: 'magic',    label: 'Magic Link' },
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -523,8 +514,7 @@ export default function Login() {
                 )}
 
                 {/* Google */}
-                {authMode !== 'magic' && (
-                  <>
+                <>
                     <button type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading}
                             className="w-full py-3 px-4 rounded-xl flex items-center justify-center gap-3 text-sm font-semibold transition-all cursor-pointer border-none"
                             style={{ background: 'white', color: '#1f2937', boxShadow: '0 2px 10px rgba(0,0,0,0.22)' }}
@@ -549,8 +539,7 @@ export default function Login() {
                       <span className="px-3 text-[11px] uppercase tracking-widest font-medium" style={{ color: 'rgba(255,255,255,0.28)' }}>or</span>
                       <div className="flex-1" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} />
                     </div>
-                  </>
-                )}
+                </>
 
                 {/* Error */}
                 {errorMessage && (
@@ -632,15 +621,16 @@ export default function Login() {
                                  placeholder="Priya Sharma" className={`${inputCls} pl-8 pr-2 py-2.5 text-xs`} />
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Specialty</label>
-                        <select value={regSpecialty} onChange={e => setRegSpecialty(e.target.value)}
-                                className={`${inputCls} px-3 py-2.5 text-xs appearance-none`}>
-                          <option value="Bridal & Glam">Bridal &amp; Glam</option>
-                          <option value="Editorial & Fashion">Editorial &amp; Fashion</option>
-                          <option value="Celebrity & Event">Celebrity &amp; Event</option>
-                        </select>
-                      </div>
+                      <CustomSelect
+                        label="Specialty"
+                        value={regSpecialty}
+                        options={[
+                          { value: 'Bridal & Glam', label: 'Bridal & Glam' },
+                          { value: 'Editorial & Fashion', label: 'Editorial & Fashion' },
+                          { value: 'Celebrity & Event', label: 'Celebrity & Event' },
+                        ]}
+                        onChange={val => setRegSpecialty(val)}
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Work Email</label>
@@ -668,53 +658,6 @@ export default function Login() {
                         : <><span>Create Studio Account</span><ArrowRight size={15} /></>}
                     </button>
                   </form>
-                )}
-
-                {/* ── MAGIC LINK ── */}
-                {authMode === 'magic' && (
-                  <div>
-                    {magicSent ? (
-                      <div className="text-center py-6 space-y-4">
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto"
-                             style={{ background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)' }}>
-                          <Send size={24} className="text-emerald-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-white">Check Your Inbox!</h3>
-                          <p className="text-xs mt-2 leading-relaxed max-w-xs mx-auto" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                            Magic link sent to <strong className="text-white">{magicEmail}</strong>. Click it to log in — no password required.
-                          </p>
-                        </div>
-                        <button type="button" onClick={() => setMagicSent(false)}
-                                className="text-xs font-medium cursor-pointer border-none bg-transparent underline" style={{ color: '#c9956c' }}>
-                          Try a different email
-                        </button>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
-                        <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                          We'll send a secure 1-click login link — no password required.
-                        </p>
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Email</label>
-                          <div className="relative">
-                            <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'rgba(255,255,255,0.28)' }} />
-                            <input type="email" required value={magicEmail} onChange={e => setMagicEmail(e.target.value)}
-                                   placeholder="artist@makeupdesk.in" className={`${inputCls} pl-10 pr-4 py-3`} />
-                          </div>
-                        </div>
-                        <button type="submit" disabled={isSubmitting}
-                                className="w-full py-3.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 cursor-pointer border-none transition-all duration-300"
-                                style={{ background: 'linear-gradient(135deg, #c9956c, #d4728f)', boxShadow: '0 8px 28px rgba(201,149,108,0.38)' }}
-                                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 14px 38px rgba(201,149,108,0.58)'}
-                                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 28px rgba(201,149,108,0.38)'}>
-                          {isSubmitting
-                            ? <><RefreshCw size={16} className="animate-spin" /><span>Sending…</span></>
-                            : <><Send size={15} /><span>Send Magic Link</span></>}
-                        </button>
-                      </form>
-                    )}
-                  </div>
                 )}
 
                 {/* Card footer */}

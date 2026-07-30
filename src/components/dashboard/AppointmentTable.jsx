@@ -1,125 +1,200 @@
+import { useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Badge'
-import { Button } from '../ui/Button'
-import { MessageCircle, MapPin, Clock } from 'lucide-react'
+import { MapPin, Clock, Pencil, Calendar, Trash2, XCircle } from 'lucide-react'
+import { formatCurrency } from '../../utils/formatCurrency'
 
-export default function AppointmentTable({ appointments, onManage }) {
-  const handleWhatsApp = (phone, name) => {
-    const cleanPhone = phone?.replace(/[^0-9]/g, '') || '919876543210'
-    const text = encodeURIComponent(`Hi ${name}! Thank you for choosing MakeupDesk. Let us know if you need assistance with your booking! ✨`)
-    window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank')
-  }
+import { EmptyState } from '../ui/EmptyState'
+
+const BASE_HEADERS = ['Appt ID', 'Client', 'Mobile', 'Service', 'Location', 'Date & Time', 'Status', 'Amount']
+
+const thStyle = {
+  padding: '14px 20px', textAlign: 'left', fontSize: '10.5px',
+  fontWeight: 700, color: '#a0622a', textTransform: 'uppercase',
+  letterSpacing: '0.08em', whiteSpace: 'nowrap',
+  background: 'rgba(201, 149, 108, 0.07)',
+}
+
+const tdBase = { padding: '16px 20px', whiteSpace: 'nowrap' }
+
+const iconBtn = (color = 'var(--icon-booking)', bg = 'var(--dash-surface)') => ({
+  width: '30px', height: '30px', borderRadius: '8px',
+  border: '1px solid var(--dash-border)', background: bg, color,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
+})
+
+export default function AppointmentTable({ appointments, onEdit, onDelete, onReject }) {
+  const navigate = useNavigate()
+  const hasActions = onEdit || onDelete || onReject
+  const headers  = [...BASE_HEADERS, ...(hasActions ? [''] : [])]
 
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+
         <thead>
-          <tr style={{ borderBottom: '1px solid rgba(201,149,108,0.12)' }}>
-            {['Client', 'Service', 'Location', 'Date', 'Time & Duration', 'Status', 'Amount', 'Actions'].map(h => (
-              <th key={h} style={{
-                padding: '12px 16px', textAlign: 'left', fontSize: '11px',
-                fontWeight: 600, color: '#8b6e7e', textTransform: 'uppercase',
-                letterSpacing: '0.07em', whiteSpace: 'nowrap'
-              }}>
+          <tr style={{ borderBottom: '1.5px solid rgba(201,149,108,0.2)' }}>
+            {headers.map((h, i) => (
+              <th key={i} style={{ ...thStyle, textAlign: h === 'Amount' ? 'right' : 'left' }}>
                 {h}
               </th>
             ))}
           </tr>
         </thead>
+
         <tbody>
           {appointments.map((appt, i) => (
             <tr
-              key={i}
+              key={appt.id ?? i}
               style={{
-                borderBottom: '1px solid rgba(201,149,108,0.07)',
+                borderBottom: '1px solid var(--dash-border-subtle)',
+                background: i % 2 !== 0 ? 'var(--dash-subtle-row-bg)' : 'transparent',
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(253,248,244,0.7)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
+              onMouseLeave={e => e.currentTarget.style.background = i % 2 !== 0 ? 'var(--dash-subtle-row-bg)' : 'transparent'}
             >
+              {/* Appt ID */}
+              <td style={tdBase}>
+                <span
+                  onClick={() => navigate(`/dashboard/appointments/${appt.id}`)}
+                  title="View appointment"
+                  style={{
+                    fontSize: '12px', fontWeight: 700,
+                    fontFamily: '"Courier New", Courier, monospace',
+                    color: 'var(--icon-booking)',
+                    background: 'var(--icon-booking-bg)',
+                    padding: '4px 9px', borderRadius: '6px',
+                    border: '1px solid var(--dash-border-subtle)',
+                    cursor: 'pointer', transition: 'opacity 0.15s', display: 'inline-block',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                >
+                  {appt.id}
+                </span>
+              </td>
+
               {/* Client */}
-              <td style={{ padding: '14px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                    background: 'linear-gradient(135deg,#c9956c,#e8a4b8)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '13px', fontWeight: 600, color: 'white',
-                  }}>
-                    {appt.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#2d1b2e' }}>{appt.name}</div>
-                    {appt.phone && <div style={{ fontSize: '11px', color: '#8b6e7e' }}>{appt.phone}</div>}
-                  </div>
-                </div>
+              <td style={tdBase}>
+                <span
+                  onClick={() => navigate(`/dashboard/appointments/${appt.id}`)}
+                  title="View appointment"
+                  style={{
+                    fontWeight: 600, fontSize: '13.5px', color: 'var(--icon-booking)',
+                    cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted',
+                    textUnderlineOffset: '3px', transition: 'opacity 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                >
+                  {appt.name}
+                </span>
+              </td>
+
+              {/* Mobile */}
+              <td style={{ ...tdBase, fontSize: '13px', color: 'var(--dash-text-secondary)' }}>
+                {appt.phone ?? '—'}
               </td>
 
               {/* Service */}
-              <td style={{ padding: '14px 16px', color: '#2d1b2e', fontWeight: 500, whiteSpace: 'nowrap' }}>
+              <td style={{ ...tdBase, fontSize: '13.5px', fontWeight: 500, color: 'var(--dash-text-primary)' }}>
                 {appt.service}
               </td>
 
               {/* Location */}
-              <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+              <td style={tdBase}>
                 <span style={{
-                  fontSize: '11px', fontWeight: 500, padding: '3px 8px', borderRadius: '6px',
-                  background: appt.service?.includes('Bridal') ? 'rgba(212,114,143,0.08)' : 'rgba(201,149,108,0.08)',
-                  color: appt.service?.includes('Bridal') ? '#d4728f' : '#a87655',
-                  display: 'inline-flex', alignItems: 'center', gap: '4px'
+                  fontSize: '12px', fontWeight: 600, padding: '4px 10px', borderRadius: '7px',
+                  background: appt.location === 'Venue' ? 'var(--badge-venue-bg)' : 'var(--badge-studio-bg)',
+                  color: appt.location === 'Venue' ? 'var(--badge-venue)' : 'var(--badge-studio)',
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
                 }}>
                   <MapPin size={11} />
-                  {appt.service?.includes('Bridal') ? 'Venue' : 'Studio'}
+                  {appt.location || (appt.service?.includes('Bridal') ? 'Venue' : 'Studio')}
                 </span>
               </td>
 
-              {/* Date */}
-              <td style={{ padding: '14px 16px', color: '#8b6e7e', whiteSpace: 'nowrap' }}>{appt.date}</td>
-
-              {/* Time & Duration */}
-              <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#2d1b2e', fontWeight: 500 }}>
-                  <Clock size={13} style={{ color: '#c9956c' }} />
-                  {appt.time || appt.shift || '06:00 AM'}
-                  {appt.duration && <span style={{ fontSize: '11px', color: '#8b6e7e' }}>({appt.duration})</span>}
+              {/* Date & Time */}
+              <td style={tdBase}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--dash-text-secondary)', marginBottom: '5px' }}>
+                  <Calendar size={12} style={{ color: 'var(--dash-text-muted)', flexShrink: 0 }} />
+                  {appt.date}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--dash-text-primary)', fontWeight: 500 }}>
+                  <Clock size={12} style={{ color: 'var(--icon-booking)', flexShrink: 0 }} />
+                  {appt.time || '—'}
+                  {appt.duration && (
+                    <span style={{
+                      fontSize: '11px', fontWeight: 600, color: 'var(--icon-booking)',
+                      background: 'var(--icon-booking-bg)', padding: '2px 7px',
+                      borderRadius: '9999px', border: '1px solid var(--dash-border-subtle)',
+                    }}>
+                      {appt.duration}
+                    </span>
+                  )}
                 </div>
               </td>
 
-              {/* Status */}
-              <td style={{ padding: '14px 16px' }}><Badge status={appt.status} /></td>
+              {/* Status — badge only, no dropdown */}
+              <td style={tdBase}>
+                <Badge status={appt.status} />
+              </td>
 
               {/* Amount */}
-              <td style={{ padding: '14px 16px', fontWeight: 600, color: '#2d1b2e', whiteSpace: 'nowrap' }}>
-                {appt.amount}
+              <td style={{ ...tdBase, fontWeight: 700, fontSize: '14px', color: 'var(--dash-text-primary)', textAlign: 'right' }}>
+                {typeof appt.amount === 'number' ? formatCurrency(appt.amount) : appt.amount}
               </td>
 
-              {/* Actions */}
-              <td style={{ padding: '14px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <button
-                    onClick={() => handleWhatsApp(appt.phone, appt.name)}
-                    title="Send WhatsApp Message"
-                    style={{
-                      width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(37,211,102,0.3)',
-                      background: 'rgba(37,211,102,0.08)', color: '#25D366', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-                    }}
-                  >
-                    <MessageCircle size={14} />
-                  </button>
-                  <Button variant="ghost" size="xs" onClick={() => onManage?.(appt)}>
-                    Manage
-                  </Button>
-                </div>
-              </td>
+              {hasActions && (
+                <td style={{ ...tdBase, whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {onEdit && (
+                      <button
+                        onClick={() => onEdit(appt)}
+                        title="Edit appointment"
+                        style={iconBtn()}
+                      >
+                        <Pencil size={13} />
+                      </button>
+                    )}
+                    {onReject && appt.status !== 'Rejected' && appt.status !== 'Completed' && (
+                      <button
+                        onClick={() => onReject(appt)}
+                        title="Reject appointment"
+                        style={iconBtn('var(--badge-pending)', 'var(--badge-pending-bg)')}
+                      >
+                        <XCircle size={13} />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Delete ${appt.id} — ${appt.name}? This cannot be undone.`)) {
+                            onDelete(appt.id)
+                          }
+                        }}
+                        title="Delete appointment"
+                        style={iconBtn('var(--badge-rejected)', 'var(--badge-rejected-bg)')}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
       </table>
 
       {appointments.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#8b6e7e', fontSize: '14px' }}>
-          No appointments found.
-        </div>
+        <EmptyState
+          icon={Calendar}
+          title="No Appointments Found"
+          subtitle="There are no appointments matching your current filters or date selection."
+          style={{ border: 'none', background: 'transparent', padding: '48px 20px' }}
+        />
       )}
     </div>
   )

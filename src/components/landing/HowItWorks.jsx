@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState } from 'react'
 import { ClipboardList, MessageCircle, CreditCard, Smile } from 'lucide-react'
 import { useReveal } from '../../hooks/useReveal'
+import bride1 from '../../assets/images/Bride_1.png'
+import engagement from '../../assets/images/Engagement_bridal.png'
 
 const STEPS = [
   {
@@ -57,19 +59,35 @@ export default function HowItWorks() {
     <section
       id="how-it-works"
       ref={ref}
-      className="py-28 relative overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #140c16 0%, #1a0f1b 100%)' }}
+      className="pt-14 pb-20 relative overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #160a18 0%, #1e1022 50%, #160a18 100%)' }}
     >
-      <div className="absolute inset-0 hero-dots" style={{ opacity: 0.04 }} />
+      <div className="absolute inset-0 hero-dots" style={{ opacity: 0.045 }} />
 
-      {/* Ambient blob */}
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
-           style={{ background: 'radial-gradient(circle, rgba(232,164,184,0.07) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+      {/* Ambient blobs */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
+           style={{ background: 'radial-gradient(circle, rgba(232,164,184,0.1) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none"
+           style={{ background: 'radial-gradient(circle, rgba(201,149,108,0.1) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] rounded-full pointer-events-none"
+           style={{ background: 'radial-gradient(ellipse, rgba(201,149,108,0.07) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+
+      {/* Decorative bride photos — left & right edges */}
+      <div className="hidden xl:block absolute left-0 top-1/2 -translate-y-1/2 w-48 h-72 overflow-hidden pointer-events-none"
+           style={{ borderRadius: '0 20px 20px 0', opacity: 0.65 }}>
+        <img src={engagement} alt="" className="w-full h-full object-cover object-top" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 40%, #160a18 100%)' }} />
+      </div>
+      <div className="hidden xl:block absolute right-0 top-1/2 -translate-y-1/2 w-48 h-72 overflow-hidden pointer-events-none"
+           style={{ borderRadius: '20px 0 0 20px', opacity: 0.65 }}>
+        <img src={bride1} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 10%' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to left, transparent 40%, #160a18 100%)' }} />
+      </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="text-center mb-20 reveal">
+        <div className="text-center mb-20">
           <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
             Simple Process
           </span>
@@ -103,27 +121,26 @@ export default function HowItWorks() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {STEPS.map(({ icon: Icon, step, title, desc, color, glow }) => (
-              <div key={step} className="reveal flex flex-col items-center text-center group">
+              <div key={step} className="flex flex-col items-center text-center group">
 
                 {/* Icon circle */}
                 <div
-                  className="relative w-18 h-18 rounded-full flex items-center justify-center mb-7 z-10 transition-all duration-500 group-hover:scale-110 icon-glow"
+                  className="relative rounded-full flex items-center justify-center mb-7 z-10 transition-all duration-500 group-hover:scale-110"
                   style={{
                     width: '72px', height: '72px',
-                    background: `radial-gradient(circle, ${color}22 0%, ${color}08 100%)`,
-                    border: `1.5px solid ${color}50`,
-                    boxShadow: `0 0 0 8px ${color}0a`,
+                    background: `radial-gradient(circle, ${color}28 0%, ${color}0a 100%)`,
+                    border: `1.5px solid ${color}60`,
+                    boxShadow: `0 0 0 8px ${color}0f, 0 8px 24px ${color}20`,
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 32px ${glow}, 0 0 0 8px ${color}15` }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 0 0 8px ${color}0a` }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 40px ${glow}, 0 0 0 8px ${color}20` }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 0 0 8px ${color}0f, 0 8px 24px ${color}20` }}
                 >
                   <Icon size={26} style={{ color }} />
-                  {/* Step badge */}
                   <div
                     className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-white font-bold"
-                    style={{ background: color, fontSize: '9px', boxShadow: `0 4px 12px ${color}60` }}
+                    style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)`, fontSize: '9px', boxShadow: `0 4px 12px ${color}70` }}
                   >
                     {step}
                   </div>
@@ -133,13 +150,13 @@ export default function HowItWorks() {
                 <div
                   className="rounded-2xl p-6 w-full transition-all duration-400 group-hover:-translate-y-1"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    borderTop: `1px solid ${color}30`,
+                    background: `linear-gradient(145deg, ${color}08 0%, rgba(255,255,255,0.02) 100%)`,
+                    border: `1px solid ${color}25`,
+                    boxShadow: `0 4px 24px rgba(0,0,0,0.3)`,
                   }}
                 >
                   <h3 className="font-display font-semibold text-lg mb-2 text-white">{title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>{desc}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{desc}</p>
                 </div>
               </div>
             ))}

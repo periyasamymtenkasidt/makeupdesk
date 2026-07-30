@@ -1,89 +1,151 @@
 import { useState } from 'react'
-import { Plus, Send, Eye, RefreshCw } from 'lucide-react'
-import { Card, CardHeader } from '../../components/ui/Card'
+import { Send, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
-
-const QUOTATIONS = [
-  { id:'Q-001', client:'Priya Mehta',   service:'Bridal Makeup',   date:'Jul 20, 2026', validTill:'Jul 27, 2026', amount:'₹12,000', status:'Approved'       },
-  { id:'Q-002', client:'Anjali Sharma', service:'Party Makeup',    date:'Jul 21, 2026', validTill:'Jul 28, 2026', amount:'₹4,500',  status:'Quotation Sent'  },
-  { id:'Q-003', client:'Kavya Nair',    service:'HD Makeup',       date:'Jul 22, 2026', validTill:'Jul 29, 2026', amount:'₹5,000',  status:'Quotation Sent'  },
-  { id:'Q-004', client:'Ritika Joshi',  service:'Pre-Wedding',     date:'Jul 18, 2026', validTill:'Jul 25, 2026', amount:'₹7,500',  status:'Approved'       },
-  { id:'Q-005', client:'Nisha Patil',   service:'Party Makeup',    date:'Jul 15, 2026', validTill:'Jul 22, 2026', amount:'₹3,500',  status:'Rejected'        },
-  { id:'Q-006', client:'Deepa Verma',   service:'Bridal Makeup',   date:'Jul 23, 2026', validTill:'Jul 30, 2026', amount:'₹15,000', status:'Inquiry'         },
-]
+import { Pagination } from '../../components/ui/Pagination'
+import { usePagination } from '../../hooks/usePagination'
+import { useAppointments } from '../../context/AppointmentContext'
+import { formatCurrency } from '../../utils/formatCurrency'
+import { generateQuotePDF } from '../../utils/generateQuotePDF'
+import SendQuoteModal from '../../components/dashboard/SendQuoteModal'
+import { sendQuoteViaWhatsApp } from '../../utils/whatsapp'
 
 const TAB_STATUSES = ['All', 'Inquiry', 'Quotation Sent', 'Approved', 'Rejected']
 
+const QUOTATION_STATUSES = new Set([
+  'Inquiry', 'Quotation Sent', 'Approved', 'Rejected',
+])
+
+
+// ── page ──────────────────────────────────────────────────────────────────────
 export default function Quotations() {
-  const [activeTab, setActiveTab] = useState('All')
-  const filtered = activeTab === 'All' ? QUOTATIONS : QUOTATIONS.filter(q => q.status === activeTab)
+  const navigate = useNavigate()
+  const { appointments, updateAppointment } = useAppointments()
+  const [activeTab,   setActiveTab]   = useState('All')
+  const [quoteTarget, setQuoteTarget] = useState(null)
+
+  const quotations = appointments.filter(a => QUOTATION_STATUSES.has(a.status))
+  const filtered   = activeTab === 'All' ? quotations : quotations.filter(a => a.status === activeTab)
+
+  const { page, setPage, totalPages, paginated } = usePagination(filtered, 8, activeTab)
+
+  async function handleSend(amount, note) {
+    updateAppointment(quoteTarget.id, { amount, status: 'Quotation Sent' })
+    const res = await sendQuoteViaWhatsApp(quoteTarget, amount, note)
+    if (res?.method === 'download_and_whatsapp') {
+      alert(`📄 Quote PDF downloaded (${res.fileName})\n📲 WhatsApp launched! In the WhatsApp window, click the attachment 📎 icon to attach the PDF file.`)
+    }
+    setQuoteTarget(null)
+  }
 
   return (
-    <div style={{ padding:'28px 32px', display:'flex', flexDirection:'column', gap:'20px' }}>
-      {/* Header */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div>
-          <h2 style={{ fontFamily:'Playfair Display,serif', fontSize:'22px', fontWeight:600, color:'#2d1b2e', margin:0 }}>
-            Quotations
-          </h2>
-          <p style={{ fontSize:'13px', color:'#8b6e7e', margin:'3px 0 0' }}>{QUOTATIONS.length} quotations</p>
+    <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      {/* Tabs & Pipeline Count */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {TAB_STATUSES.map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '7px 16px', borderRadius: '9999px', fontSize: '13px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.2s',
+                ...(activeTab === tab
+                  ? { background: 'var(--dash-filter-active-bg)', color: 'var(--dash-filter-active-tx)', border: '1px solid transparent' }
+                  : { background: 'var(--dash-filter-wrap)', color: 'var(--dash-filter-muted-tx)', border: '1px solid var(--dash-border)' }
+                ),
+              }}>
+              {tab}
+              {tab !== 'All' && (
+                <span style={{
+                  marginLeft: '6px', fontSize: '10px', fontWeight: 700,
+                  padding: '1px 6px', borderRadius: '9999px',
+                  background: activeTab === tab ? 'rgba(255,255,255,0.25)' : 'var(--dash-subtle-row-bg)',
+                  color: activeTab === tab ? 'white' : 'var(--dash-text-muted)',
+                }}>
+                  {appointments.filter(a => a.status === tab).length}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
-        <Button variant="primary" size="sm">
-          <Plus size={15} /> Generate Quotation
-        </Button>
+        <span style={{ fontSize: '12.5px', color: 'var(--dash-text-secondary)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {quotations.length} lead{quotations.length !== 1 ? 's' : ''} in pipeline
+        </span>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
-        {TAB_STATUSES.map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
-            style={{
-              padding:'7px 16px', borderRadius:'9999px', fontSize:'13px', fontWeight:500,
-              cursor:'pointer', border:'none', transition:'all 0.2s',
-              ...(activeTab === tab
-                ? { background:'linear-gradient(135deg,#c9956c,#e8a4b8)', color:'white' }
-                : { background:'white', color:'#8b6e7e', border:'1px solid rgba(201,149,108,0.2)' }
-              ),
-            }}>
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Table card */}
-      <Card>
-        <div style={{ overflowX:'auto' }}>
-          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
+      {/* Table */}
+      <Card style={{ overflow: 'hidden', padding: 0 }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
             <thead>
-              <tr style={{ borderBottom:'1px solid rgba(201,149,108,0.1)' }}>
-                {['Quote #','Client','Service','Date','Valid Till','Amount','Status','Actions'].map(h => (
-                  <th key={h} style={{ padding:'10px 16px', textAlign:'left', fontSize:'11px',
-                                       fontWeight:600, color:'#8b6e7e', textTransform:'uppercase',
-                                       letterSpacing:'0.07em', whiteSpace:'nowrap' }}>
+              <tr style={{ borderBottom: '1.5px solid rgba(201,149,108,0.2)' }}>
+                {['Appt ID', 'Client', 'Service', 'Event Date', 'Amount', 'Status', 'Actions'].map(h => (
+                  <th key={h} style={{
+                    padding: '13px 20px', textAlign: 'left', fontSize: '10.5px',
+                    fontWeight: 700, color: '#a0622a', textTransform: 'uppercase',
+                    letterSpacing: '0.08em', whiteSpace: 'nowrap',
+                    background: 'rgba(201,149,108,0.07)',
+                  }}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map(q => (
+              {paginated.map((q, i) => (
                 <tr key={q.id}
-                  style={{ borderBottom:'1px solid rgba(201,149,108,0.07)', transition:'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(253,248,244,0.8)'}
-                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                  <td style={{ padding:'14px 16px', fontWeight:600, color:'#c9956c', fontFamily:'monospace' }}>{q.id}</td>
-                  <td style={{ padding:'14px 16px', fontWeight:500, color:'#2d1b2e' }}>{q.client}</td>
-                  <td style={{ padding:'14px 16px', color:'#2d1b2e' }}>{q.service}</td>
-                  <td style={{ padding:'14px 16px', color:'#8b6e7e', whiteSpace:'nowrap' }}>{q.date}</td>
-                  <td style={{ padding:'14px 16px', color:'#8b6e7e', whiteSpace:'nowrap' }}>{q.validTill}</td>
-                  <td style={{ padding:'14px 16px', fontWeight:600, color:'#2d1b2e' }}>{q.amount}</td>
-                  <td style={{ padding:'14px 16px' }}><Badge status={q.status} /></td>
-                  <td style={{ padding:'14px 16px' }}>
-                    <div style={{ display:'flex', gap:'6px' }}>
-                      <Button variant="ghost" size="xs"><Eye size={12} /></Button>
-                      {q.status === 'Inquiry' && <Button variant="primary" size="xs"><Send size={12} /> Send</Button>}
-                      {q.status === 'Rejected' && <Button variant="outline" size="xs"><RefreshCw size={12} /> Resend</Button>}
+                  style={{
+                    borderBottom: '1px solid var(--dash-border-subtle)',
+                    background: i % 2 !== 0 ? 'var(--dash-subtle-row-bg)' : 'transparent',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
+                  onMouseLeave={e => e.currentTarget.style.background = i % 2 !== 0 ? 'var(--dash-subtle-row-bg)' : 'transparent'}
+                >
+                  <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <span
+                      onClick={() => navigate(`/dashboard/appointments/${q.id}`)}
+                      style={{
+                        fontSize: '12px', fontWeight: 700,
+                        fontFamily: '"Courier New",Courier,monospace',
+                        color: 'var(--icon-booking)', background: 'var(--icon-booking-bg)',
+                        padding: '3px 8px', borderRadius: '6px',
+                        border: '1px solid var(--dash-border-subtle)',
+                        cursor: 'pointer', transition: 'opacity 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                    >
+                      {q.id}
+                    </span>
+                  </td>
+                  <td style={{ padding: '14px 20px', fontWeight: 600, color: 'var(--dash-text-primary)', whiteSpace: 'nowrap' }}>
+                    {q.name}
+                  </td>
+                  <td style={{ padding: '14px 20px', color: 'var(--dash-text-primary)', whiteSpace: 'nowrap' }}>
+                    {q.service}
+                  </td>
+                  <td style={{ padding: '14px 20px', color: 'var(--dash-text-secondary)', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                    {q.date}
+                  </td>
+                  <td style={{ padding: '14px 20px', fontWeight: 700, color: 'var(--dash-text-primary)', whiteSpace: 'nowrap' }}>
+                    {q.amount ? formatCurrency(q.amount) : '—'}
+                  </td>
+                  <td style={{ padding: '14px 20px' }}>
+                    <Badge status={q.status} />
+                  </td>
+                  <td style={{ padding: '14px 20px' }}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <Button variant="ghost" size="xs" onClick={() => navigate(`/dashboard/appointments/${q.id}`)}>
+                        <Eye size={12} /> View
+                      </Button>
+                      {q.status === 'Inquiry' && (
+                        <Button variant="primary" size="xs" onClick={() => setQuoteTarget(q)}>
+                          <Send size={12} /> Send Quote
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -91,7 +153,25 @@ export default function Quotations() {
             </tbody>
           </table>
         </div>
+
+        {paginated.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '52px', color: 'var(--dash-text-muted)', fontSize: '14px' }}>
+            No {activeTab === 'All' ? '' : activeTab.toLowerCase() + ' '}leads found.
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 20px' }}>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        </div>
       </Card>
+
+      {quoteTarget && (
+        <SendQuoteModal
+          appt={quoteTarget}
+          onClose={() => setQuoteTarget(null)}
+          onSend={handleSend}
+        />
+      )}
     </div>
   )
 }

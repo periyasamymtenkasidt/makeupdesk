@@ -1,11 +1,12 @@
 const VARIANTS = {
-  primary:     { background: 'linear-gradient(135deg,#c9956c,#d4728f)', color: 'white',    border: '1.5px solid transparent'            },
-  outline:     { background: 'transparent',                              color: '#c9956c',  border: '1.5px solid #c9956c'                },
-  ghost:       { background: 'rgba(201,149,108,0.08)',                  color: '#c9956c',  border: '1.5px solid transparent'            },
-  dark:        { background: 'white',                                    color: '#2d1b2e',  border: '1.5px solid transparent'            },
-  darkOutline: { background: 'rgba(255,255,255,0.1)',                   color: 'white',    border: '1.5px solid rgba(255,255,255,0.35)' },
-  danger:      { background: 'rgba(220,38,38,0.08)',                    color: '#dc2626',  border: '1.5px solid transparent'            },
-  success:     { background: 'rgba(5,150,105,0.08)',                    color: '#059669',  border: '1.5px solid transparent'            },
+  primary:     { background: 'linear-gradient(135deg, #c9956c 0%, #d4728f 100%)', color: '#ffffff', border: '1.5px solid transparent' },
+  outline:     { background: 'transparent', color: 'var(--dash-text-primary)', border: '1.5px solid var(--dash-border)' },
+  ghost:       { background: 'var(--btn-ghost-bg)', color: 'var(--btn-ghost-color)', border: '1.5px solid var(--btn-ghost-border)' },
+  dark:        { background: '#ffffff', color: '#1a0f1b', border: '1.5px solid #ffffff' },
+  darkOutline: { background: 'rgba(255, 255, 255, 0.08)', color: '#ffffff', border: '1.5px solid rgba(255, 255, 255, 0.28)' },
+  whatsapp:    { background: '#25D366', color: '#ffffff', border: '1.5px solid #25D366' },
+  danger:      { background: 'var(--badge-rejected-bg)', color: 'var(--badge-rejected)', border: '1.5px solid transparent' },
+  success:     { background: 'var(--badge-confirmed-bg)', color: 'var(--badge-confirmed)', border: '1.5px solid transparent' },
 }
 
 const SIZES = {

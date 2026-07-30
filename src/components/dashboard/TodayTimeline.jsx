@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Clock, MapPin, User, MessageCircle, Sparkles, Plus, Car, CheckCircle2 } from 'lucide-react'
+import { Clock, MapPin, User, MessageCircle, Plus, Car } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '../ui/Card'
 import { Button } from '../ui/Button'
+import { to24h } from '../../utils/timeFormat'
 
 const SCHEDULE_TIMELINE = [
   {
@@ -48,7 +49,7 @@ const SCHEDULE_TIMELINE = [
     locationName: 'MakeupDesk Studio, Jubilee Hills',
     team: ['Ananya (Lead MUA)', 'Pooja (Stylist)'],
     status: 'Confirmed',
-    phone: '919988776655',
+    phone: '919876543211',
     notes: 'Soft Glam with Glossy Lips & Soft Curls',
   },
   {
@@ -76,8 +77,8 @@ const SCHEDULE_TIMELINE = [
   },
 ]
 
-export default function TodayTimeline() {
-  const [filter, setFilter] = useState('all') // 'all' | 'booked' | 'open'
+export default function TodayTimeline({ onBookSlot }) {
+  const [filter, setFilter] = useState('all')
 
   const handleWhatsApp = (phone, name, time) => {
     const text = encodeURIComponent(`Hi ${name}! This is a reminder from MakeupDesk for your makeup appointment today at ${time}. Let us know if you need anything! ✨`)
@@ -96,22 +97,22 @@ export default function TodayTimeline() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
             width: 34, height: 34, borderRadius: '10px',
-            background: 'rgba(201,149,108,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+            background: 'var(--icon-booking-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            <Clock size={18} style={{ color: '#c9956c' }} />
+            <Clock size={18} style={{ color: 'var(--icon-booking)' }} />
           </div>
           <div>
-            <h3 style={{ fontFamily: 'Playfair Display, serif', fontWeight: 600, color: '#2d1b2e', fontSize: '17px', margin: 0 }}>
+            <h3 style={{ fontFamily: 'Playfair Display, serif', fontWeight: 600, color: 'var(--dash-text-primary)', fontSize: '17px', margin: 0 }}>
               Today's Live Availability & Slots
             </h3>
-            <p style={{ fontSize: '12px', color: '#8b6e7e', margin: '2px 0 0' }}>
+            <p style={{ fontSize: '12px', color: 'var(--dash-text-secondary)', margin: '2px 0 0' }}>
               Real-time schedule breakdown based on slot availability
             </p>
           </div>
         </div>
 
         {/* Filter Pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(45,27,46,0.04)', padding: '4px', borderRadius: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--dash-filter-wrap)', padding: '4px', borderRadius: '10px' }}>
           {[
             { id: 'all', label: 'All Slots' },
             { id: 'booked', label: 'Booked (3)' },
@@ -122,14 +123,14 @@ export default function TodayTimeline() {
               onClick={() => setFilter(f.id)}
               style={{
                 border: 'none',
-                background: filter === f.id ? 'white' : 'transparent',
-                color: filter === f.id ? '#2d1b2e' : '#8b6e7e',
+                background: filter === f.id ? 'var(--dash-filter-active-bg)' : 'transparent',
+                color: filter === f.id ? 'var(--dash-filter-active-tx)' : 'var(--dash-filter-muted-tx)',
                 fontWeight: filter === f.id ? 600 : 500,
                 fontSize: '11px',
                 padding: '4px 10px',
                 borderRadius: '7px',
                 cursor: 'pointer',
-                boxShadow: filter === f.id ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                boxShadow: filter === f.id ? '0 2px 6px var(--dash-shadow)' : 'none',
                 transition: 'all 0.15s ease'
               }}
             >
@@ -141,8 +142,7 @@ export default function TodayTimeline() {
 
       <CardBody style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '20px' }}>
         {filteredItems.map((slot) => {
-          
-          /* Render Booked Slot */
+
           if (slot.type === 'booking') {
             return (
               <div
@@ -153,22 +153,22 @@ export default function TodayTimeline() {
                   gap: '12px',
                   padding: '16px',
                   borderRadius: '16px',
-                  background: '#fdfbf9',
-                  border: '1px solid rgba(201,149,108,0.2)',
-                  boxShadow: '0 2px 10px rgba(45,27,46,0.02)',
+                  background: 'var(--dash-surface)',
+                  border: '1px solid var(--dash-border)',
+                  boxShadow: '0 2px 10px var(--dash-shadow)',
                 }}
               >
                 {/* Header row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{
-                      fontFamily: 'Playfair Display, serif', fontWeight: 700, fontSize: '14px', color: '#2d1b2e',
-                      background: 'rgba(45,27,46,0.05)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px'
+                      fontFamily: 'Playfair Display, serif', fontWeight: 700, fontSize: '14px', color: 'var(--dash-text-primary)',
+                      background: 'var(--dash-time-badge-bg)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
-                      <Clock size={13} style={{ color: '#c9956c' }} />
+                      <Clock size={13} style={{ color: 'var(--icon-booking)' }} />
                       {slot.startTime} – {slot.endTime}
                     </span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#c9956c', background: 'rgba(201,149,108,0.1)', padding: '2px 8px', borderRadius: '9999px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--icon-booking)', background: 'var(--icon-booking-bg)', padding: '2px 8px', borderRadius: '9999px' }}>
                       {slot.duration}
                     </span>
                   </div>
@@ -176,8 +176,8 @@ export default function TodayTimeline() {
                   <span style={{
                     fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '9999px',
                     display: 'inline-flex', alignItems: 'center', gap: '5px',
-                    background: slot.locationType === 'venue' ? 'rgba(212,114,143,0.1)' : 'rgba(201,149,108,0.1)',
-                    color: slot.locationType === 'venue' ? '#d4728f' : '#a87655'
+                    background: slot.locationType === 'venue' ? 'var(--badge-venue-bg)' : 'var(--badge-studio-bg)',
+                    color: slot.locationType === 'venue' ? 'var(--badge-venue)' : 'var(--badge-studio)'
                   }}>
                     <MapPin size={12} />
                     {slot.locationType === 'venue' ? 'On-Venue' : 'In-Studio'}
@@ -187,14 +187,14 @@ export default function TodayTimeline() {
                 {/* Details */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#2d1b2e' }}>
+                    <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--dash-text-primary)' }}>
                       {slot.client}
                     </h4>
-                    <div style={{ fontSize: '13px', color: '#c9956c', fontWeight: 500, marginTop: '2px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--icon-booking)', fontWeight: 500, marginTop: '2px' }}>
                       {slot.service}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#8b6e7e', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MapPin size={12} style={{ flexShrink: 0, color: '#a87655' }} />
+                    <div style={{ fontSize: '12px', color: 'var(--dash-text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPin size={12} style={{ flexShrink: 0, color: 'var(--icon-booking)' }} />
                       {slot.locationName}
                     </div>
                   </div>
@@ -218,13 +218,13 @@ export default function TodayTimeline() {
                 {/* Team & Notes */}
                 <div style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
-                  paddingTop: '10px', borderTop: '1px dashed rgba(201,149,108,0.15)', fontSize: '12px'
+                  paddingTop: '10px', borderTop: '1px dashed var(--dash-border-subtle)', fontSize: '12px'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8b6e7e' }}>
-                    <User size={12} style={{ color: '#c9956c' }} />
-                    <span>Team: <strong style={{ color: '#2d1b2e', fontWeight: 500 }}>{slot.team.join(', ')}</strong></span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--dash-text-secondary)' }}>
+                    <User size={12} style={{ color: 'var(--icon-booking)' }} />
+                    <span>Team: <strong style={{ color: 'var(--dash-text-primary)', fontWeight: 500 }}>{slot.team.join(', ')}</strong></span>
                   </div>
-                  <span style={{ fontSize: '11px', fontStyle: 'italic', color: '#a87655' }}>
+                  <span style={{ fontSize: '11px', fontStyle: 'italic', color: 'var(--dash-text-secondary)' }}>
                     "{slot.notes}"
                   </span>
                 </div>
@@ -232,7 +232,6 @@ export default function TodayTimeline() {
             )
           }
 
-          /* Render Travel / Buffer Block */
           if (slot.type === 'buffer') {
             return (
               <div
@@ -243,14 +242,14 @@ export default function TodayTimeline() {
                   justifyContent: 'space-between',
                   padding: '10px 16px',
                   borderRadius: '12px',
-                  background: 'rgba(168,118,85,0.05)',
-                  border: '1px dashed rgba(168,118,85,0.25)',
+                  background: 'var(--slot-buffer-bg)',
+                  border: `1px dashed var(--slot-buffer-border)`,
                   fontSize: '12px',
-                  color: '#a87655',
+                  color: 'var(--dash-text-secondary)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
-                  <Car size={15} style={{ color: '#a87655' }} />
+                  <Car size={15} style={{ color: 'var(--icon-booking)' }} />
                   <span>{slot.label} ({slot.startTime} – {slot.endTime})</span>
                 </div>
                 <span style={{ fontSize: '11px', fontStyle: 'italic' }}>{slot.notes}</span>
@@ -258,33 +257,31 @@ export default function TodayTimeline() {
             )
           }
 
-          /* Render Open Available Slot */
           return (
             <div
               key={slot.id}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justify: 'space-between',
                 padding: '12px 16px',
                 borderRadius: '14px',
-                background: 'rgba(5,150,105,0.03)',
-                border: '1px solid rgba(5,150,105,0.2)',
+                background: 'var(--slot-open-bg)',
+                border: `1px solid var(--slot-open-border)`,
                 flexWrap: 'wrap',
                 gap: '8px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
                 <span style={{
-                  fontSize: '12px', fontWeight: 700, color: '#059669',
-                  background: 'rgba(5,150,105,0.1)', padding: '3px 8px', borderRadius: '6px'
+                  fontSize: '12px', fontWeight: 700, color: 'var(--slot-open)',
+                  background: 'var(--slot-open-badge-bg)', padding: '3px 8px', borderRadius: '6px'
                 }}>
                   {slot.startTime} – {slot.endTime}
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#2d1b2e' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--dash-text-primary)' }}>
                   {slot.label}
                 </span>
-                <span style={{ fontSize: '11px', color: '#059669', fontWeight: 500 }}>
+                <span style={{ fontSize: '11px', color: 'var(--slot-open)', fontWeight: 500 }}>
                   ({slot.duration})
                 </span>
               </div>
@@ -292,12 +289,19 @@ export default function TodayTimeline() {
               <Button
                 variant="outline"
                 size="xs"
-                as="a"
-                href="#book"
+                onClick={() => {
+                  if (onBookSlot) {
+                    onBookSlot({
+                      time: to24h(slot.startTime),
+                      duration: (slot.duration || '').replace(/\s*free\s*/gi, '').trim(),
+                      date: new Date().toISOString().split('T')[0],
+                    })
+                  }
+                }}
                 style={{
-                  color: '#059669',
-                  borderColor: 'rgba(5,150,105,0.3)',
-                  background: 'rgba(5,150,105,0.06)',
+                  color: 'var(--slot-open)',
+                  borderColor: 'var(--slot-open-border)',
+                  background: 'var(--slot-open-bg)',
                   fontSize: '12px'
                 }}
               >

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { ArrowRight, Star, Award, Users, Calendar } from 'lucide-react'
 import { useCounter } from '../../hooks/useCounter'
-import bridePic    from '../../assets/images/GoldenBride.jpg'
-import bridePic2   from '../../assets/images/GoldenBride_2.jpg'
-import etherealPic from '../../assets/images/Ethereal.jpg'
-import roseGoldPic from '../../assets/images/Rose_Gold.jpg'
+import bridePic    from '../../assets/images/Bride_1.png'
+import bridePic2   from '../../assets/images/Bride_2.png'
+import etherealPic from '../../assets/images/Engagement_bridal.png'
+import roseGoldPic from '../../assets/images/Reception_makeup.png'
 
 export default function Hero() {
   const [triggered, setTriggered] = useState(false)
@@ -93,16 +93,10 @@ export default function Hero() {
                 Transforming
               </span>
               <span
-                className="block gradient-text italic text-6xl md:text-7xl lg:text-[82px]"
-                style={{ fontWeight: 400, letterSpacing: '-0.01em' }}
-              >
-                Faces,
-              </span>
-              <span
                 className="block text-5xl md:text-6xl lg:text-[70px] text-white"
                 style={{ fontWeight: 900 }}
               >
-                Creating Magic
+              Beauty Into Art
               </span>
             </h1>
           </div>
@@ -307,9 +301,6 @@ export default function Hero() {
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2.5"
         style={{ zIndex: 10 }}
       >
-        <span style={{ color: 'rgba(255,255,255,0.28)', fontSize: '9px', letterSpacing: '0.26em', textTransform: 'uppercase', fontWeight: 500 }}>
-          Scroll
-        </span>
         <div
           style={{
             width: '20px',

@@ -22,8 +22,8 @@ export const SERVICES = [
     price: '₹3,500',
     priceRaw: 3500,
     gradient: 'linear-gradient(135deg, #4a2e4d 0%, #8b1a4a 100%)',
-    iconBg: 'rgba(201,149,108,0.2)',
-    iconColor: '#c9956c',
+    iconBg: 'rgba(212,114,143,0.2)',
+    iconColor: '#d4728f',
     light: true,
   },
   {
@@ -58,8 +58,8 @@ export const SERVICES = [
     price: '₹5,500',
     priceRaw: 5500,
     gradient: 'linear-gradient(135deg, #f5e1c0 0%, #c9956c 100%)',
-    iconBg: 'rgba(45,27,46,0.1)',
-    iconColor: '#2d1b2e',
+    iconBg: 'rgba(201,149,108,0.2)',
+    iconColor: '#c9956c',
     light: false,
   },
   {
@@ -77,3 +77,12 @@ export const SERVICES = [
 ]
 
 export const SERVICE_NAMES = SERVICES.map(s => s.title)
+
+export const SERVICE_DURATIONS = {
+  'Bridal Makeup':    180,
+  'Party Makeup':     120,
+  'HD Makeup':        90,
+  'Airbrush Makeup':  120,
+  'Pre-Wedding':      150,
+  'Editorial Makeup': 150,
+}

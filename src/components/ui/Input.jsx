@@ -5,7 +5,7 @@ export function Input({ label, icon: Icon, error, className = '', style: extra, 
         <label style={{
           display: 'block', fontSize: '11px', fontWeight: 600,
           textTransform: 'uppercase', letterSpacing: '0.08em',
-          color: '#8b6e7e', marginBottom: '6px',
+          color: 'var(--dash-label-text)', marginBottom: '6px',
         }}>
           {label}
         </label>
@@ -14,66 +14,50 @@ export function Input({ label, icon: Icon, error, className = '', style: extra, 
         {Icon && (
           <Icon size={14} style={{
             position: 'absolute', left: '12px', top: '50%',
-            transform: 'translateY(-50%)', color: '#c9956c', pointerEvents: 'none',
+            transform: 'translateY(-50%)', color: 'var(--color-rose-gold)', pointerEvents: 'none',
           }} />
         )}
         <input
           {...props}
           style={{
             width: '100%', padding: Icon ? '10px 14px 10px 36px' : '10px 14px',
-            borderRadius: '12px', border: error ? '1.5px solid #dc2626' : '1.5px solid rgba(201,149,108,0.25)',
-            outline: 'none', fontSize: '14px', color: '#2d1b2e',
-            background: 'white', fontFamily: 'Inter, system-ui, sans-serif',
+            borderRadius: '12px', border: error ? '1.5px solid var(--color-danger)' : '1.5px solid var(--dash-border)',
+            outline: 'none', fontSize: '14px', color: 'var(--dash-input-text)',
+            background: 'var(--dash-input-bg)', fontFamily: 'Inter, system-ui, sans-serif',
             transition: 'border-color 0.2s', boxSizing: 'border-box',
             ...extra,
           }}
-          onFocus={e  => { e.target.style.borderColor = '#c9956c' }}
-          onBlur={e   => { e.target.style.borderColor = error ? '#dc2626' : 'rgba(201,149,108,0.25)' }}
+          onFocus={e  => { e.target.style.borderColor = 'var(--color-rose-gold)' }}
+          onBlur={e   => { e.target.style.borderColor = error ? 'var(--color-danger)' : 'var(--dash-border)' }}
         />
       </div>
-      {error && <p style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>{error}</p>}
+      {error && <p style={{ color: 'var(--color-danger)', fontSize: '12px', marginTop: '4px' }}>{error}</p>}
     </div>
   )
 }
 
-export function Select({ label, icon: Icon, children, error, style: extra, ...props }) {
+import { CustomSelect } from './CustomSelect'
+
+export function Select({ label, children, value, onChange, placeholder, style: extra, error }) {
+  let options = []
+  if (Array.isArray(children)) {
+    options = children.filter(Boolean).map(child => ({
+      value: child.props?.value ?? child.props?.children,
+      label: child.props?.children ?? String(child.props?.value),
+    }))
+  }
+
   return (
     <div style={{ width: '100%' }}>
-      {label && (
-        <label style={{
-          display: 'block', fontSize: '11px', fontWeight: 600,
-          textTransform: 'uppercase', letterSpacing: '0.08em',
-          color: '#8b6e7e', marginBottom: '6px',
-        }}>
-          {label}
-        </label>
-      )}
-      <div style={{ position: 'relative' }}>
-        {Icon && (
-          <Icon size={14} style={{
-            position: 'absolute', left: '12px', top: '50%',
-            transform: 'translateY(-50%)', color: '#c9956c', pointerEvents: 'none', zIndex: 1,
-          }} />
-        )}
-        <select
-          {...props}
-          style={{
-            width: '100%', padding: Icon ? '10px 36px 10px 36px' : '10px 36px 10px 14px',
-            borderRadius: '12px', border: '1.5px solid rgba(201,149,108,0.25)',
-            outline: 'none', fontSize: '14px', color: '#2d1b2e',
-            background: 'white', fontFamily: 'Inter, system-ui, sans-serif',
-            appearance: 'none', cursor: 'pointer', boxSizing: 'border-box',
-            ...extra,
-          }}
-        >
-          {children}
-        </select>
-        <svg style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#c9956c' }}
-             width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </div>
-      {error && <p style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>{error}</p>}
+      <CustomSelect
+        label={label}
+        value={value}
+        placeholder={placeholder}
+        options={options}
+        onChange={val => onChange && onChange({ target: { value: val } })}
+        style={extra}
+      />
+      {error && <p style={{ color: 'var(--color-danger)', fontSize: '12px', marginTop: '4px' }}>{error}</p>}
     </div>
   )
 }

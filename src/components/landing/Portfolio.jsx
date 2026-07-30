@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Eye, ArrowUpRight, ArrowRight } from 'lucide-react'
 import { useReveal } from '../../hooks/useReveal'
-import goldenBride  from '../../assets/images/GoldenBride.jpg'
-import goldenBride2 from '../../assets/images/GoldenBride_2.jpg'
-import goldenBride3 from '../../assets/images/GoldenBride_3.jpg'
-import partyMakeup  from '../../assets/images/Partymakeup.jpg'
-import ethereal     from '../../assets/images/Ethereal.jpg'
-import roseGold     from '../../assets/images/Rose_Gold.jpg'
+import bride1          from '../../assets/images/Bride_1.png'
+import bride2          from '../../assets/images/Bride_2.png'
+import bride3          from '../../assets/images/Bride_3.png'
+import bride4          from '../../assets/images/Bride_4.png'
+import partyMakeup     from '../../assets/images/Party_makeup.png'
+import engagementBride from '../../assets/images/Engagement_bridal.png'
+import haldi           from '../../assets/images/Haldi_makeup.png'
+import reception       from '../../assets/images/Reception_makeup.png'
 
 const CATEGORIES = ['All', 'Bridal', 'Party', 'Editorial', 'Pre-Wedding', 'HD']
 
@@ -19,8 +21,8 @@ const ITEMS = [
     tag: 'Featured',
     accent: '#c9956c',
     glow: 'rgba(201,149,108,0.4)',
-    img: goldenBride,  pos: 'center 15%',
-    img2: goldenBride2, pos2: 'center 18%',
+    img: bride1, pos: 'center 15%',
+    img2: bride2, pos2: 'center 18%',
   },
   {
     id: 1,
@@ -30,7 +32,7 @@ const ITEMS = [
     tag: null,
     accent: '#e8a4b8',
     glow: 'rgba(232,164,184,0.35)',
-    img: partyMakeup,  pos: 'top center',
+    img: partyMakeup, pos: 'top center',
     img2: partyMakeup, pos2: 'center 58%',
   },
   {
@@ -41,8 +43,8 @@ const ITEMS = [
     tag: null,
     accent: '#d4b8e8',
     glow: 'rgba(212,184,232,0.35)',
-    img: ethereal,  pos: 'center 12%',
-    img2: ethereal, pos2: 'center 60%',
+    img: engagementBride, pos: 'center 12%',
+    img2: engagementBride, pos2: 'center 60%',
   },
   {
     id: 3,
@@ -52,8 +54,8 @@ const ITEMS = [
     tag: null,
     accent: '#e8a4b8',
     glow: 'rgba(232,164,184,0.35)',
-    img: roseGold,  pos: 'center 10%',
-    img2: roseGold, pos2: 'center 58%',
+    img: reception, pos: 'center 10%',
+    img2: haldi, pos2: 'center 58%',
   },
   {
     id: 4,
@@ -63,8 +65,8 @@ const ITEMS = [
     tag: null,
     accent: '#f5e1c0',
     glow: 'rgba(245,225,192,0.32)',
-    img: goldenBride2,  pos: 'center 12%',
-    img2: goldenBride3, pos2: 'center 22%',
+    img: bride3, pos: 'center 12%',
+    img2: bride4, pos2: 'center 22%',
   },
   {
     id: 5,
@@ -74,8 +76,8 @@ const ITEMS = [
     tag: 'Award Winner',
     accent: '#d4728f',
     glow: 'rgba(212,114,143,0.4)',
-    img: goldenBride3,  pos: 'center 12%',
-    img2: goldenBride3, pos2: 'center 58%',
+    img: bride4, pos: 'center 12%',
+    img2: bride2, pos2: 'center 58%',
   },
 ]
 

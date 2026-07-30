@@ -4,8 +4,9 @@ import { chatOnWhatsApp } from '../../utils/whatsapp'
 
 const PHONE    = import.meta.env.VITE_BUSINESS_PHONE    ?? '+91 99999 99999'
 const EMAIL    = import.meta.env.VITE_BUSINESS_EMAIL    ?? 'hello@makeupdesk.in'
-const LOCATION = import.meta.env.VITE_BUSINESS_LOCATION ?? 'Mumbai, Maharashtra, India'
+const LOCATION = import.meta.env.VITE_BUSINESS_LOCATION ?? 'Chennai, Tamil Nadu, India'
 const NAME     = import.meta.env.VITE_BUSINESS_NAME     ?? 'MakeupDesk'
+const INSTAGRAM = import.meta.env.VITE_INSTAGRAM_LINK   ?? 'https://www.instagram.com/sofdoesmakeup_'
 
 const SOCIALS = [
   { icon: Camera,        href: '#',             label: 'Instagram' },
@@ -100,6 +101,7 @@ export default function Footer() {
                 { icon: Phone,  value: PHONE,    href: `tel:${PHONE.replace(/\s/g,'')}` },
                 { icon: Mail,   value: EMAIL,    href: `mailto:${EMAIL}` },
                 { icon: MapPin, value: LOCATION, href: '#' },
+                { icon: Camera, value: INSTAGRAM,href: INSTAGRAM },
               ].map(({ icon: Icon, value, href }) => (
                 <li key={value}>
                   <a href={href}
