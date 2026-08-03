@@ -16,7 +16,7 @@ export default function MarqueeBar() {
   return (
     <div
       style={{
-        background: 'linear-gradient(90deg, #08040a, #0e0710, #08040a)',
+        background: 'var(--land-marquee-bg)',
         borderTop: '1px solid rgba(201,149,108,0.12)',
         borderBottom: '1px solid rgba(201,149,108,0.12)',
         padding: '14px 0',
@@ -29,7 +29,7 @@ export default function MarqueeBar() {
               <span style={{ color: '#c9956c', fontSize: '11px' }}>{item.icon}</span>
               <span
                 style={{
-                  color: 'rgba(245,225,192,0.48)',
+                  color: 'var(--land-marquee-text)',
                   fontSize: '11px',
                   fontWeight: 500,
                   letterSpacing: '0.1em',

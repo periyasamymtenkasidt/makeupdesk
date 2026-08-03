@@ -452,7 +452,7 @@ export default function BookingCTA() {
   return (
     <>
       <section id="book" className="py-32 relative overflow-hidden"
-               style={{ background: "linear-gradient(180deg,#0e0710 0%,#1a0f1b 40%,#2d1b2e 100%)" }}>
+               style={{ background: "var(--land-sec6-bg)" }}>
         <div className="absolute inset-0 hero-dots" style={{ opacity: 0.05 }} />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full pointer-events-none"
              style={{ background: "radial-gradient(ellipse,rgba(201,149,108,0.18) 0%,transparent 65%)", filter: "blur(60px)" }} />
@@ -465,20 +465,20 @@ export default function BookingCTA() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
                style={{ background: "rgba(201,149,108,0.1)", border: "1px solid rgba(201,149,108,0.3)" }}>
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#c9956c" }} />
-            <span style={{ color: "#f5e1c0", fontSize: "11px", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase" }}>
+            <span style={{ color: "var(--land-badge-text)", fontSize: "11px", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase" }}>
               Ready to Glow?
             </span>
           </div>
 
-          <h2 className="font-display text-white"
-              style={{ fontSize: "clamp(40px,7vw,80px)", fontWeight: 800, lineHeight: 1.06 }}>
+          <h2 className="font-display"
+              style={{ fontSize: "clamp(40px,7vw,80px)", fontWeight: 800, lineHeight: 1.06, color: "var(--land-text)" }}>
             Book Your Dream
             <br />
             <span className="gradient-text italic">Makeup Look</span>
           </h2>
 
           <p className="mt-6 max-w-xl mx-auto text-base leading-relaxed"
-             style={{ color: "rgba(255,255,255,0.55)" }}>
+             style={{ color: "var(--land-text-muted)" }}>
             Slots fill up fast — especially for weekends &amp; wedding seasons.
             Reserve yours today and get an instant quotation on WhatsApp.
           </p>
@@ -494,12 +494,7 @@ export default function BookingCTA() {
               href={chatOnWhatsApp()}
               target="_blank"
               rel="noreferrer"
-              style={{
-                background: "rgba(255, 255, 255, 0.08)",
-                color: "#ffffff",
-                border: "1.5px solid rgba(255, 255, 255, 0.28)",
-                fontWeight: 600,
-              }}
+              style={{ fontWeight: 600 }}
             >
               Chat on WhatsApp
             </Button>
@@ -508,7 +503,7 @@ export default function BookingCTA() {
           <div className="mt-12 flex flex-wrap justify-center gap-4">
             {["✓ Instant WhatsApp Quotation", "✓ UPI Advance Payment", "✓ Doorstep Service"].map(b => (
               <span key={b} className="px-4 py-2 rounded-full text-sm"
-                    style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    style={{ background: "var(--land-pill-bg)", color: "var(--land-text-muted)", border: "1px solid var(--land-pill-border)" }}>
                 {b}
               </span>
             ))}

@@ -97,7 +97,7 @@ export default function Portfolio() {
       id="portfolio"
       ref={ref}
       className="py-28 relative overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #0e0710 0%, #140c16 60%, #0e0710 100%)' }}
+      style={{ background: 'var(--land-sec4-bg)' }}
     >
       {/* Background ambience */}
       <div className="absolute inset-0 hero-dots" style={{ opacity: 0.035 }} />
@@ -113,11 +113,11 @@ export default function Portfolio() {
           <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' }}>
             Our Work
           </span>
-          <h2 className="font-display mt-3 text-white" style={{ fontSize: 'clamp(36px,5vw,56px)', fontWeight: 800, lineHeight: 1.08 }}>
+          <h2 className="font-display mt-3" style={{ fontSize: 'clamp(36px,5vw,56px)', fontWeight: 800, lineHeight: 1.08, color: 'var(--land-text)' }}>
             Looks We've Created
           </h2>
           <div className="section-divider" />
-          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'rgba(255,255,255,0.42)' }}>
+          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'var(--land-text-muted)' }}>
             Every look tells a story — of confidence, beauty, and artistry.
           </p>
         </div>
@@ -134,14 +134,14 @@ export default function Portfolio() {
                 className="filter-tab px-5 py-2 rounded-full text-sm font-medium transition-all duration-250 flex items-center gap-2"
                 style={isActive
                   ? { background: 'linear-gradient(135deg, #c9956c, #d4728f)', color: 'white', boxShadow: '0 4px 20px rgba(201,149,108,0.4)', border: '1px solid transparent' }
-                  : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.48)', border: '1px solid rgba(255,255,255,0.09)' }
+                  : { background: 'var(--land-pill-bg)', color: 'var(--land-pill-text)', border: '1px solid var(--land-pill-border)' }
                 }
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.borderColor = 'rgba(201,149,108,0.35)' }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.borderColor = 'rgba(201,149,108,0.45)' }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.borderColor = 'var(--land-pill-border)' }}
               >
                 {cat}
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                      style={{ background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)', color: isActive ? 'white' : 'rgba(255,255,255,0.35)' }}>
+                      style={{ background: isActive ? 'rgba(255,255,255,0.2)' : 'var(--land-card-bg)', color: isActive ? 'white' : 'var(--land-text-faint)' }}>
                   {count}
                 </span>
               </button>

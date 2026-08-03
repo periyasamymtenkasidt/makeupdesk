@@ -26,8 +26,8 @@ const STEPS = [
     step: '03',
     title: 'Confirm & Pay Advance',
     desc: 'Approve the quote, pay a small advance via UPI to lock your booking. Balance is due after the service.',
-    color: '#f5e1c0',
-    glow: 'rgba(245,225,192,0.3)',
+    color: '#c4a06e',
+    glow: 'rgba(196,160,110,0.38)',
   },
   {
     icon: Smile,
@@ -60,7 +60,7 @@ export default function HowItWorks() {
       id="how-it-works"
       ref={ref}
       className="pt-14 pb-20 relative overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #160a18 0%, #1e1022 50%, #160a18 100%)' }}
+      style={{ background: 'var(--land-sec2-bg)' }}
     >
       <div className="absolute inset-0 hero-dots" style={{ opacity: 0.045 }} />
 
@@ -76,12 +76,12 @@ export default function HowItWorks() {
       <div className="hidden xl:block absolute left-0 top-1/2 -translate-y-1/2 w-48 h-72 overflow-hidden pointer-events-none"
            style={{ borderRadius: '0 20px 20px 0', opacity: 0.65 }}>
         <img src={engagement} alt="" className="w-full h-full object-cover object-top" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 40%, #160a18 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, transparent 40%, var(--land-side-fade) 100%)' }} />
       </div>
       <div className="hidden xl:block absolute right-0 top-1/2 -translate-y-1/2 w-48 h-72 overflow-hidden pointer-events-none"
            style={{ borderRadius: '20px 0 0 20px', opacity: 0.65 }}>
         <img src={bride1} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 10%' }} />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to left, transparent 40%, #160a18 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to left, transparent 40%, var(--land-side-fade) 100%)' }} />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,11 +91,11 @@ export default function HowItWorks() {
           <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
             Simple Process
           </span>
-          <h2 className="font-display mt-3 text-white" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1 }}>
+          <h2 className="font-display mt-3" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1, color: 'var(--land-text)' }}>
             How It Works
           </h2>
           <div className="section-divider" />
-          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'var(--land-text-muted)' }}>
             From inquiry to a flawless look — our seamless 4-step process keeps you informed at every stage.
           </p>
         </div>
@@ -106,14 +106,14 @@ export default function HowItWorks() {
           {/* Animated connector line (desktop) */}
           <div
             ref={lineRef}
-            className="hidden lg:block absolute h-px"
-            style={{ top: '36px', left: 'calc(12.5% + 36px)', right: 'calc(12.5% + 36px)', background: 'rgba(255,255,255,0.07)' }}
+            className="hidden lg:block absolute"
+            style={{ top: '35px', left: 'calc(12.5% + 36px)', right: 'calc(12.5% + 36px)', height: '2px', background: 'var(--land-divider)' }}
           >
             <div
               className={lineVisible ? 'line-fill' : ''}
               style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(90deg, #c9956c, #e8a4b8, #f5e1c0, #d4728f)',
+                background: 'linear-gradient(90deg, #c9956c, #e8a4b8, #c4a06e, #d4728f)',
                 transformOrigin: 'left',
                 transform: lineVisible ? 'scaleX(1)' : 'scaleX(0)',
                 transition: lineVisible ? 'transform 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s' : 'none',
@@ -155,8 +155,8 @@ export default function HowItWorks() {
                     boxShadow: `0 4px 24px rgba(0,0,0,0.3)`,
                   }}
                 >
-                  <h3 className="font-display font-semibold text-lg mb-2 text-white">{title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{desc}</p>
+                  <h3 className="font-display font-semibold text-lg mb-2" style={{ color: 'var(--land-text)' }}>{title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--land-text-muted)' }}>{desc}</p>
                 </div>
               </div>
             ))}

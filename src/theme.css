@@ -208,6 +208,55 @@
   --btn-primary-shadow:   rgba(var(--rgb-rose-gold), 0.35);
   --dash-border-hover:    rgba(var(--rgb-rose-gold), 0.50);
   --gradient-rose-bar:    linear-gradient(90deg, var(--color-rose-gold) 0%, var(--color-blush-dark) 100%);
+
+  /* ── Landing Page Tokens (dark default) ── */
+  --land-hero-bg:      linear-gradient(145deg, #0e0710 0%, #1a0f1b 35%, #2d1b2e 68%, #4a2e4d 100%);
+  --land-sec1-bg:      linear-gradient(180deg, #0a050c 0%, #1c0f1e 50%, #160a18 100%);
+  --land-sec2-bg:      linear-gradient(180deg, #160a18 0%, #1e1022 50%, #160a18 100%);
+  --land-sec3-bg:      linear-gradient(180deg, #140c16 0%, #1a0f1b 100%);
+  --land-sec4-bg:      linear-gradient(180deg, #0e0710 0%, #140c16 60%, #0e0710 100%);
+  --land-sec5-bg:      linear-gradient(180deg, #1a0f1b 0%, #0e0710 100%);
+  --land-sec6-bg:      linear-gradient(180deg, #0e0710 0%, #1a0f1b 40%, #2d1b2e 100%);
+  --land-footer-bg:    #07040a;
+  --land-marquee-bg:   linear-gradient(90deg, #08040a, #0e0710, #08040a);
+  --land-marquee-text: rgba(245, 225, 192, 0.48);
+  --land-nav-bg:       rgba(14, 7, 16, 0.88);
+  --land-text:         #ffffff;
+  --land-text-sub:     rgba(255, 255, 255, 0.70);
+  --land-text-muted:   rgba(255, 255, 255, 0.45);
+  --land-text-faint:   rgba(255, 255, 255, 0.35);
+  --land-text-dim:     rgba(255, 255, 255, 0.22);
+  --land-card-bg:      rgba(255, 255, 255, 0.03);
+  --land-card-border:  rgba(255, 255, 255, 0.07);
+  --land-divider:      rgba(255, 255, 255, 0.10);
+  --land-pill-bg:      rgba(255, 255, 255, 0.04);
+  --land-pill-text:    rgba(255, 255, 255, 0.48);
+  --land-pill-border:  rgba(255, 255, 255, 0.09);
+  --land-badge-bg:     rgba(201, 149, 108, 0.08);
+  --land-badge-text:   rgba(245, 225, 192, 0.70);
+  --land-glass-bg:     rgba(12, 6, 14, 0.92);
+  --land-glass-border: rgba(201, 149, 108, 0.45);
+  --land-side-fade:    #160a18;
+  --land-bottom-fade:  #08040a;
+  --land-vignette:     rgba(8, 4, 9, 0.72);
+
+  /* ── Dark-section Button Tokens (dark default — white button on dark bg) ── */
+  --btn-dark-bg:             #ffffff;
+  --btn-dark-color:          #1a0f1b;
+  --btn-dark-border:         #ffffff;
+  --btn-dark-outline-bg:     rgba(255,255,255,0.08);
+  --btn-dark-outline-color:  #ffffff;
+  --btn-dark-outline-border: rgba(255,255,255,0.28);
+
+  /* ── Footer Tokens (dark default) ── */
+  --land-footer-heading:      #ffffff;
+  --land-footer-text:         rgba(255,255,255,0.88);
+  --land-footer-text-muted:   rgba(255,255,255,0.60);
+  --land-footer-text-dim:     rgba(255,255,255,0.42);
+  --land-footer-icon:         #c9956c;
+  --land-footer-icon-bg:      rgba(201,149,108,0.20);
+  --land-footer-icon-border:  rgba(201,149,108,0.55);
+  --land-footer-divider:      rgba(255,255,255,0.07);
 }
 
 [data-theme="light"] {
@@ -327,6 +376,55 @@
 
   /* ── Shared Action Tokens (light override) ── */
   --btn-primary-shadow:   rgba(var(--rgb-rose-gold), 0.28);
+
+  /* ── Landing Page Tokens (light override) ── */
+  --land-hero-bg:      linear-gradient(145deg, #fdf8f4 0%, #f5e8de 35%, #ede0d6 68%, #e5d4c8 100%);
+  --land-sec1-bg:      linear-gradient(180deg, #fdf4ee 0%, #f5e8de 50%, #fdf4ee 100%);
+  --land-sec2-bg:      linear-gradient(180deg, #f5e8de 0%, #ede0d6 50%, #f5e8de 100%);
+  --land-sec3-bg:      linear-gradient(180deg, #fdf4ee 0%, #f5e8de 100%);
+  --land-sec4-bg:      linear-gradient(180deg, #fdf8f4 0%, #f5eee6 60%, #fdf8f4 100%);
+  --land-sec5-bg:      linear-gradient(180deg, #f5e8de 0%, #fdf8f4 100%);
+  --land-sec6-bg:      linear-gradient(180deg, #fdf8f4 0%, #f5e8de 40%, #ede0d6 100%);
+  --land-footer-bg:    #2d1b2e;
+  --land-marquee-bg:   linear-gradient(90deg, #f0e4d8, #fdf4ee, #f0e4d8);
+  --land-marquee-text: rgba(45, 27, 46, 0.65);
+  --land-nav-bg:       rgba(253, 248, 244, 0.97);
+  --land-text:         #2d1b2e;
+  --land-text-sub:     rgba(45, 27, 46, 0.80);
+  --land-text-muted:   rgba(45, 27, 46, 0.62);
+  --land-text-faint:   rgba(45, 27, 46, 0.50);
+  --land-text-dim:     rgba(45, 27, 46, 0.38);
+  --land-card-bg:      rgba(45, 27, 46, 0.04);
+  --land-card-border:  rgba(45, 27, 46, 0.08);
+  --land-divider:      rgba(45, 27, 46, 0.10);
+  --land-pill-bg:      rgba(45, 27, 46, 0.05);
+  --land-pill-text:    rgba(45, 27, 46, 0.60);
+  --land-pill-border:  rgba(45, 27, 46, 0.12);
+  --land-badge-bg:     rgba(201, 149, 108, 0.12);
+  --land-badge-text:   rgba(139, 90, 43, 0.85);
+  --land-glass-bg:     rgba(253, 248, 244, 0.97);
+  --land-glass-border: rgba(201, 149, 108, 0.38);
+  --land-side-fade:    #f5e8de;
+  --land-bottom-fade:  #f0e4d8;
+  --land-vignette:     rgba(45, 27, 46, 0.12);
+
+  /* ── Dark-section Button Tokens (light override — sections are now cream) ── */
+  --btn-dark-bg:             #2d1b2e;
+  --btn-dark-color:          #ffffff;
+  --btn-dark-border:         #2d1b2e;
+  --btn-dark-outline-bg:     rgba(45,27,46,0.07);
+  --btn-dark-outline-color:  #2d1b2e;
+  --btn-dark-outline-border: rgba(45,27,46,0.32);
+
+  /* ── Footer Tokens (light override — footer bg stays dark plum #2d1b2e) ── */
+  --land-footer-heading:      #ffffff;
+  --land-footer-text:         rgba(255,255,255,0.92);
+  --land-footer-text-muted:   rgba(255,255,255,0.72);
+  --land-footer-text-dim:     rgba(255,255,255,0.52);
+  --land-footer-icon:         #e8c4a0;
+  --land-footer-icon-bg:      rgba(232,196,160,0.28);
+  --land-footer-icon-border:  rgba(232,196,160,0.70);
+  --land-footer-divider:      rgba(255,255,255,0.12);
 }
 
 /* ── Tailwind v4 Theme Registrations ── */

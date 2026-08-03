@@ -24,7 +24,7 @@ export default function Hero() {
     <section
       id="home"
       className="relative min-h-screen flex items-center overflow-hidden"
-      style={{ background: 'linear-gradient(145deg, #0e0710 0%, #1a0f1b 35%, #2d1b2e 68%, #4a2e4d 100%)' }}
+      style={{ background: 'var(--land-hero-bg)' }}
     >
       {/* Film grain texture */}
       <div
@@ -47,7 +47,7 @@ export default function Hero() {
         aria-hidden="true"
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse at 50% 45%, transparent 38%, rgba(8,4,9,0.72) 100%)',
+          background: `radial-gradient(ellipse at 50% 45%, transparent 38%, var(--land-vignette) 100%)`,
           zIndex: 3,
         }}
       />
@@ -67,7 +67,7 @@ export default function Hero() {
         style={{ zIndex: 10 }}
       >
         {/* ── Left: Content ── */}
-        <div className="text-white space-y-7">
+        <div className="space-y-7" style={{ color: 'var(--land-text)' }}>
 
           {/* Badge */}
           <div
@@ -75,7 +75,7 @@ export default function Hero() {
             style={{
               background: 'rgba(201,149,108,0.1)',
               border: '1px solid rgba(201,149,108,0.38)',
-              color: '#f5e1c0',
+              color: 'var(--land-badge-text)',
               boxShadow: '0 0 24px rgba(201,149,108,0.12)',
             }}
           >
@@ -85,18 +85,18 @@ export default function Hero() {
             </span>
           </div>
 
-          {/* Headline — weight contrast creates premium feel */}
+          {/* Headline */}
           <div className="animate-fade-in-up delay-200">
             <h1 className="font-display" style={{ lineHeight: 1.06, margin: 0 }}>
               <span
-                className="block text-5xl md:text-6xl lg:text-[70px] text-white"
-                style={{ fontWeight: 900 }}
+                className="block text-5xl md:text-6xl lg:text-[70px]"
+                style={{ fontWeight: 900, color: 'var(--land-text)' }}
               >
                 Transforming
               </span>
               <span
-                className="block text-5xl md:text-6xl lg:text-[70px] text-white"
-                style={{ fontWeight: 900 }}
+                className="block text-5xl md:text-6xl lg:text-[70px]"
+                style={{ fontWeight: 900, color: 'var(--land-text)' }}
               >
               Beauty Into Art
               </span>
@@ -106,7 +106,7 @@ export default function Hero() {
           {/* Subtext */}
           <p
             className="animate-fade-in-up delay-300 text-lg leading-relaxed max-w-[420px]"
-            style={{ color: 'rgba(255,255,255,0.58)' }}
+            style={{ color: 'var(--land-text-muted)' }}
           >
             Expert bridal, party &amp; editorial makeup by certified artists.
             From your first inquiry to your glam look — seamlessly managed.
@@ -125,7 +125,7 @@ export default function Hero() {
           {/* Animated mini stats */}
           <div
             className="animate-fade-in-up delay-500 flex items-center gap-8 pt-4"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+            style={{ borderTop: '1px solid var(--land-divider)' }}
           >
             {[
               { value: clients, suffix: '+', label: 'Happy Clients' },
@@ -141,7 +141,7 @@ export default function Hero() {
                 </div>
                 <div
                   className="text-xs mt-0.5"
-                  style={{ color: 'rgba(255,255,255,0.38)', letterSpacing: '0.04em' }}
+                  style={{ color: 'var(--land-text-faint)', letterSpacing: '0.04em' }}
                 >
                   {s.label}
                 </div>
@@ -233,51 +233,51 @@ export default function Hero() {
                  style={{
                    padding: '10px 16px',
                    borderRadius: '18px',
-                   background: 'rgba(12,6,14,0.92)',
+                   background: 'var(--land-glass-bg)',
                    backdropFilter: 'blur(20px)',
                    WebkitBackdropFilter: 'blur(20px)',
-                   border: '1px solid rgba(201,149,108,0.45)',
-                   boxShadow: '0 12px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(201,149,108,0.12), 0 4px 20px rgba(201,149,108,0.2)',
+                   border: '1px solid var(--land-glass-border)',
+                   boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 4px 20px rgba(201,149,108,0.2)',
                    animationDelay: '0.4s',
                  }}>
               <div style={{ color: '#fbbf24', fontSize: '14px', letterSpacing: '2.5px', textShadow: '0 0 14px rgba(251,191,36,0.6)' }}>★★★★★</div>
-              <div className="font-display font-bold text-white" style={{ fontSize: '20px', lineHeight: 1, marginTop: '2px' }}>5.0</div>
-              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.45)', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: '3px' }}>Google Rating</div>
+              <div className="font-display font-bold" style={{ fontSize: '20px', lineHeight: 1, marginTop: '2px', color: 'var(--land-text)' }}>5.0</div>
+              <div style={{ fontSize: '8px', color: 'var(--land-text-muted)', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: '3px' }}>Google Rating</div>
             </div>
 
             {/* Floating card: Clients */}
-            <div className="animate-float float-card-glow absolute -top-4 -right-5 glass rounded-2xl px-4 py-3 flex items-center gap-3 text-white"
-                 style={{ borderTop: '2px solid rgba(201,149,108,0.65)' }}>
+            <div className="animate-float float-card-glow absolute -top-4 -right-5 glass rounded-2xl px-4 py-3 flex items-center gap-3"
+                 style={{ borderTop: '2px solid rgba(201,149,108,0.65)', color: 'var(--land-text)' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,149,108,0.18)' }}>
                 <Users size={18} style={{ color: '#c9956c' }} />
               </div>
               <div>
                 <div className="font-semibold text-sm leading-none">500+</div>
-                <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.48)' }}>Happy Clients</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--land-text-muted)' }}>Happy Clients</div>
               </div>
             </div>
 
             {/* Floating card: Certified */}
-            <div className="animate-float-delay float-card-glow absolute -bottom-5 -left-5 glass rounded-2xl px-4 py-3 flex items-center gap-3 text-white"
-                 style={{ borderTop: '2px solid rgba(232,164,184,0.65)' }}>
+            <div className="animate-float-delay float-card-glow absolute -bottom-5 -left-5 glass rounded-2xl px-4 py-3 flex items-center gap-3"
+                 style={{ borderTop: '2px solid rgba(232,164,184,0.65)', color: 'var(--land-text)' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(232,164,184,0.18)' }}>
                 <Award size={18} style={{ color: '#e8a4b8' }} />
               </div>
               <div>
                 <div className="font-semibold text-sm leading-none">Certified</div>
-                <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.48)' }}>Professional</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--land-text-muted)' }}>Professional</div>
               </div>
             </div>
 
             {/* Floating card: Events */}
-            <div className="animate-float-reverse float-card-glow absolute top-1/2 -right-14 -translate-y-1/2 glass rounded-2xl px-4 py-3 flex items-center gap-3 text-white"
-                 style={{ borderTop: '2px solid rgba(245,225,192,0.55)' }}>
+            <div className="animate-float-reverse float-card-glow absolute top-1/2 -right-14 -translate-y-1/2 glass rounded-2xl px-4 py-3 flex items-center gap-3"
+                 style={{ borderTop: '2px solid rgba(245,225,192,0.55)', color: 'var(--land-text)' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(245,225,192,0.13)' }}>
                 <Calendar size={18} style={{ color: '#f5e1c0' }} />
               </div>
               <div>
                 <div className="font-semibold text-sm leading-none">1000+</div>
-                <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.48)' }}>Events Done</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--land-text-muted)' }}>Events Done</div>
               </div>
             </div>
 
@@ -295,7 +295,7 @@ export default function Hero() {
       <div
         aria-hidden="true"
         className="absolute bottom-0 left-0 right-0 pointer-events-none"
-        style={{ height: '120px', background: 'linear-gradient(to bottom, transparent 0%, #08040a 100%)', zIndex: 4 }}
+        style={{ height: '120px', background: 'linear-gradient(to bottom, transparent 0%, var(--land-bottom-fade) 100%)', zIndex: 4 }}
       />
 
       {/* Premium mouse scroll indicator */}
@@ -307,7 +307,7 @@ export default function Hero() {
           style={{
             width: '20px',
             height: '32px',
-            border: '1.5px solid rgba(255,255,255,0.18)',
+            border: '1.5px solid var(--land-divider)',
             borderRadius: '10px',
             display: 'flex',
             justifyContent: 'center',

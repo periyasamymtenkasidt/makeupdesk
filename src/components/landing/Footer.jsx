@@ -15,7 +15,7 @@ const SOCIALS = [
 
 export default function Footer() {
   return (
-    <footer style={{ background: '#07040a' }}>
+    <footer style={{ background: 'var(--land-footer-bg)' }}>
 
       {/* Top gradient line */}
       <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,149,108,0.4), rgba(232,164,184,0.4), transparent)' }} />
@@ -30,20 +30,20 @@ export default function Footer() {
                    style={{ background: 'linear-gradient(135deg,#c9956c,#e8a4b8)' }}>
                 <Sparkles size={16} color="white" />
               </div>
-              <span className="font-display font-semibold text-xl text-white">{NAME}</span>
+              <span className="font-display font-semibold text-xl" style={{ color: 'var(--land-footer-heading)' }}>{NAME}</span>
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--land-footer-text-muted)' }}>
               Professional makeup artistry for every occasion. Your beauty, perfectly crafted.
             </p>
             <div className="flex gap-3">
               {SOCIALS.map(({ icon: Icon, href, label }) => (
                 <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}
-                   className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-                   style={{ background: 'rgba(201,149,108,0.1)', border: '1px solid rgba(201,149,108,0.25)' }}
-                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,149,108,0.2)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(201,149,108,0.3)' }}
-                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(201,149,108,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
+                   className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                   style={{ background: 'var(--land-footer-icon-bg)', border: '1.5px solid var(--land-footer-icon-border)' }}
+                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,149,108,0.32)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(201,149,108,0.4)' }}
+                   onMouseLeave={e => { e.currentTarget.style.background = 'var(--land-footer-icon-bg)'; e.currentTarget.style.boxShadow = 'none' }}
                 >
-                  <Icon size={15} style={{ color: '#c9956c' }} />
+                  <Icon size={17} style={{ color: 'var(--land-footer-icon)' }} />
                 </a>
               ))}
             </div>
@@ -51,7 +51,8 @@ export default function Footer() {
 
           {/* Quick links */}
           <div>
-            <h4 className="font-display font-semibold text-white mb-5 text-sm tracking-wide uppercase" style={{ letterSpacing: '0.1em' }}>
+            <h4 className="font-display font-semibold mb-5 text-sm tracking-wide uppercase"
+                style={{ color: 'var(--land-footer-heading)', letterSpacing: '0.1em' }}>
               Quick Links
             </h4>
             <ul className="space-y-2.5">
@@ -59,9 +60,9 @@ export default function Footer() {
                 <li key={label}>
                   <a href={href}
                      className="text-sm block transition-colors duration-200"
-                     style={{ color: 'rgba(255,255,255,0.38)', textDecoration: 'none' }}
-                     onMouseEnter={e => { e.currentTarget.style.color = '#c9956c' }}
-                     onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.38)' }}
+                     style={{ color: 'var(--land-footer-text-muted)', textDecoration: 'none' }}
+                     onMouseEnter={e => { e.currentTarget.style.color = 'var(--land-footer-icon)' }}
+                     onMouseLeave={e => { e.currentTarget.style.color = 'var(--land-footer-text-muted)' }}
                   >
                     {label}
                   </a>
@@ -72,7 +73,8 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h4 className="font-display font-semibold text-white mb-5 text-sm tracking-wide uppercase" style={{ letterSpacing: '0.1em' }}>
+            <h4 className="font-display font-semibold mb-5 text-sm tracking-wide uppercase"
+                style={{ color: 'var(--land-footer-heading)', letterSpacing: '0.1em' }}>
               Services
             </h4>
             <ul className="space-y-2.5">
@@ -80,9 +82,9 @@ export default function Footer() {
                 <li key={s}>
                   <a href="#services"
                      className="text-sm block transition-colors duration-200"
-                     style={{ color: 'rgba(255,255,255,0.38)', textDecoration: 'none' }}
-                     onMouseEnter={e => { e.currentTarget.style.color = '#c9956c' }}
-                     onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.38)' }}
+                     style={{ color: 'var(--land-footer-text-muted)', textDecoration: 'none' }}
+                     onMouseEnter={e => { e.currentTarget.style.color = 'var(--land-footer-icon)' }}
+                     onMouseLeave={e => { e.currentTarget.style.color = 'var(--land-footer-text-muted)' }}
                   >
                     {s}
                   </a>
@@ -93,7 +95,8 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-display font-semibold text-white mb-5 text-sm tracking-wide uppercase" style={{ letterSpacing: '0.1em' }}>
+            <h4 className="font-display font-semibold mb-5 text-sm tracking-wide uppercase"
+                style={{ color: 'var(--land-footer-heading)', letterSpacing: '0.1em' }}>
               Contact
             </h4>
             <ul className="space-y-4">
@@ -106,11 +109,11 @@ export default function Footer() {
                 <li key={value}>
                   <a href={href}
                      className="flex items-start gap-3 text-sm transition-colors duration-200"
-                     style={{ color: 'rgba(255,255,255,0.38)', textDecoration: 'none' }}
-                     onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
-                     onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.38)' }}
+                     style={{ color: 'var(--land-footer-text-muted)', textDecoration: 'none' }}
+                     onMouseEnter={e => { e.currentTarget.style.color = 'var(--land-footer-text)' }}
+                     onMouseLeave={e => { e.currentTarget.style.color = 'var(--land-footer-text-muted)' }}
                   >
-                    <Icon size={14} className="mt-0.5 flex-shrink-0" style={{ color: '#c9956c' }} />
+                    <Icon size={14} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--land-footer-icon)' }} />
                     {value}
                   </a>
                 </li>
@@ -129,18 +132,18 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ borderTop: '1px solid var(--land-footer-divider)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.22)' }}>
+          <p className="text-xs" style={{ color: 'var(--land-footer-text-dim)' }}>
             © {new Date().getFullYear()} {NAME}. All rights reserved.
           </p>
           <div className="flex gap-5">
             {['Privacy Policy', 'Terms of Service'].map(t => (
               <a key={t} href="#"
                  className="text-xs transition-colors duration-200"
-                 style={{ color: 'rgba(255,255,255,0.22)', textDecoration: 'none' }}
-                 onMouseEnter={e => { e.currentTarget.style.color = '#c9956c' }}
-                 onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.22)' }}
+                 style={{ color: 'var(--land-footer-text-dim)', textDecoration: 'none' }}
+                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--land-footer-icon)' }}
+                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--land-footer-text-dim)' }}
               >
                 {t}
               </a>

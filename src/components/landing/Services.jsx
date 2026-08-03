@@ -31,7 +31,7 @@ export default function Services() {
       id="services"
       ref={ref}
       className="py-28 relative overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #0a050c 0%, #1c0f1e 50%, #160a18 100%)' }}
+      style={{ background: 'var(--land-sec1-bg)' }}
     >
       {/* Background texture */}
       <div className="absolute inset-0 hero-dots" style={{ opacity: 0.045 }} />
@@ -51,11 +51,11 @@ export default function Services() {
           <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
             What We Offer
           </span>
-          <h2 className="font-display mt-3 text-white" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1 }}>
+          <h2 className="font-display mt-3" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1, color: 'var(--land-text)' }}>
             Our Services
           </h2>
           <div className="section-divider" />
-          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'var(--land-text-muted)' }}>
             Every look is custom-crafted to match your personality, event type &amp; skin tone.
           </p>
         </div>
@@ -81,7 +81,7 @@ export default function Services() {
             {['Real client photos', 'Every look custom-crafted', 'by certified artists'].map(t => (
               <div key={t} className="flex items-center gap-2">
                 <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: '#c9956c' }} />
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>{t}</span>
+                <span style={{ fontSize: '11px', color: 'var(--land-text-muted)' }}>{t}</span>
               </div>
             ))}
           </div>
@@ -129,8 +129,8 @@ export default function Services() {
               </div>
 
               {/* Text */}
-              <h3 className="font-display text-xl font-semibold text-white mb-2">{title}</h3>
-              <p className="text-sm leading-relaxed flex-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{desc}</p>
+              <h3 className="font-display text-xl font-semibold mb-2" style={{ color: 'var(--land-text)' }}>{title}</h3>
+              <p className="text-sm leading-relaxed flex-1" style={{ color: 'var(--land-text-muted)' }}>{desc}</p>
 
               {/* Footer */}
               <div className="mt-6 pt-5" style={{ borderTop: `1px solid ${iconColor}20` }}>

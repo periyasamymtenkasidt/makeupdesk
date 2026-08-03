@@ -33,7 +33,7 @@ export default function Testimonials() {
       id="testimonials"
       ref={ref}
       className="py-28 relative overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #1a0f1b 0%, #0e0710 100%)' }}
+      style={{ background: 'var(--land-sec5-bg)' }}
     >
       <div className="absolute inset-0 hero-dots" style={{ opacity: 0.04 }} />
 
@@ -63,11 +63,11 @@ export default function Testimonials() {
           <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
             Client Love
           </span>
-          <h2 className="font-display mt-3 text-white" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1 }}>
+          <h2 className="font-display mt-3" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1, color: 'var(--land-text)' }}>
             What They Say
           </h2>
           <div className="section-divider" />
-          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p className="mt-5 max-w-lg mx-auto text-base leading-relaxed" style={{ color: 'var(--land-text-muted)' }}>
             Real words from real clients who trusted us with their most important moments.
           </p>
         </div>
@@ -82,16 +82,16 @@ export default function Testimonials() {
                 key={id}
                 className="reveal reveal-scale group relative rounded-3xl p-6 flex flex-col transition-all duration-400"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.07)',
+                  background: 'var(--land-card-bg)',
+                  border: '1px solid var(--land-card-border)',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.055)'
+                  e.currentTarget.style.background = 'var(--land-pill-bg)'
                   e.currentTarget.style.transform = 'translateY(-6px)'
                   e.currentTarget.style.boxShadow = `0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px ${cardColor}25`
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+                  e.currentTarget.style.background = 'var(--land-card-bg)'
                   e.currentTarget.style.transform = 'translateY(0)'
                   e.currentTarget.style.boxShadow = 'none'
                 }}
@@ -117,13 +117,13 @@ export default function Testimonials() {
 
                 {/* Quote */}
                 <p className="mt-4 text-xs sm:text-sm leading-relaxed flex-1 relative z-10"
-                   style={{ color: 'rgba(255,255,255,0.68)' }}>
+                   style={{ color: 'var(--land-text-sub)' }}>
                   "{text}"
                 </p>
 
                 {/* Author */}
                 <div className="mt-5 pt-4 flex items-center gap-3"
-                     style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                     style={{ borderTop: '1px solid var(--land-card-border)' }}>
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs text-white flex-shrink-0"
                     style={{ background: avatarGradient, boxShadow: `0 4px 16px ${cardColor}40` }}
@@ -131,8 +131,8 @@ export default function Testimonials() {
                     {initials || (name ? name.slice(0, 2).toUpperCase() : 'CL')}
                   </div>
                   <div>
-                    <div className="font-semibold text-xs sm:text-sm text-white">{name}</div>
-                    <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>{event}</div>
+                    <div className="font-semibold text-xs sm:text-sm" style={{ color: 'var(--land-text)' }}>{name}</div>
+                    <div className="text-[11px] mt-0.5" style={{ color: 'var(--land-text-faint)' }}>{event}</div>
                   </div>
                 </div>
               </div>
@@ -165,28 +165,28 @@ export default function Testimonials() {
           <div
             className="inline-flex items-center gap-6 px-8 py-5 rounded-2xl"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--land-card-bg)',
+              border: '1px solid var(--land-card-border)',
               backdropFilter: 'blur(12px)',
             }}
           >
             <div className="text-center">
-              <div className="font-display text-3xl font-bold text-white">4.9</div>
-              <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>Google Rating</div>
+              <div className="font-display text-3xl font-bold" style={{ color: 'var(--land-text)' }}>4.9</div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--land-text-faint)' }}>Google Rating</div>
             </div>
-            <div className="w-px h-10" style={{ background: 'rgba(255,255,255,0.1)' }} />
+            <div className="w-px h-10" style={{ background: 'var(--land-divider)' }} />
             <div>
               <div className="flex gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} size={18} fill="#f59e0b" style={{ color: '#f59e0b' }} />
                 ))}
               </div>
-              <div className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.38)' }}>Based on 200+ reviews</div>
+              <div className="text-xs mt-1.5" style={{ color: 'var(--land-text-faint)' }}>Based on 200+ reviews</div>
             </div>
-            <div className="w-px h-10" style={{ background: 'rgba(255,255,255,0.1)' }} />
+            <div className="w-px h-10" style={{ background: 'var(--land-divider)' }} />
             <div className="text-center">
-              <div className="font-display text-3xl font-bold text-white">500+</div>
-              <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>Happy Clients</div>
+              <div className="font-display text-3xl font-bold" style={{ color: 'var(--land-text)' }}>500+</div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--land-text-faint)' }}>Happy Clients</div>
             </div>
           </div>
         </div>

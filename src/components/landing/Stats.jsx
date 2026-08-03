@@ -15,8 +15,8 @@ function StatItem({ end, suffix, label, sublabel, decimal, triggered, color }) {
       >
         {val}{suffix}
       </div>
-      <div className="font-medium text-base text-white">{label}</div>
-      <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{sublabel}</div>
+      <div className="font-medium text-base" style={{ color: 'var(--land-text)' }}>{label}</div>
+      <div className="text-xs mt-1" style={{ color: 'var(--land-text-faint)' }}>{sublabel}</div>
     </div>
   )
 }
@@ -48,7 +48,7 @@ export default function Stats() {
     <section
       ref={ref}
       className="py-28 relative overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #140c16 0%, #1a0f1b 100%)' }}
+      style={{ background: 'var(--land-sec3-bg)' }}
     >
       {/* Grid dots */}
       <div className="absolute inset-0 hero-dots" style={{ opacity: 0.05 }} />
@@ -66,7 +66,7 @@ export default function Stats() {
           <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
             Our Track Record
           </span>
-          <h2 className="font-display mt-3 text-white" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1 }}>
+          <h2 className="font-display mt-3" style={{ fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 700, lineHeight: 1.1, color: 'var(--land-text)' }}>
             Numbers That Speak
           </h2>
         </div>
@@ -85,9 +85,9 @@ export default function Stats() {
             <span
               key={b}
               className="px-5 py-2 rounded-full text-xs font-medium transition-all duration-300 cursor-default"
-              style={{ background: 'rgba(201,149,108,0.08)', color: 'rgba(245,225,192,0.7)', border: '1px solid rgba(201,149,108,0.2)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,149,108,0.18)'; e.currentTarget.style.color = '#f5e1c0' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(201,149,108,0.08)'; e.currentTarget.style.color = 'rgba(245,225,192,0.7)' }}
+              style={{ background: 'var(--land-badge-bg)', color: 'var(--land-badge-text)', border: '1px solid rgba(201,149,108,0.2)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,149,108,0.18)'; e.currentTarget.style.color = '#c9956c' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--land-badge-bg)'; e.currentTarget.style.color = 'var(--land-badge-text)' }}
             >
               {b}
             </span>
