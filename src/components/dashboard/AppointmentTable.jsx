@@ -9,9 +9,11 @@ const BASE_HEADERS = ['Appt ID', 'Client', 'Mobile', 'Service', 'Location', 'Dat
 
 const thStyle = {
   padding: '14px 20px', textAlign: 'left', fontSize: '10.5px',
-  fontWeight: 700, color: '#a0622a', textTransform: 'uppercase',
+  fontWeight: 700, color: 'var(--dash-label-text, #a0622a)', textTransform: 'uppercase',
   letterSpacing: '0.08em', whiteSpace: 'nowrap',
-  background: 'rgba(201, 149, 108, 0.07)',
+  position: 'sticky', top: 0, zIndex: 10,
+  background: 'var(--dash-surface)',
+  borderBottom: '1.5px solid var(--dash-border)',
 }
 
 const tdBase = { padding: '16px 20px', whiteSpace: 'nowrap' }
@@ -23,17 +25,17 @@ const iconBtn = (color = 'var(--icon-booking)', bg = 'var(--dash-surface)') => (
   cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
 })
 
-export default function AppointmentTable({ appointments, onEdit, onDelete, onReject }) {
+export default function AppointmentTable({ appointments, onEdit, onDelete, onReject, renderRowActions }) {
   const navigate = useNavigate()
-  const hasActions = onEdit || onDelete || onReject
+  const hasActions = onEdit || onDelete || onReject || renderRowActions
   const headers  = [...BASE_HEADERS, ...(hasActions ? [''] : [])]
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+    <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }} className="no-scrollbar">
+      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13.5px' }}>
 
-        <thead>
-          <tr style={{ borderBottom: '1.5px solid rgba(201,149,108,0.2)' }}>
+        <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+          <tr>
             {headers.map((h, i) => (
               <th key={i} style={{ ...thStyle, textAlign: h === 'Amount' ? 'right' : 'left' }}>
                 {h}
@@ -99,20 +101,43 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
 
               {/* Service */}
               <td style={{ ...tdBase, fontSize: '13.5px', fontWeight: 500, color: 'var(--dash-text-primary)' }}>
-                {appt.service}
+                <div>{appt.service}</div>
+                {appt.addOns?.length > 1 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '5px' }}>
+                    {appt.addOns.filter(r => r !== 'Makeup Artist').map(role => (
+                      <span key={role} style={{
+                        fontSize: '10.5px', fontWeight: 600, padding: '2px 7px', borderRadius: '9999px',
+                        background: 'var(--badge-pending-bg)', color: 'var(--badge-pending)',
+                        border: '1px solid rgba(245,158,11,0.2)',
+                      }}>
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </td>
 
               {/* Location */}
               <td style={tdBase}>
-                <span style={{
-                  fontSize: '12px', fontWeight: 600, padding: '4px 10px', borderRadius: '7px',
-                  background: appt.location === 'Venue' ? 'var(--badge-venue-bg)' : 'var(--badge-studio-bg)',
-                  color: appt.location === 'Venue' ? 'var(--badge-venue)' : 'var(--badge-studio)',
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                }}>
-                  <MapPin size={11} />
-                  {appt.location || (appt.service?.includes('Bridal') ? 'Venue' : 'Studio')}
-                </span>
+                {(() => {
+                  const loc = appt.location || (appt.service?.includes('Bridal') ? 'Venue' : 'Studio')
+                  return (
+                    <span
+                      title={loc}
+                      style={{
+                        fontSize: '12px', fontWeight: 600, padding: '4px 10px', borderRadius: '7px',
+                        background: appt.location === 'Venue' ? 'var(--badge-venue-bg)' : 'var(--badge-studio-bg)',
+                        color: appt.location === 'Venue' ? 'var(--badge-venue)' : 'var(--badge-studio)',
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        maxWidth: '160px', overflow: 'hidden',
+                      }}>
+                      <MapPin size={11} style={{ flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {loc}
+                      </span>
+                    </span>
+                  )
+                })()}
               </td>
 
               {/* Date & Time */}
@@ -149,36 +174,28 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
               {hasActions && (
                 <td style={{ ...tdBase, whiteSpace: 'nowrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {onEdit && (
-                      <button
-                        onClick={() => onEdit(appt)}
-                        title="Edit appointment"
-                        style={iconBtn()}
-                      >
-                        <Pencil size={13} />
-                      </button>
-                    )}
-                    {onReject && appt.status !== 'Rejected' && appt.status !== 'Completed' && (
-                      <button
-                        onClick={() => onReject(appt)}
-                        title="Reject appointment"
-                        style={iconBtn('var(--badge-pending)', 'var(--badge-pending-bg)')}
-                      >
-                        <XCircle size={13} />
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        onClick={() => {
-                          if (window.confirm(`Delete ${appt.id} — ${appt.name}? This cannot be undone.`)) {
-                            onDelete(appt.id)
-                          }
-                        }}
-                        title="Delete appointment"
-                        style={iconBtn('var(--badge-rejected)', 'var(--badge-rejected-bg)')}
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                    {renderRowActions ? renderRowActions(appt) : (
+                      <>
+                        {onEdit && (
+                          <button onClick={() => onEdit(appt)} title="Edit appointment" style={iconBtn()}>
+                            <Pencil size={13} />
+                          </button>
+                        )}
+                        {onReject && appt.status !== 'Rejected' && appt.status !== 'Completed' && (
+                          <button onClick={() => onReject(appt)} title="Reject appointment" style={iconBtn('var(--badge-pending)', 'var(--badge-pending-bg)')}>
+                            <XCircle size={13} />
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button
+                            onClick={() => { if (window.confirm(`Delete ${appt.id} — ${appt.name}? This cannot be undone.`)) onDelete(appt.id) }}
+                            title="Delete appointment"
+                            style={iconBtn('var(--badge-rejected)', 'var(--badge-rejected-bg)')}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </td>

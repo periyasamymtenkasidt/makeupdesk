@@ -8,12 +8,14 @@ import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { SERVICES, SERVICE_NAMES, SERVICE_DURATIONS } from "../../data/services"
 import { to12h } from "../../utils/timeFormat"
-import { generateSlots, parseDurationMins } from "../../utils/slots"
-import { useAvailability } from "../../context/AvailabilityContext"
-import { BOOKING_STAFF_CATEGORIES } from "../../hooks/useArtists"
+import { parseDurationMins } from "../../utils/slots"
+import { BOOKING_STAFF_CATEGORIES, useArtists, checkArtistAvailability } from "../../hooks/useArtists"
+import { useSettings } from "../../hooks/useSettings"
 import { useMaster } from "../../hooks/useMaster"
 import { VENUE_DEFAULTS } from "../../data/venues"
-import { SlotPicker } from "../ui/SlotPicker"
+import { SlotTimePicker } from "../ui/SlotTimePicker"
+import { DrumRollTimePicker } from "../ui/DrumRollTimePicker"
+import { NominatimVenueSearch } from "../ui/NominatimVenueSearch"
 import { CustomSelect } from "../ui/CustomSelect"
 
 function formatDateForStorage(dateStr) {
@@ -26,6 +28,15 @@ function formatDateForStorage(dateStr) {
 function minsToLabel(mins) {
   const hrs = mins / 60
   return `${hrs} hrs`
+}
+
+function computeEndTime(time24h, mins) {
+  if (!time24h || !mins) return ''
+  const [h, m] = time24h.split(':').map(Number)
+  const total = h * 60 + (m || 0) + mins
+  const eh = Math.floor(total / 60) % 24
+  const em = total % 60
+  return `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`
 }
 
 // ── styles ────────────────────────────────────────────────────────────────────
@@ -50,10 +61,12 @@ function BookingModal({ onClose }) {
 
   const { step, form, setField, nextStep, prevStep, reset, step1Valid, step1Touched, step2Valid } = useBookingForm()
   const { appointments, addAppointment, genId } = useAppointments()
-  const { availability }       = useAvailability()
   const { clients, addClient } = useClients()
   const { items: venues }      = useMaster('md_venues', VENUE_DEFAULTS)
+  const artists                = useArtists()
+  const { settings }           = useSettings()
   const [confirmed, setConfirmed] = useState(null)
+  const [showSlots, setShowSlots] = useState(false)
 
   const ARTIST_EMOJI = {
     'Makeup Artist':           '💄',
@@ -63,13 +76,6 @@ function BookingModal({ onClose }) {
     'Mehendi Artist':          '🌿',
   }
 
-  const artistPreferenceOptions = [
-    { value: 'Any Available', label: '✨ Any Available' },
-    ...BOOKING_STAFF_CATEGORIES.map(cat => ({
-      value: cat,
-      label: `${ARTIST_EMOJI[cat] || '🎨'} ${cat}`,
-    })),
-  ]
 
   const durationMins    = SERVICE_DURATIONS[form.service] ?? parseDurationMins(null)
   const servicePriceRaw = SERVICES.find(s => s.title === form.service)?.priceRaw ?? 0
@@ -78,20 +84,30 @@ function BookingModal({ onClose }) {
   const venueExtra       = selectedVenueObj ? ((selectedVenueObj.adjustment || 0) + (selectedVenueObj.travelCharge || 0)) : 0
   const totalAmount      = Math.max(0, servicePriceRaw + venueExtra)
 
-  const slots     = form.date ? generateSlots(form.date, availability, appointments, durationMins, null, null) : []
-  const dayOfWeek = form.date ? new Date(form.date + 'T00:00:00').getDay() : -1
-  const offDay    = form.date ? !availability.workDays.includes(dayOfWeek) : false
-
   function handleRegister() {
     if (!step2Valid) return
 
     const existing = clients.find(c => c.phone === form.phone)
     const clientId = existing ? existing.id : addClient({ name: form.name, phone: form.phone })
 
-    const artistPreference = form.artistPreference || 'Any Available'
+    const addOns = form.addOns && form.addOns.length ? form.addOns : ['Makeup Artist']
     const isVenue = form.locationType === 'Venue'
     const finalAmount = isVenue ? totalAmount : servicePriceRaw
-    const finalLocation = isVenue ? (form.venueAddress || 'On-Location') : 'In-Studio (Sofdoesmakeup Studio)'
+    const finalLocation = isVenue ? (form.venueAddress || 'On-Location') : `In-Studio (${settings.studioName || 'Studio'})`
+
+    // Auto-assign first available artist for each requested role
+    const storedDate = formatDateForStorage(form.date)
+    const autoAssigned = []
+    for (const role of addOns) {
+      const pick = artists
+        .filter(a => a.category === role)
+        .find(a => !checkArtistAvailability(a.name, storedDate, form.time, appointments).isBooked)
+      if (pick) autoAssigned.push(pick.name)
+    }
+    const autoVendorCost = autoAssigned.reduce((sum, name) => {
+      const a = artists.find(x => x.name === name)
+      return sum + (a?.charges || 0)
+    }, 0)
 
     const appt = {
       id:              genId(),
@@ -99,9 +115,11 @@ function BookingModal({ onClose }) {
       name:            form.name,
       phone:           form.phone,
       service:         form.service,
-      vendorId:        1,
-      artist:          artistPreference,
-      assignedArtists: [],
+      vendorId:        autoAssigned[0] ? String(artists.find(a => a.name === autoAssigned[0])?.id ?? 1) : '1',
+      artist:          autoAssigned.length ? autoAssigned.join(', ') : addOns.join(', '),
+      assignedArtists: autoAssigned,
+      addOns,
+      vendorCost:      autoVendorCost || undefined,
       date:            formatDateForStorage(form.date),
       time:            to12h(form.time),
       duration:        minsToLabel(durationMins),
@@ -111,7 +129,7 @@ function BookingModal({ onClose }) {
       venueAddress:    isVenue ? form.venueAddress : '',
       status:          "Inquiry",
       amount:          finalAmount,
-      advanceAmount:   Math.round(finalAmount * 0.4),
+      advanceAmount:   Math.round(finalAmount * ((settings.advancePct ?? 40) / 100)),
       advancePaid:     false,
       balancePaid:     false,
       notes:           form.notes,
@@ -157,7 +175,7 @@ function BookingModal({ onClose }) {
                 Your personalised quote will be sent to your WhatsApp within <strong style={{ color: "#e8c4a0" }}>2 hours</strong>.
               </p>
               <p style={{ color: "rgba(255,255,255,0.35)", margin: 0, fontSize: "12px" }}>
-                Artist Preference — <span style={{ color: "#f5e1c0", fontWeight: 600 }}>{confirmed.artist}</span>
+                Team Requested — <span style={{ color: "#f5e1c0", fontWeight: 600 }}>{(confirmed.addOns || [confirmed.artist]).join(', ')}</span>
               </p>
             </div>
 
@@ -208,11 +226,16 @@ function BookingModal({ onClose }) {
                     )}
                   </div>
                   <div>
-                    <Input label="WhatsApp Number *" icon={Phone} placeholder="+91 98765 43210"
+                    <Input label="WhatsApp Number *" icon={Phone} placeholder="98765 43210"
                            value={form.phone} onChange={e => setField("phone", e.target.value)} />
                     {step1Touched && !form.phone.trim() && (
                       <p style={{ fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }}>
                         Please enter your WhatsApp number.
+                      </p>
+                    )}
+                    {step1Touched && form.phone.trim() && form.phone.length !== 10 && (
+                      <p style={{ fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }}>
+                        Phone number must be exactly 10 digits.
                       </p>
                     )}
                   </div>
@@ -230,12 +253,42 @@ function BookingModal({ onClose }) {
                       </p>
                     )}
                   </div>
-                  <CustomSelect
-                    label="Artist Preference"
-                    value={form.artistPreference || 'Any Available'}
-                    options={artistPreferenceOptions}
-                    onChange={val => setField("artistPreference", val)}
-                  />
+                  <div>
+                    <label style={lblStyle}>Team Required</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {BOOKING_STAFF_CATEGORIES.map(cat => {
+                        const isBase = cat === 'Makeup Artist'
+                        const checked = isBase || (form.addOns || []).includes(cat)
+                        return (
+                          <label key={cat} style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 12px', borderRadius: '10px',
+                            border: `1.5px solid ${checked ? 'rgba(201,149,108,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                            background: checked ? 'rgba(201,149,108,0.12)' : 'rgba(255,255,255,0.04)',
+                            cursor: isBase ? 'default' : 'pointer',
+                            transition: 'all 0.15s',
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={isBase}
+                              onChange={() => {
+                                if (isBase) return
+                                const current = form.addOns || []
+                                setField('addOns', checked
+                                  ? current.filter(a => a !== cat)
+                                  : [...current, cat])
+                              }}
+                              style={{ accentColor: '#c9956c', width: 14, height: 14, cursor: isBase ? 'default' : 'pointer' }}
+                            />
+                            <span style={{ fontSize: '12px', fontWeight: checked ? 600 : 400, color: checked ? '#f5e1c0' : 'rgba(255,255,255,0.45)' }}>
+                              {ARTIST_EMOJI[cat] || '🎨'} {cat}
+                            </span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
                   <Button
                     variant="primary" size="lg" fullWidth onClick={nextStep}
                     style={{
@@ -253,16 +306,50 @@ function BookingModal({ onClose }) {
                   <Input label="Event Date *" icon={Calendar} type="date"
                          min={new Date().toISOString().split('T')[0]}
                          value={form.date}
-                         onChange={e => setField("date", e.target.value)} />
+                         onChange={e => { setField("date", e.target.value); setField("time", "") }} />
 
-                  {/* Slot picker */}
+                  {/* Time section */}
                   {form.date && (
-                    <SlotPicker
-                      slots={slots} value={form.time}
-                      onChange={v => setField("time", v)}
-                      offDay={offDay} date={form.date}
-                      variant="landing"
-                    />
+                    <div>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}>
+                        <input
+                          type="checkbox"
+                          checked={showSlots}
+                          onChange={e => setShowSlots(e.target.checked)}
+                          style={{ accentColor: '#c9956c', width: 15, height: 15, cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          Show Available Slots
+                        </span>
+                      </label>
+
+                      {showSlots ? (
+                        <SlotTimePicker
+                          value={form.time}
+                          onChange={v => setField("time", v)}
+                          dark={true}
+                          date={form.date}
+                          appointments={appointments}
+                          durationMins={durationMins}
+                        />
+                      ) : (
+                        <DrumRollTimePicker
+                          value={form.time}
+                          onChange={v => setField("time", v)}
+                          theme="dark"
+                          date={form.date}
+                          appointments={appointments}
+                          durationMins={durationMins}
+                        />
+                      )}
+
+                      {form.time && durationMins > 0 && (
+                        <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          Ends at:&nbsp;<strong style={{ color: '#e8c4a0' }}>{to12h(computeEndTime(form.time, durationMins))}</strong>
+                          <span style={{ opacity: 0.5 }}>· {durationMins}m session</span>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* Appointment Location Type */}
@@ -270,7 +357,7 @@ function BookingModal({ onClose }) {
                     label="Appointment Location *"
                     value={form.locationType || 'Studio'}
                     options={[
-                      { value: 'Studio', label: '🏠 In-Studio (Sofdoesmakeup Studio)' },
+                      { value: 'Studio', label: `🏠 In-Studio (${settings.studioName || 'Studio'})` },
                       { value: 'Venue', label: '📍 On-Location / Client Venue' },
                     ]}
                     onChange={val => {
@@ -298,13 +385,17 @@ function BookingModal({ onClose }) {
                         onChange={val => setField("venue", val)}
                       />
 
-                      <Input
-                        label="Exact Venue Address / Landmark *"
-                        icon={MapPin}
-                        placeholder="e.g. Taj Banjara, Ballroom A, Banjara Hills"
-                        value={form.venueAddress || ''}
-                        onChange={e => setField("venueAddress", e.target.value)}
-                      />
+                      <div>
+                        <label style={{ ...lblStyle, marginBottom: 6 }}>Exact Venue Address / Landmark *</label>
+                        <NominatimVenueSearch
+                          value={form.venueAddress || ''}
+                          onChange={addr => setField("venueAddress", addr)}
+                          onCategoryDetect={cat => setField("venue", cat)}
+                          venues={venues}
+                          dark={true}
+                          placeholder="e.g. Taj Banjara, Banjara Hills"
+                        />
+                      </div>
                     </>
                   ) : (
                     <div style={{
@@ -316,7 +407,7 @@ function BookingModal({ onClose }) {
                       color: 'rgba(255,255,255,0.55)',
                     }}>
                       <MapPin size={13} style={{ display: 'inline', marginRight: '6px', color: '#c9956c' }} />
-                      <strong style={{ color: '#e8c4a0' }}>Studio Address:</strong> Sofdoesmakeup Studio, Road No. 36, Chennai.
+                      <strong style={{ color: '#e8c4a0' }}>Studio Address:</strong> {settings.address || 'Contact us for address'}
                     </div>
                   )}
 

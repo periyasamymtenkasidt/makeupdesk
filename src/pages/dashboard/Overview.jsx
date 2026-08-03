@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Users, TrendingUp, Clock, ChevronRight, Plus } from 'lucide-react'
 import StatsCard from '../../components/dashboard/StatsCard'
@@ -8,38 +8,206 @@ import FinancialSummary from '../../components/dashboard/FinancialSummary'
 import SkinAlertsWidget from '../../components/dashboard/SkinAlertsWidget'
 import WeekCalendar from '../../components/dashboard/WeekCalendar'
 import NewBookingModal from '../../components/dashboard/NewBookingModal'
+import RecordPaymentModal from '../../components/dashboard/RecordPaymentModal'
 import { Card, CardHeader, CardBody } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
 import { APPOINTMENT_PIPELINE } from '../../data/navigation'
 import { useAppointments } from '../../context/AppointmentContext'
-
-const STATS = [
-  { label: 'Total Appointments', value: '42',    delta: '+12%', icon: Calendar,   color: 'var(--icon-booking)', bg: 'var(--icon-booking-bg)', subtitle: '18 confirmed this month' },
-  { label: 'Active Clients',     value: '128',   delta: '+8%',  icon: Users,      color: 'var(--icon-client)',  bg: 'var(--icon-client-bg)',  subtitle: '34 repeat clients' },
-  { label: 'Monthly Revenue',    value: '₹1.2L', delta: '+22%', icon: TrendingUp, color: 'var(--icon-revenue)', bg: 'var(--icon-revenue-bg)', subtitle: 'Target ₹1.5L (80%)' },
-  { label: 'Pending Balances',   value: '6',     delta: '-2',   icon: Clock,      color: 'var(--icon-warning)', bg: 'var(--icon-warning-bg)', subtitle: '₹42,000 to collect' },
-]
-
-const PIPELINE_COUNTS = {
-  'Inquiry': 4, 'Shift Reserved': 2, 'Quotation Sent': 3, 'Approved': 5,
-  'Payment Pending': 3, 'Advance Paid': 8, 'Confirmed': 12,
-  'In Progress': 1, 'Completed': 18, 'Balance Paid': 2, 'Closed': 0,
-}
-
-const TODAY_SNAPSHOT = [
-  { icon: Calendar,   color: 'var(--icon-booking)', bg: 'var(--icon-booking-bg)', label: "Today's Appointments",    value: '3',       sub: '2 On-venue · 1 In-studio' },
-  { icon: Clock,      color: 'var(--icon-client)',  bg: 'var(--icon-client-bg)',  label: 'Next Appointment',        value: '05:30 AM', sub: 'Priya Mehta · Bridal Muhurtham' },
-  { icon: TrendingUp, color: 'var(--icon-revenue)', bg: 'var(--icon-revenue-bg)', label: "Today's Expected Revenue", value: '₹21,500', sub: 'Across 3 confirmed sessions' },
-  { icon: Plus,       color: 'var(--icon-purple)',  bg: 'var(--icon-purple-bg)',  label: 'Open Slots Today',         value: '2',       sub: '09:30–1:30 PM & 3:45–6:00 PM' },
-]
+import { useClients } from '../../context/ClientContext'
+import { useAvailability } from '../../context/AvailabilityContext'
+import { useSettings } from '../../hooks/useSettings'
+import { useToast } from '../../context/ToastContext'
 
 export default function Overview() {
   const navigate = useNavigate()
-  const [openBookingModal, setOpenBookingModal] = useState(false)
-  const [slotInitialData, setSlotInitialData] = useState(null)
-  const { appointments } = useAppointments()
+  const [openBookingModal, setOpenBookingModal]   = useState(false)
+  const [slotInitialData, setSlotInitialData]     = useState(null)
+  const [openRecordPayment, setOpenRecordPayment] = useState(false)
+  const { appointments }  = useAppointments()
+  const { clients }       = useClients()
+  const { availability }  = useAvailability()
+  const { settings }      = useSettings()
+  const { showToast }    = useToast()
   const recentAppointments = appointments.slice(0, 5)
+
+  // ── helpers ──────────────────────────────────────────────────────
+  function parse12h(t) {
+    if (!t) return null
+    const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i)
+    if (!m) return null
+    let h = +m[1], mn = +m[2], p = m[3].toUpperCase()
+    if (p === 'PM' && h !== 12) h += 12
+    if (p === 'AM' && h === 12) h = 0
+    return h * 60 + mn
+  }
+  function fmtRevenue(n) {
+    if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`
+    if (n >= 1000)   return `₹${(n / 1000).toFixed(0)}K`
+    return `₹${n.toLocaleString('en-IN')}`
+  }
+  function pctDelta(curr, prev) {
+    if (!prev) return curr > 0 ? '+100%' : null
+    const d = Math.round(((curr - prev) / prev) * 100)
+    return `${d >= 0 ? '+' : ''}${d}%`
+  }
+
+  // ── today ────────────────────────────────────────────────────────
+  const todayStr   = new Date().toISOString().split('T')[0]
+  const nowMins    = new Date().getHours() * 60 + new Date().getMinutes()
+  const todayAppts = appointments.filter(a =>
+    a.date === todayStr && !['Rejected', 'Closed'].includes(a.status)
+  )
+  const onVenue   = todayAppts.filter(a => a.location && !a.location.toLowerCase().includes('studio')).length
+  const inStudio  = todayAppts.length - onVenue
+  const nextAppt  = [...todayAppts]
+    .filter(a => parse12h(a.time) != null)
+    .sort((a, b) => parse12h(a.time) - parse12h(b.time))
+    .find(a => parse12h(a.time) >= nowMins) || null
+  const todayRevenue    = todayAppts.reduce((s, a) => s + (a.amount || 0), 0)
+  const confirmedToday  = todayAppts.filter(a =>
+    ['Confirmed', 'Advance Paid', 'In Progress', 'Balance Paid', 'Completed'].includes(a.status)
+  ).length
+
+  // ── open slots today ─────────────────────────────────────────────
+  const DAY_NAMES    = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const todayDayName = DAY_NAMES[new Date().getDay()]
+  const isWorkingDay = availability?.days?.[todayDayName] !== false
+  let openSlotsToday = 0
+  if (isWorkingDay && availability?.startTime && availability?.endTime) {
+    const dur   = availability.slotDuration || 60
+    const [sh, sm] = availability.startTime.split(':').map(Number)
+    const [eh, em] = availability.endTime.split(':').map(Number)
+    for (let t = sh * 60 + sm; t + dur <= eh * 60 + em; t += dur) {
+      const occupied = todayAppts.some(a => {
+        const at = parse12h(a.time)
+        if (at == null) return false
+        const ae = at + (a.totalDurationMins || dur)
+        return t < ae && t + dur > at
+      })
+      if (!occupied) openSlotsToday++
+    }
+  }
+
+  // ── monthly stats ─────────────────────────────────────────────────
+  const now2 = new Date()
+  const cm = now2.getMonth(), cy = now2.getFullYear()
+  const lm = cm === 0 ? 11 : cm - 1, ly = cm === 0 ? cy - 1 : cy
+
+  const thisMonth = appointments.filter(a => {
+    const d = new Date(a.date)
+    return !isNaN(d) && d.getMonth() === cm && d.getFullYear() === cy && a.status !== 'Rejected'
+  })
+  const lastMonth = appointments.filter(a => {
+    const d = new Date(a.date)
+    return !isNaN(d) && d.getMonth() === lm && d.getFullYear() === ly && a.status !== 'Rejected'
+  })
+  const thisMonthRevenue  = thisMonth.reduce((s, a) => s + (a.amount || 0), 0)
+  const lastMonthRevenue  = lastMonth.reduce((s, a) => s + (a.amount || 0), 0)
+  const thisMonthConfirmed = thisMonth.filter(a =>
+    ['Confirmed', 'Advance Paid', 'In Progress', 'Balance Paid', 'Completed'].includes(a.status)
+  ).length
+
+  const pendingList = appointments.filter(a => {
+    if (['Rejected', 'Closed'].includes(a.status) || !(a.amount > 0)) return false
+    const paid = (a.advancePaid ? (a.advanceAmount || 0) : 0)
+               + (a.balancePaid ? Math.max(0, (a.amount || 0) - (a.advanceAmount || 0)) : 0)
+    return paid < (a.amount || 0)
+  })
+  const pendingAmount = pendingList.reduce((s, a) => {
+    const paid = (a.advancePaid ? (a.advanceAmount || 0) : 0)
+               + (a.balancePaid ? Math.max(0, (a.amount || 0) - (a.advanceAmount || 0)) : 0)
+    return s + ((a.amount || 0) - paid)
+  }, 0)
+  const lastMonthPending = lastMonth.filter(a => {
+    const paid = (a.advancePaid ? (a.advanceAmount || 0) : 0)
+               + (a.balancePaid ? Math.max(0, (a.amount || 0) - (a.advanceAmount || 0)) : 0)
+    return (a.amount || 0) > 0 && paid < (a.amount || 0)
+  }).length
+  const pendingDelta = pendingList.length - lastMonthPending
+
+  const repeatClients = clients.filter(c =>
+    appointments.filter(a => a.clientId === c.id || a.phone === c.phone).length > 1
+  ).length
+
+  // ── derived arrays ────────────────────────────────────────────────
+  const TODAY_SNAPSHOT = [
+    {
+      icon: Calendar, color: 'var(--icon-booking)', bg: 'var(--icon-booking-bg)',
+      label: "Today's Appointments",
+      value: String(todayAppts.length),
+      sub: todayAppts.length === 0 ? 'No appointments today' : `${onVenue} On-venue · ${inStudio} In-studio`,
+    },
+    {
+      icon: Clock, color: 'var(--icon-client)', bg: 'var(--icon-client-bg)',
+      label: 'Next Appointment',
+      value: nextAppt ? nextAppt.time : '—',
+      sub: nextAppt ? `${nextAppt.name} · ${nextAppt.service}` : 'No more today',
+    },
+    {
+      icon: TrendingUp, color: 'var(--icon-revenue)', bg: 'var(--icon-revenue-bg)',
+      label: "Today's Expected Revenue",
+      value: `₹${todayRevenue.toLocaleString('en-IN')}`,
+      sub: confirmedToday > 0 ? `Across ${confirmedToday} confirmed session${confirmedToday !== 1 ? 's' : ''}` : 'No confirmed sessions',
+    },
+    {
+      icon: Plus, color: 'var(--icon-purple)', bg: 'var(--icon-purple-bg)',
+      label: 'Open Slots Today',
+      value: isWorkingDay ? String(openSlotsToday) : '—',
+      sub: !isWorkingDay ? 'Off today' : openSlotsToday > 0 ? `${openSlotsToday} slot${openSlotsToday !== 1 ? 's' : ''} available` : 'Fully booked',
+    },
+  ]
+
+  const STATS = [
+    {
+      label: 'Total Appointments', value: String(appointments.length),
+      delta: pctDelta(thisMonth.length, lastMonth.length) || '—',
+      icon: Calendar, color: 'var(--icon-booking)', bg: 'var(--icon-booking-bg)',
+      subtitle: `${thisMonthConfirmed} confirmed this month`,
+    },
+    {
+      label: 'Active Clients', value: String(clients.length),
+      delta: '—',
+      icon: Users, color: 'var(--icon-client)', bg: 'var(--icon-client-bg)',
+      subtitle: `${repeatClients} repeat client${repeatClients !== 1 ? 's' : ''}`,
+    },
+    {
+      label: 'Monthly Revenue', value: fmtRevenue(thisMonthRevenue),
+      delta: pctDelta(thisMonthRevenue, lastMonthRevenue) || '—',
+      icon: TrendingUp, color: 'var(--icon-revenue)', bg: 'var(--icon-revenue-bg)',
+      subtitle: `Last month ${fmtRevenue(lastMonthRevenue)}`,
+    },
+    {
+      label: 'Pending Balances', value: String(pendingList.length),
+      delta: `${pendingDelta >= 0 ? '+' : ''}${pendingDelta}`,
+      icon: Clock, color: 'var(--icon-warning)', bg: 'var(--icon-warning-bg)',
+      subtitle: `${fmtRevenue(pendingAmount)} to collect`,
+    },
+  ]
+
+  const PIPELINE_COUNTS = Object.fromEntries(
+    APPOINTMENT_PIPELINE.map(s => [s, appointments.filter(a => a.status === s).length])
+  )
+  useEffect(() => {
+    if (!settings.autoReminders || sessionStorage.getItem('overviewReminderShown')) return
+    sessionStorage.setItem('overviewReminderShown', '1')
+
+    const now = new Date()
+    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+
+    const upcoming = appointments.filter(a => {
+      if (['Rejected', 'Closed'].includes(a.status)) return false
+      const d = new Date(a.date)
+      return !isNaN(d.getTime()) && d > now && d <= in24h
+    })
+
+    upcoming.forEach((a, i) => {
+      setTimeout(() => {
+        showToast(`Reminder: ${a.name} · ${a.service} on ${a.date} at ${a.time}`, 'warning', 9000)
+      }, 800 + i * 700)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleBookSlot(slotData) {
     setSlotInitialData(slotData)
@@ -64,7 +232,14 @@ export default function Overview() {
               </h2>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--dash-text-secondary)', margin: '4px 0 0' }}>
-              You have 3 appointments today. 2 Open slots remaining for booking.
+              {todayAppts.length === 0
+                ? 'No appointments today.'
+                : `You have ${todayAppts.length} appointment${todayAppts.length !== 1 ? 's' : ''} today.`
+              }
+              {isWorkingDay && openSlotsToday > 0
+                ? ` ${openSlotsToday} open slot${openSlotsToday !== 1 ? 's' : ''} remaining for booking.`
+                : !isWorkingDay ? ' Off day.' : ' Fully booked today.'
+              }
             </p>
           </div>
 
@@ -177,9 +352,9 @@ export default function Overview() {
 
           {/* Right Column */}
           <div className="overview-right-col no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <FinancialSummary />
+            <FinancialSummary onRecordPayment={() => setOpenRecordPayment(true)} />
             <WeekCalendar />
-            <SkinAlertsWidget />
+            {settings.allergyAlerts && <SkinAlertsWidget />}
           </div>
 
         </div>
@@ -193,6 +368,10 @@ export default function Overview() {
           setSlotInitialData(null)
         }}
         initialData={slotInitialData}
+      />
+      <RecordPaymentModal
+        open={openRecordPayment}
+        onClose={() => setOpenRecordPayment(false)}
       />
     </>
   )

@@ -4,20 +4,24 @@ const KEY = 'md_clients'
 const COLORS = ['#e8a4b8','#c9956c','#d4728f','#a87655','#7c3aed','#0891b2','#059669','#b45309','#be185d','#1d4ed8']
 
 const INITIAL = [
-  { id:'CLT-001', name:'Priya Mehta',   phone:'+91 98765 43210', email:'priya@email.com',  initials:'PM', color:'#e8a4b8', notes:'', createdAt:'2026-01-15' },
-  { id:'CLT-002', name:'Anjali Sharma', phone:'+91 91234 56789', email:'anjali@email.com', initials:'AS', color:'#c9956c', notes:'', createdAt:'2026-02-01' },
-  { id:'CLT-003', name:'Kavya Nair',    phone:'+91 99887 76655', email:'kavya@email.com',  initials:'KN', color:'#d4728f', notes:'', createdAt:'2026-02-20' },
-  { id:'CLT-004', name:'Ritika Joshi',  phone:'+91 87654 32109', email:'ritika@email.com', initials:'RJ', color:'#a87655', notes:'', createdAt:'2026-03-05' },
-  { id:'CLT-005', name:'Meera Iyer',    phone:'+91 76543 21098', email:'meera@email.com',  initials:'MI', color:'#7c3aed', notes:'', createdAt:'2026-03-18' },
-  { id:'CLT-006', name:'Sunita Rao',    phone:'+91 85432 10987', email:'sunita@email.com', initials:'SR', color:'#0891b2', notes:'', createdAt:'2026-04-02' },
-  { id:'CLT-007', name:'Deepa Verma',   phone:'+91 74321 09876', email:'deepa@email.com',  initials:'DV', color:'#059669', notes:'', createdAt:'2026-04-10' },
-  { id:'CLT-008', name:'Nisha Patil',   phone:'+91 63210 98765', email:'nisha@email.com',  initials:'NP', color:'#b45309', notes:'', createdAt:'2026-04-15' },
+  { id:'CLT-001', name:'Priya Mehta',   phone:' 98765 43210', email:'priya@email.com',  initials:'PM', color:'#e8a4b8', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-01-15' },
+  { id:'CLT-002', name:'Anjali Sharma', phone:' 91234 56789', email:'anjali@email.com', initials:'AS', color:'#c9956c', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-02-01' },
+  { id:'CLT-003', name:'Kavya Nair',    phone:' 99887 76655', email:'kavya@email.com',  initials:'KN', color:'#d4728f', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-02-20' },
+  { id:'CLT-004', name:'Ritika Joshi',  phone:' 87654 32109', email:'ritika@email.com', initials:'RJ', color:'#a87655', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-03-05' },
+  { id:'CLT-005', name:'Meera Iyer',    phone:' 76543 21098', email:'meera@email.com',  initials:'MI', color:'#7c3aed', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-03-18' },
+  { id:'CLT-006', name:'Sunita Rao',    phone:' 85432 10987', email:'sunita@email.com', initials:'SR', color:'#0891b2', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-04-02' },
+  { id:'CLT-007', name:'Deepa Verma',   phone:' 74321 09876', email:'deepa@email.com',  initials:'DV', color:'#059669', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-04-10' },
+  { id:'CLT-008', name:'Nisha Patil',   phone:' 63210 98765', email:'nisha@email.com',  initials:'NP', color:'#b45309', notes:'', skinType:'', allergies:'', preferredLook:'', createdAt:'2026-04-15' },
 ]
 
 function load() {
   try {
     const raw = localStorage.getItem(KEY)
-    return raw ? JSON.parse(raw) : INITIAL
+    if (!raw) return INITIAL
+    return JSON.parse(raw).map(c => ({
+      skinType: '', allergies: '', preferredLook: '',
+      ...c,
+    }))
   } catch { return INITIAL }
 }
 

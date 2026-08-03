@@ -3,15 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft,
   CheckCircle2, AlertCircle, X, ShieldCheck, Zap, Star,
-  KeyRound, RefreshCw, Building2, User, BellRing, Award
+  KeyRound, RefreshCw, Building2, User, BellRing, Award, Sun, Moon
 } from 'lucide-react'
 import bridePic from '../assets/images/Bride_1.png'
 import { CustomSelect } from '../components/ui/CustomSelect'
+import { useTheme } from '../context/ThemeContext'
 
 const LIVE_NOTIFICATIONS = [
   { text: '✨ New Bridal Booking: Full Glam Package • ₹12,000 Advance Paid', time: 'Just now' },
   { text: '📄 Quotation Accepted: Priya S. • ₹8,500 Rate Card Approved',     time: '3m ago'  },
-  { text: '⭐ New 5-Star Review: "Best bridal artist in Mumbai — flawless!"', time: '8m ago'  },
+  { text: '⭐ New 5-Star Review: "Best bridal artist in Chennai — flawless!"', time: '8m ago'  },
   { text: '💳 UPI Advance Received: ₹4,500 from Anjali Mehta',               time: '15m ago' },
 ]
 
@@ -24,6 +25,7 @@ const PLATFORM_STATS = [
 export default function Login() {
   const navigate = useNavigate()
   const rightPanelRef = useRef(null)
+  const { theme, toggleTheme } = useTheme()
 
   const [mousePos, setMousePos]       = useState({ x: 0, y: 0 })
   const [authMode, setAuthMode]       = useState('signin')
@@ -399,6 +401,20 @@ export default function Login() {
           transition: 'opacity 0.9s cubic-bezier(0.16,1,0.3,1) 0.1s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.1s',
         }}
       >
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer transition-all duration-200"
+          style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.16)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+        >
+          {theme === 'dark'
+            ? <Sun size={15} style={{ color: '#f59e0b' }} />
+            : <Moon size={15} style={{ color: '#c9956c' }} />}
+        </button>
+
         {/* Mouse spotlight — warm amber */}
         <div className="pointer-events-none absolute inset-0 z-0"
              style={{ background: `radial-gradient(480px circle at ${mousePos.x}px ${mousePos.y}px, rgba(190,100,45,0.11), transparent 72%)` }} />

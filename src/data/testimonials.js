@@ -2,7 +2,7 @@ export const TESTIMONIALS = [
   {
     id: 1,
     name: 'Priya Mehta',
-    event: 'Bridal Makeup · Mumbai',
+    event: 'Bridal Makeup · Chennai',
     rating: 5,
     text: "I was absolutely stunned when I saw myself in the mirror. The team understood exactly what I wanted for my big day — dewy skin, subtle drama, and long-lasting coverage. Couldn't have asked for better!",
     initials: 'PM',

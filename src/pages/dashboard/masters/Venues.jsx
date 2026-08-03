@@ -70,18 +70,14 @@ export default function Venues() {
   const sorted = [...filtered].sort((a, b) => b.adjustment - a.adjustment)
 
   return (
-    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '0px' }}>
+    <div style={{ padding: '20px 32px 0 32px', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', boxSizing: 'border-box' }}>
 
-      {/* Sticky Header Section */}
-      <div style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 20,
+      {/* Fixed Header Section */}
+      <div className="master-sticky-header" style={{
+        flexShrink: 0,
         background: 'var(--dash-bg)',
-        paddingTop: '20px',
-        marginTop: '-24px',
         paddingBottom: '14px',
-        marginBottom: '10px',
+        marginBottom: '16px',
       }}>
         {/* Master Tab Nav */}
         <div style={{
@@ -143,7 +139,7 @@ export default function Venues() {
                 placeholder="Search venues…"
                 value={search} onChange={e => setSearch(e.target.value)}
                 style={{
-                  width: '100%', padding: '8px 12px 8px 32px', borderRadius: '9px',
+                  width: '100%', padding: '8px 12px 8px 32px', borderRadius: '9999px',
                   border: '1.5px solid var(--dash-border)', background: 'var(--dash-input-bg)',
                   fontSize: '12.5px', color: 'var(--dash-input-text)', outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box',
                 }}
@@ -153,7 +149,7 @@ export default function Venues() {
               onClick={openAdd}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '7px',
-                padding: '8.5px 18px', borderRadius: '9px', border: 'none',
+                padding: '8.5px 18px', borderRadius: '9999px', border: 'none',
                 background: 'linear-gradient(135deg, #c9956c 0%, #d4728f 100%)',
                 color: 'white', fontWeight: 700, fontSize: '13px',
                 cursor: 'pointer', boxShadow: '0 4px 14px rgba(201,149,108,0.35)',
@@ -168,8 +164,10 @@ export default function Venues() {
         </div>
       </div>
 
-      {/* Venues Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '18px' }}>
+      {/* Venues Grid + Legend Container */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }} className="no-scrollbar">
+        {/* Venues Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '18px' }}>
         {sorted.map(item => (
           <div
             key={item.id}
@@ -267,15 +265,14 @@ export default function Venues() {
         />
       )}
 
-      {/* Legend - Sticky Bottom */}
+      </div>
+
+      {/* Legend - pinned at bottom, outside the scroll area */}
       <div style={{
-        position: 'sticky',
-        bottom: 0,
-        zIndex: 20,
+        flexShrink: 0,
         background: 'var(--dash-bg)',
         paddingTop: '12px',
         paddingBottom: '16px',
-        marginTop: '16px',
       }}>
         <div style={{
           display: 'flex', gap: '20px', flexWrap: 'wrap',

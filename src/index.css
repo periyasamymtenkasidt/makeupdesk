@@ -1,6 +1,16 @@
 @import "./theme.css";
 @import "tailwindcss";
 
+/* ── DashTimePicker slot grid ── */
+.slot-chip:hover {
+  border-color: rgba(201,149,108,0.55) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(201,149,108,0.18) !important;
+}
+.slot-chip:active {
+  transform: translateY(0);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -15,14 +25,46 @@ body {
   color: var(--color-plum-900);
 }
 
+/* ── Global Themed Scrollbar ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 149, 108, 0.4) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 149, 108, 0.4);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 149, 108, 0.75);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* ── Hide Scrollbars Utility ── */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
+
+/* ── Dashboard scroll fade edges ── */
+main.no-scrollbar.is-scrolled {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 60px, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0px, black 60px, black 100%);
+}
+
+/* ── Masters sticky header — class marker only, fade handled by JS overlay in Dashboard.jsx ── */
 
 input::placeholder, textarea::placeholder {
   color: var(--dash-text-muted);
@@ -415,6 +457,11 @@ button:not([disabled]):hover {
   50%       { box-shadow: 0 0 24px 6px rgba(var(--rgb-rose-gold), 0.3); }
 }
 .icon-glow { animation: iconGlow 3s ease-in-out infinite; }
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
 /* ── Portfolio card hover ── */
 .portfolio-card-dark {

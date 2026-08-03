@@ -20,19 +20,23 @@ export async function generateQuotePDF(appt, amount, note, options = {}) {
   let upiId = 'makeupdesk@upi'
   let advancePct = 40
   let qrCodeImage = ''
+  let studioName = 'MakeupDesk'
+  let tagline = 'Professional Makeup Artist Studio'
 
   try {
     const saved = JSON.parse(localStorage.getItem('md_settings') || '{}')
-    if (saved.upiId) upiId = saved.upiId
-    if (saved.advancePct) advancePct = Number(saved.advancePct)
+    if (saved.upiId)       upiId      = saved.upiId
+    if (saved.advancePct)  advancePct = Number(saved.advancePct)
     if (saved.qrCodeImage) qrCodeImage = saved.qrCodeImage
+    if (saved.studioName)  studioName = saved.studioName
+    if (saved.tagline)     tagline    = saved.tagline
   } catch (e) {
     console.error(e)
   }
 
   const advanceAmount = Math.round((Number(amount) || 0) * (advancePct / 100))
   let qrBase64 = null
-  const qrUrl = qrCodeImage || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${upiId}&pn=MakeupDesk&am=${advanceAmount}&cu=INR`)}` : '')
+  const qrUrl = qrCodeImage || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${upiId}&pn=${studioName}&am=${advanceAmount}&cu=INR`)}` : '')
 
   if (qrUrl) {
     qrBase64 = await new Promise(resolve => {
@@ -81,13 +85,13 @@ export async function generateQuotePDF(appt, amount, note, options = {}) {
   doc.setFont('times', 'bolditalic')
   doc.setFontSize(30)
   doc.setTextColor(255, 245, 230)
-  doc.text('MakeupDesk', M, 23)
+  doc.text(safe(studioName), M, 23)
 
   // Tagline
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...roseMid)
-  doc.text('Professional Makeup Artist Studio', M, 31)
+  doc.text(safe(tagline), M, 31)
 
   // Three decorative dots
   doc.setFillColor(...roseGold)

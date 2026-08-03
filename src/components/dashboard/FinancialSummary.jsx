@@ -1,14 +1,13 @@
-import { useState } from 'react'
 import { TrendingUp, CreditCard, AlertCircle, ArrowUpRight } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '../ui/Card'
 import { Button } from '../ui/Button'
-import RecordPaymentModal from './RecordPaymentModal'
 import { useAppointments } from '../../context/AppointmentContext'
 import { formatCurrency, formatCurrencyShort } from '../../utils/formatCurrency'
+import { useSettings } from '../../hooks/useSettings'
 
-export default function FinancialSummary() {
-  const [openRecordPayment, setOpenRecordPayment] = useState(false)
+export default function FinancialSummary({ onRecordPayment }) {
   const { appointments = [] } = useAppointments()
+  const { settings }          = useSettings()
 
   // Calculate live financial statistics from appointment state
   const totalTarget = 150000
@@ -24,7 +23,7 @@ export default function FinancialSummary() {
 
   activeAppts.forEach(a => {
     const tot = Number(a.amount || 0)
-    const adv = Number(a.advanceAmount || Math.round(tot * 0.4))
+    const adv = Number(a.advanceAmount || Math.round(tot * ((settings.advancePct ?? 40) / 100)))
     const bal = Math.max(0, tot - adv)
 
     if (a.advancePaid) {
@@ -153,7 +152,7 @@ export default function FinancialSummary() {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => setOpenRecordPayment(true)}
+            onClick={onRecordPayment}
             style={{ width: '100%', justifyContent: 'center' }}
           >
             Record Payment / Advance <ArrowUpRight size={15} />
@@ -161,10 +160,6 @@ export default function FinancialSummary() {
         </CardBody>
       </Card>
 
-      <RecordPaymentModal
-        open={openRecordPayment}
-        onClose={() => setOpenRecordPayment(false)}
-      />
     </>
   )
 }

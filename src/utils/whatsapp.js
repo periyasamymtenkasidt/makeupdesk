@@ -57,6 +57,7 @@ export function buildWhatsAppFollowUp(appt, customAmount, note) {
     const saved = JSON.parse(localStorage.getItem('md_settings') || '{}')
     const upiId = saved.upiId || 'makeupdesk@upi'
     const pct = saved.advancePct || 40
+    const studioName = saved.studioName || 'MakeupDesk'
     const adv = amount ? Math.round(amount * (pct / 100)) : 0
     if (adv > 0) {
       upiText = `💰 *Total Amount:* ₹${amount.toLocaleString('en-IN')}\n💳 *Advance Deposit (${pct}%):* ₹${adv.toLocaleString('en-IN')}\n📲 *UPI ID for Payment:* ${upiId}\n`
@@ -65,10 +66,12 @@ export function buildWhatsAppFollowUp(appt, customAmount, note) {
     console.error(e)
   }
 
+  const studioName = (() => { try { return JSON.parse(localStorage.getItem('md_settings') || '{}').studioName || 'MakeupDesk' } catch { return 'MakeupDesk' } })()
+
   const msg = [
     `Hi ${appt?.name || 'Client'}! 💄✨`,
     '',
-    `Here is your official quotation from *MakeupDesk* for *${appt?.service || 'Makeup Service'}* on *${appt?.date || ''}* at *${appt?.time || 'scheduled time'}*.`,
+    `Here is your official quotation from *${studioName}* for *${appt?.service || 'Makeup Service'}* on *${appt?.date || ''}* at *${appt?.time || 'scheduled time'}*.`,
     '',
     upiText,
     note ? `📝 *Note:* ${note}\n` : null,
@@ -107,9 +110,10 @@ export async function sendQuoteViaWhatsApp(appt, customAmount, note) {
       const amount = customAmount !== undefined ? customAmount : (appt?.amount || 0)
       const adv = amount ? Math.round(amount * (pct / 100)) : 0
 
+      const shareStudioName = saved.studioName || 'MakeupDesk'
       const shareText = [
         `Hi ${appt?.name || 'Client'}! 💄✨`,
-        `Here is your official quotation from MakeupDesk for ${appt?.service || 'Makeup Service'} on ${appt?.date || ''}.`,
+        `Here is your official quotation from ${shareStudioName} for ${appt?.service || 'Makeup Service'} on ${appt?.date || ''}.`,
         adv > 0 ? `Total Amount: ₹${amount.toLocaleString('en-IN')} | Advance (${pct}%): ₹${adv.toLocaleString('en-IN')} (UPI: ${upiId})` : '',
         note ? `Note: ${note}` : '',
         'Official PDF Quote attached.',
@@ -145,16 +149,18 @@ export function buildWhatsAppBalanceInvoice(appt) {
     console.error(e)
   }
 
+  const balStudioName = (() => { try { return JSON.parse(localStorage.getItem('md_settings') || '{}').studioName || 'MakeupDesk' } catch { return 'MakeupDesk' } })()
+
   const msg = [
     `Hi ${appt?.name || 'Client'}! 💄✨`,
     `Hope you loved your *${appt?.service || 'Makeup'}* look today!`,
     '',
-    `Here is your final Balance Invoice from *MakeupDesk*:`,
+    `Here is your final Balance Invoice from *${balStudioName}*:`,
     '',
     upiText,
     `📄 *Balance Invoice PDF:* Downloaded & ready to attach in this chat.`,
     '',
-    `Please pay the remaining balance of ₹${balanceDue.toLocaleString('en-IN')} via UPI or Cash and reply with your screenshot. Thank you for choosing MakeupDesk! 👑`,
+    `Please pay the remaining balance of ₹${balanceDue.toLocaleString('en-IN')} via UPI or Cash and reply with your screenshot. Thank you for choosing ${balStudioName}! 👑`,
   ].filter(Boolean).join('\n')
 
   const rawPhone = appt?.phone || appt?.clientPhone || ''

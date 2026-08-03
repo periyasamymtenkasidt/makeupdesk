@@ -50,6 +50,7 @@ export default function Clients() {
 
   function handleAdd() {
     if (!form.name.trim() || !form.phone.trim()) return
+    if (form.phone.length !== 10) return
     addClient(form)
     setForm(EMPTY)
     setAddOpen(false)
@@ -177,12 +178,17 @@ export default function Clients() {
             <div>
               <label style={lbl}>Full Name *</label>
               <input style={inpStyle} placeholder="e.g. Ananya Roy"
-                value={form.name} onChange={e => set('name', e.target.value)} />
+                value={form.name} onChange={e => set('name', e.target.value.replace(/[^a-zA-Z\s.'`-]/g, ''))} />
             </div>
             <div>
               <label style={lbl}>Phone *</label>
-              <input style={inpStyle} placeholder="+91 98765 43210"
-                value={form.phone} onChange={e => set('phone', e.target.value)} />
+              <input style={inpStyle} placeholder="98765 43210"
+                value={form.phone} onChange={e => set('phone', e.target.value.replace(/[^0-9]/g, '').slice(0, 10))} />
+              {form.phone && form.phone.length !== 10 && (
+                <p style={{ fontSize: '11px', color: 'var(--color-danger, #e8748a)', marginTop: '4px' }}>
+                  Must be 10 digits.
+                </p>
+              )}
             </div>
           </div>
           <div>

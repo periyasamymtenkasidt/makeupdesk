@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { ArrowRight, Star, Award, Users, Calendar } from 'lucide-react'
 import { useCounter } from '../../hooks/useCounter'
+import { useSettings } from '../../hooks/useSettings'
 import bridePic    from '../../assets/images/Bride_1.png'
 import bridePic2   from '../../assets/images/Bride_2.png'
 import etherealPic from '../../assets/images/Engagement_bridal.png'
 import roseGoldPic from '../../assets/images/Reception_makeup.png'
 
 export default function Hero() {
+  const { settings }           = useSettings()
   const [triggered, setTriggered] = useState(false)
 
   useEffect(() => {
@@ -14,9 +16,9 @@ export default function Hero() {
     return () => clearTimeout(t)
   }, [])
 
-  const clients = useCounter(500,  { duration: 2000, triggered })
-  const years   = useCounter(8,    { duration: 1500, triggered })
-  const events  = useCounter(1000, { duration: 2400, triggered })
+  const clients = useCounter(settings.clientCount ?? 500,  { duration: 2000, triggered })
+  const years   = useCounter(settings.yearsExp    ?? 8,    { duration: 1500, triggered })
+  const events  = useCounter(settings.eventsCount ?? 1000, { duration: 2400, triggered })
 
   return (
     <section

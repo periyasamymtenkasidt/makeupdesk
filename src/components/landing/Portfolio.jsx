@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Eye, ArrowUpRight, ArrowRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { useReveal } from '../../hooks/useReveal'
 import bride1          from '../../assets/images/Bride_1.png'
 import bride2          from '../../assets/images/Bride_2.png'
@@ -10,14 +11,14 @@ import engagementBride from '../../assets/images/Engagement_bridal.png'
 import haldi           from '../../assets/images/Haldi_makeup.png'
 import reception       from '../../assets/images/Reception_makeup.png'
 
-const CATEGORIES = ['All', 'Bridal', 'Party', 'Editorial', 'Pre-Wedding', 'HD']
+export const CATEGORIES = ['All', 'Bridal', 'Party', 'Editorial', 'Pre-Wedding', 'HD']
 
-const ITEMS = [
+export const ITEMS = [
   {
     id: 0,
     title: 'The Golden Bride',
     category: 'Bridal',
-    subtitle: 'Reception Look · Mumbai',
+    subtitle: 'Reception Look · Chennai',
     tag: 'Featured',
     accent: '#c9956c',
     glow: 'rgba(201,149,108,0.4)',
@@ -86,6 +87,7 @@ export default function Portfolio() {
   const [active, setActive]         = useState('All')
   const [hovered, setHovered]       = useState(null)
   const ref                         = useReveal(0.08)
+  const navigate                    = useNavigate()
 
   const filtered = active === 'All' ? ITEMS : ITEMS.filter(i => i.category === active)
   const isBento  = active === 'All' && filtered.length === 6
@@ -183,7 +185,7 @@ export default function Portfolio() {
 
         {/* ── CTA ── */}
         <div className="mt-14 text-center reveal">
-          <button className="btn-primary">
+          <button className="btn-primary" onClick={() => navigate('/portfolio')}>
             View Full Portfolio <ArrowRight size={16} />
           </button>
         </div>
@@ -193,8 +195,8 @@ export default function Portfolio() {
 }
 
 /* ── Portfolio Card Component ── */
-function PortfolioCard({ item, hovered, setHovered, height, className = '', featured = false }) {
-  const { id, title, category, subtitle, tag, img, img2, pos, pos2, accent, glow } = item
+export function PortfolioCard({ item, hovered, setHovered, height, className = '', featured = false }) {
+  const { id, title, category, subtitle, tag, img, pos, accent, glow } = item
   const isHovered = hovered === id
 
   return (
@@ -212,11 +214,9 @@ function PortfolioCard({ item, hovered, setHovered, height, className = '', feat
       onMouseEnter={() => setHovered(id)}
       onMouseLeave={() => setHovered(null)}
     >
-      {/* ── 2-panel image split ── */}
-      <div className="absolute inset-0 flex" style={{ gap: '2px', background: '#060210' }}>
-
-        {/* Left panel — face / makeup focus */}
-        <div className="relative overflow-hidden" style={{ flex: featured ? '3 3 0%' : '1 1 0%' }}>
+      {/* ── Single image ── */}
+      <div className="absolute inset-0" style={{ background: '#060210' }}>
+        <div className="relative overflow-hidden w-full h-full">
           <img
             src={img}
             alt={title}
@@ -224,20 +224,6 @@ function PortfolioCard({ item, hovered, setHovered, height, className = '', feat
             style={{
               objectPosition: pos,
               transition: 'transform 0.75s cubic-bezier(0.16,1,0.3,1)',
-              transform: isHovered ? 'scale(1.07)' : 'scale(1)',
-            }}
-          />
-        </div>
-
-        {/* Right panel — outfit / jewelry / detail */}
-        <div className="relative overflow-hidden" style={{ flex: featured ? '2 2 0%' : '1 1 0%' }}>
-          <img
-            src={img2}
-            alt={title}
-            className="w-full h-full object-cover"
-            style={{
-              objectPosition: pos2,
-              transition: 'transform 0.75s cubic-bezier(0.16,1,0.3,1) 0.04s',
               transform: isHovered ? 'scale(1.07)' : 'scale(1)',
             }}
           />
@@ -283,26 +269,6 @@ function PortfolioCard({ item, hovered, setHovered, height, className = '', feat
               style={{ fontSize: featured ? 'clamp(20px,2.2vw,26px)' : '17px' }}>
             {title}
           </h3>
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ml-3"
-            style={{
-              background: `${accent}22`,
-              border: `1px solid ${accent}60`,
-              opacity: isHovered ? 1 : 0,
-              transform: isHovered ? 'scale(1) rotate(0deg)' : 'scale(0.5) rotate(-45deg)',
-              transition: 'opacity 0.3s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1)',
-            }}>
-            <ArrowUpRight size={15} style={{ color: accent }} />
-          </div>
-        </div>
-
-        {/* Slide-in CTA on hover */}
-        <div style={{ height: isHovered ? '34px' : '0px', overflow: 'hidden', transition: 'height 0.38s cubic-bezier(0.16,1,0.3,1)' }}>
-          <div className="flex items-center gap-2 pt-3">
-            <Eye size={12} style={{ color: 'rgba(255,255,255,0.4)' }} />
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>View Look Details</span>
-            <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.12), transparent)' }} />
-          </div>
         </div>
       </div>
 

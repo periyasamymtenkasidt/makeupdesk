@@ -18,11 +18,15 @@ export async function generateBalanceInvoicePDF(appt, options = {}) {
   // Read settings for UPI & QR Code
   let upiId = 'makeupdesk@upi'
   let qrCodeImage = ''
+  let studioName = 'MakeupDesk'
+  let tagline = 'Professional Makeup Artist Studio'
 
   try {
     const saved = JSON.parse(localStorage.getItem('md_settings') || '{}')
-    if (saved.upiId) upiId = saved.upiId
+    if (saved.upiId)       upiId      = saved.upiId
     if (saved.qrCodeImage) qrCodeImage = saved.qrCodeImage
+    if (saved.studioName)  studioName = saved.studioName
+    if (saved.tagline)     tagline    = saved.tagline
   } catch (e) {
     console.error(e)
   }
@@ -32,7 +36,7 @@ export async function generateBalanceInvoicePDF(appt, options = {}) {
   const balanceDue   = Math.max(0, totalAmount - advanceAmount)
 
   let qrBase64 = null
-  const qrUrl = qrCodeImage || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${upiId}&pn=MakeupDesk&am=${balanceDue}&cu=INR`)}` : '')
+  const qrUrl = qrCodeImage || (upiId ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=${upiId}&pn=${studioName}&am=${balanceDue}&cu=INR`)}` : '')
 
   if (qrUrl) {
     qrBase64 = await new Promise(resolve => {
@@ -77,12 +81,12 @@ export async function generateBalanceInvoicePDF(appt, options = {}) {
   doc.setFont('times', 'bolditalic')
   doc.setFontSize(30)
   doc.setTextColor(255, 245, 230)
-  doc.text('MakeupDesk', M, 23)
+  doc.text(safe(studioName), M, 23)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...roseMid)
-  doc.text('Professional Makeup Artist Studio', M, 31)
+  doc.text(safe(tagline), M, 31)
 
   doc.setFillColor(...roseGold)
   ;[0, 5, 10].forEach(offset => doc.circle(M + offset, 38.5, 0.8, 'F'))

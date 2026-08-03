@@ -1,9 +1,10 @@
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { Button } from './Button'
 
 export function Modal({ open, onClose, title, children, onSave, saveLabel = 'Save', width = '540px' }) {
   if (!open) return null
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
@@ -57,6 +58,7 @@ export function Modal({ open, onClose, title, children, onSave, saveLabel = 'Sav
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -8,16 +8,13 @@ import { usePagination } from '../../hooks/usePagination'
 import { useAppointments } from '../../context/AppointmentContext'
 import { sendBalanceInvoiceViaWhatsApp } from '../../utils/whatsapp'
 
-function PaidToggle({ paid, onToggle, label }) {
+function PaymentStatus({ paid }) {
   return (
-    <button
-      onClick={onToggle}
-      title={paid ? `Mark ${label} unpaid` : `Mark ${label} paid`}
+    <span
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '5px',
         padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600,
-        cursor: 'pointer', border: '1.5px solid', transition: 'all 0.15s',
-        fontFamily: 'Inter, sans-serif',
+        border: '1.5px solid', fontFamily: 'Inter, sans-serif',
         ...(paid
           ? { background: 'var(--badge-confirmed-bg)', color: 'var(--badge-confirmed)', borderColor: 'var(--badge-confirmed)' }
           : { background: 'var(--badge-pending-bg)',   color: 'var(--badge-pending)',   borderColor: 'var(--badge-pending)' }
@@ -26,12 +23,12 @@ function PaidToggle({ paid, onToggle, label }) {
     >
       {paid ? <Check size={11} /> : <Hourglass size={11} />}
       {paid ? 'Paid' : 'Pending'}
-    </button>
+    </span>
   )
 }
 
 export default function Payments() {
-  const { appointments, updateAppointment } = useAppointments()
+  const { appointments } = useAppointments()
 
   const active = appointments.filter(a => a.status !== 'Rejected' && a.status !== 'Closed')
 
@@ -54,31 +51,34 @@ export default function Payments() {
   const { page, setPage, totalPages, paginated } = usePagination(active, 6)
 
   return (
-    <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: '20px', boxSizing: 'border-box' }}>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px' }}>
+      <div style={{ flexShrink: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px' }}>
         {PAYMENT_STATS.map(s => <StatsCard key={s.label} {...s} />)}
       </div>
 
       {/* Table */}
-      <Card style={{ overflow: 'hidden', padding: 0 }}>
-        <CardHeader>
+      <Card style={{ flex: 1, minHeight: 0, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column' }}>
+        <CardHeader style={{ flexShrink: 0 }}>
           <span style={{ fontFamily: 'Playfair Display,serif', fontWeight: 600, color: 'var(--dash-text-primary)', fontSize: '17px' }}>
             Payment Tracker
           </span>
           <span style={{ fontSize: '12px', color: 'var(--dash-text-muted)', fontWeight: 500 }}>
-            Click Pending / Paid to toggle payment status
+            Payment status overview
           </span>
         </CardHeader>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--dash-border)' }}>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }} className="no-scrollbar">
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '13px' }}>
+            <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+              <tr>
                 {['Client', 'Service', 'Total', 'Advance', 'Balance', 'Adv. Status', 'Bal. Status', 'Stage'].map(h => (
                   <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px',
                                        fontWeight: 600, color: 'var(--dash-text-muted)', textTransform: 'uppercase',
-                                       letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>
+                                       letterSpacing: '0.07em', whiteSpace: 'nowrap',
+                                       position: 'sticky', top: 0, zIndex: 10,
+                                       background: 'var(--dash-surface)',
+                                       borderBottom: '1px solid var(--dash-border)' }}>
                     {h}
                   </th>
                 ))}
@@ -109,19 +109,11 @@ export default function Payments() {
                       {formatCurrency(balance)}
                     </td>
                     <td style={{ padding: '14px 16px' }}>
-                      <PaidToggle
-                        paid={p.advancePaid}
-                        label="advance"
-                        onToggle={() => updateAppointment(p.id, { advancePaid: !p.advancePaid })}
-                      />
+                      <PaymentStatus paid={p.advancePaid} />
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <PaidToggle
-                          paid={p.balancePaid}
-                          label="balance"
-                          onToggle={() => updateAppointment(p.id, { balancePaid: !p.balancePaid })}
-                        />
+                        <PaymentStatus paid={p.balancePaid} />
                         {!p.balancePaid && (
                           <button
                             onClick={async () => {
@@ -153,6 +145,7 @@ export default function Payments() {
 
         {/* Footer */}
         <div style={{
+          flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '14px 24px', borderTop: '1px solid var(--dash-border)',
           background: 'var(--dash-subtle-row-bg)', flexWrap: 'wrap', gap: '12px'

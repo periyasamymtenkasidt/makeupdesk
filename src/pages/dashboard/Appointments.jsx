@@ -8,7 +8,7 @@ import { Pagination } from '../../components/ui/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { useAppointments } from '../../context/AppointmentContext'
 
-const STATUS_TABS = ['All', 'Inquiry', 'Confirmed', 'Payment Pending', 'Completed']
+const STATUS_TABS = ['All', 'Inquiry', 'Payment Pending','Confirmed', 'Completed']
 
 export default function Appointments() {
   const { appointments, updateStatus, deleteAppointment } = useAppointments()
@@ -28,10 +28,10 @@ export default function Appointments() {
 
   return (
     <>
-      <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: '16px', boxSizing: 'border-box' }}>
 
         {/* Search + Filters + Action */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
             <Search size={14} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-rose-gold)', pointerEvents: 'none' }} />
             <input
@@ -65,15 +65,18 @@ export default function Appointments() {
         </div>
 
         {/* Table */}
-        <Card style={{ overflow: 'hidden', padding: 0 }}>
+        <Card style={{ flex: 1, minHeight: 0, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column' }}>
           <AppointmentTable
             appointments={paginated}
-            onReject={appt => updateStatus(appt.id, 'Rejected')}
+            onReject={appt => {
+              if (window.confirm(`Reject booking for ${appt.name}? This will mark the appointment as rejected.`))
+                updateStatus(appt.id, 'Rejected')
+            }}
             onDelete={id => deleteAppointment(id)}
           />
         </Card>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', paddingTop: '4px' }}>
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       </div>

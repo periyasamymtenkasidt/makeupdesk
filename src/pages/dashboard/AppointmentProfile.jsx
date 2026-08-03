@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign } from 'lucide-react'
 import { useAppointments } from '../../context/AppointmentContext'
 import { useClients } from '../../context/ClientContext'
+import { useToast } from '../../context/ToastContext'
 import EditAppointmentModal from '../../components/dashboard/EditAppointmentModal'
 import MarkDoneFlow from '../../components/dashboard/MarkDoneFlow'
 import SendQuoteModal from '../../components/dashboard/SendQuoteModal'
@@ -49,6 +50,7 @@ export default function AppointmentProfile() {
   const navigate = useNavigate()
   const { appointments, updateAppointment } = useAppointments()
   const { clients } = useClients()
+  const { showToast } = useToast()
   const [editOpen,      setEditOpen]      = useState(false)
   const [markDoneOpen,  setMarkDoneOpen]  = useState(false)
   const [sendQuoteOpen, setSendQuoteOpen] = useState(false)
@@ -77,24 +79,6 @@ export default function AppointmentProfile() {
   return (
     <>
       <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-        {/* Back */}
-        <div>
-          <button
-            onClick={() => navigate('/dashboard/appointments')}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--dash-border)',
-              background: 'var(--dash-surface)', color: 'var(--dash-text-secondary)',
-              fontSize: '13px', fontWeight: 500, cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'var(--dash-surface)'}
-          >
-            <ArrowLeft size={14} /> Back to Appointments
-          </button>
-        </div>
 
         {/* Header card */}
         <div style={{
@@ -158,11 +142,24 @@ export default function AppointmentProfile() {
         </div>
 
         {/* Financial stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
-          <StatBox icon={TrendingUp} label="Total Amount"  value={formatCurrency(appt.amount || 0)} color="var(--icon-revenue)" bg="var(--icon-revenue-bg)" />
-          <StatBox icon={CreditCard} label="Advance Paid"  value={formatCurrency(advancePaid)}       color="var(--badge-confirmed)" bg="var(--badge-confirmed-bg)" />
-          <StatBox icon={DollarSign} label="Balance Due"   value={formatCurrency(balanceDue)}        color={balanceDue > 0 ? 'var(--badge-pending)' : 'var(--badge-confirmed)'} bg={balanceDue > 0 ? 'var(--badge-pending-bg)' : 'var(--badge-confirmed-bg)'} />
-        </div>
+        {(() => {
+          const vendorCost = appt.vendorCost || 0
+          const profit     = (appt.amount || 0) - vendorCost
+          const hasVendor  = vendorCost > 0
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+              <StatBox icon={TrendingUp}       label="Total Amount"  value={formatCurrency(appt.amount || 0)} color="var(--icon-revenue)"   bg="var(--icon-revenue-bg)" />
+              <StatBox icon={CreditCard}       label="Advance Paid"  value={formatCurrency(advancePaid)}      color="var(--badge-confirmed)" bg="var(--badge-confirmed-bg)" />
+              <StatBox icon={DollarSign}       label="Balance Due"   value={formatCurrency(balanceDue)}       color={balanceDue > 0 ? 'var(--badge-pending)' : 'var(--badge-confirmed)'} bg={balanceDue > 0 ? 'var(--badge-pending-bg)' : 'var(--badge-confirmed-bg)'} />
+              {hasVendor && (
+                <StatBox icon={Wallet}         label="Vendor Cost"   value={formatCurrency(vendorCost)}       color="var(--badge-pending)"   bg="var(--badge-pending-bg)" />
+              )}
+              {hasVendor && (
+                <StatBox icon={BadgeDollarSign} label="Profit"       value={formatCurrency(profit)}           color={profit >= 0 ? 'var(--badge-confirmed)' : 'var(--badge-rejected)'} bg={profit >= 0 ? 'var(--badge-confirmed-bg)' : 'var(--badge-rejected-bg)'} />
+              )}
+            </div>
+          )
+        })()}
 
         {/* Details grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -219,6 +216,24 @@ export default function AppointmentProfile() {
               <InfoRow label="Duration"  value={appt.duration} muted />
               <InfoRow label="Advance ₹" value={appt.advanceAmount ? formatCurrency(appt.advanceAmount) : '—'} muted />
             </div>
+            {appt.addOns?.length > 0 && (
+              <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--dash-border)' }}>
+                <div style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>
+                  Team Requested by Client
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {appt.addOns.map(role => (
+                    <span key={role} style={{
+                      fontSize: '12px', fontWeight: 600, padding: '3px 10px', borderRadius: '9999px',
+                      background: 'var(--icon-booking-bg)', color: 'var(--icon-booking)',
+                      border: '1px solid var(--dash-border-subtle)',
+                    }}>
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </Card>
         </div>
 
@@ -264,6 +279,91 @@ export default function AppointmentProfile() {
           </Card>
         )}
 
+        {/* Change History */}
+        {appt.changeLog && appt.changeLog.length > 0 && (() => {
+          const CH_LABELS = {
+            service: 'Service', date: 'Date', time: 'Time',
+            location: 'Location', venue: 'Venue Category', venueAddress: 'Venue Address',
+            status: 'Status', amount: 'Total Amount', advanceAmount: 'Advance Amount',
+            vendorCost: 'Vendor Cost', duration: 'Duration', notes: 'Notes', artist: 'Artist',
+          }
+          const CH_MONEY = new Set(['amount', 'advanceAmount', 'vendorCost'])
+          const normalizeDate = (val) => {
+            if (!val) return null
+            const d = new Date(val)
+            return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+          }
+          const fmtVal = (field, val) => {
+            if (CH_MONEY.has(field)) return val ? `₹ ${Number(val).toLocaleString('en-IN')}` : null
+            if (field === 'date') return normalizeDate(val)
+            return val || null
+          }
+          return (
+            <Card style={{ padding: '20px 24px' }}>
+              <CardHeader style={{ padding: '0 0 14px', borderBottom: '1px solid var(--dash-border)', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <History size={15} style={{ color: 'var(--color-rose-gold)' }} /> Change History
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--dash-text-muted)' }}>
+                  {appt.changeLog.length} edit{appt.changeLog.length > 1 ? 's' : ''}
+                </span>
+              </CardHeader>
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {[...appt.changeLog].reverse().map((entry, i, arr) => {
+                  const isLast = i === arr.length - 1
+                  const d = new Date(entry.timestamp)
+                  const dateLabel = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                  const timeLabel = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+
+                  return (
+                    <div key={i} style={{ display: 'flex', gap: '14px' }}>
+                      {/* Timeline spine */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 10 }}>
+                        <div style={{
+                          width: 9, height: 9, borderRadius: '50%', marginTop: 4, flexShrink: 0,
+                          background: 'var(--dash-card-bg)',
+                          border: '2px solid var(--color-rose-gold)',
+                        }} />
+                        {!isLast && (
+                          <div style={{ width: 1, flex: 1, marginTop: 4, background: 'var(--dash-border)', minHeight: 28 }} />
+                        )}
+                      </div>
+
+                      {/* Entry content */}
+                      <div style={{ paddingBottom: isLast ? 0 : 16, flex: 1 }}>
+                        <div style={{ fontSize: '11px', color: 'var(--dash-text-muted)', fontWeight: 600, marginBottom: 6 }}>
+                          {dateLabel} · {timeLabel}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          {entry.changes.map((c, j) => {
+                            const fromVal = fmtVal(c.field, c.from)
+                            const toVal   = fmtVal(c.field, c.to)
+                            return (
+                              <div key={j} style={{ display: 'flex', alignItems: 'baseline', gap: '6px', fontSize: '12.5px' }}>
+                                <span style={{ fontWeight: 600, color: 'var(--dash-text-secondary)', width: 120, flexShrink: 0 }}>
+                                  {CH_LABELS[c.field] || c.field}
+                                </span>
+                                <span style={{ color: 'var(--dash-text-muted)', textDecoration: fromVal ? 'line-through' : 'none', fontSize: '12px', fontStyle: fromVal ? 'normal' : 'italic' }}>
+                                  {fromVal ?? '(empty)'}
+                                </span>
+                                <span style={{ color: 'var(--dash-text-muted)', fontSize: '11px' }}>→</span>
+                                <span style={{ fontWeight: toVal ? 600 : 400, fontStyle: toVal ? 'normal' : 'italic', color: toVal ? 'var(--dash-text-primary)' : 'var(--dash-text-muted)' }}>
+                                  {toVal ?? '(removed)'}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+          )
+        })()}
+
         {/* Prompt to collect feedback on completed appointments without it */}
         {appt.status === 'Completed' && !appt.feedback && (
           <div style={{
@@ -290,7 +390,7 @@ export default function AppointmentProfile() {
             updateAppointment(appt.id, { amount, status: 'Quotation Sent' })
             const res = await sendQuoteViaWhatsApp(appt, amount, note)
             if (res?.method === 'download_and_whatsapp') {
-              alert(`📄 Quote PDF downloaded (${res.fileName})\n📲 WhatsApp launched! In the WhatsApp window, click the attachment 📎 icon to attach the PDF file.`)
+              showToast('Quote PDF downloaded — attach it in the WhatsApp window that just opened.', 'success', 7000)
             }
             setSendQuoteOpen(false)
           }}

@@ -10,6 +10,7 @@ export function MultiArtistPicker({
   time = '',
   appointments = [],
   currentApptId = null,
+  disabled = false,
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef(null)
@@ -52,17 +53,23 @@ export function MultiArtistPicker({
 
       {/* Main Select Field Container */}
       <div
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => { if (!disabled) setIsOpen(!isOpen) }}
         style={{
           minHeight: '44px', padding: '6px 12px', borderRadius: '12px',
           border: isOpen ? '1.5px solid var(--color-rose-gold)' : '1.5px solid var(--dash-border)',
-          background: 'var(--dash-input-bg)', cursor: 'pointer',
+          background: disabled ? 'var(--dash-subtle-row-bg)' : 'var(--dash-input-bg)',
+          cursor: disabled ? 'not-allowed' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
           boxShadow: isOpen ? '0 0 12px rgba(201,149,108,0.25)' : 'none',
           transition: 'all 0.2s ease', flexWrap: 'wrap',
+          opacity: disabled ? 0.55 : 1,
         }}
       >
-        {selected.length === 0 ? (
+        {disabled ? (
+          <span style={{ fontSize: '13px', color: 'var(--dash-text-muted)', fontStyle: 'italic' }}>
+            Select a service package first…
+          </span>
+        ) : selected.length === 0 ? (
           <span style={{ fontSize: '13px', color: 'var(--dash-text-muted)' }}>
             Click to assign artists & specialists…
           </span>
@@ -107,7 +114,7 @@ export function MultiArtistPicker({
       </div>
 
       {/* Category-Grouped Dropdown Menu */}
-      {isOpen && (
+      {isOpen && !disabled && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '6px',
           maxHeight: '260px', overflowY: 'auto', zIndex: 300,

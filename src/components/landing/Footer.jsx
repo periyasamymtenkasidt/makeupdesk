@@ -2,7 +2,7 @@ import { Sparkles, Phone, Mail, MapPin, Camera, MessageCircle } from 'lucide-rea
 import { NAV_LINKS, FOOTER_SERVICES } from '../../data/navigation'
 import { chatOnWhatsApp } from '../../utils/whatsapp'
 
-const PHONE    = import.meta.env.VITE_BUSINESS_PHONE    ?? '+91 99999 99999'
+const PHONE    = import.meta.env.VITE_BUSINESS_PHONE    ?? '99999 99999'
 const EMAIL    = import.meta.env.VITE_BUSINESS_EMAIL    ?? 'hello@makeupdesk.in'
 const LOCATION = import.meta.env.VITE_BUSINESS_LOCATION ?? 'Chennai, Tamil Nadu, India'
 const NAME     = import.meta.env.VITE_BUSINESS_NAME     ?? 'MakeupDesk'

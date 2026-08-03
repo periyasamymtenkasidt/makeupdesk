@@ -3,8 +3,10 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AppointmentProvider } from './context/AppointmentContext'
 import { ClientProvider } from './context/ClientContext'
 import { AvailabilityProvider } from './context/AvailabilityContext'
-import LandingPage  from './pages/LandingPage'
-import Login        from './pages/Login'
+import { ToastProvider } from './context/ToastContext'
+import LandingPage    from './pages/LandingPage'
+import PortfolioPage  from './pages/PortfolioPage'
+import Login          from './pages/Login'
 import Dashboard    from './pages/Dashboard'
 import Overview     from './pages/dashboard/Overview'
 import Appointments      from './pages/dashboard/Appointments'
@@ -22,12 +24,14 @@ import Settings      from './pages/dashboard/Settings'
 export default function App() {
   return (
     <ThemeProvider>
+    <ToastProvider>
     <AvailabilityProvider>
     <ClientProvider>
     <AppointmentProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index                       element={<Overview />}     />
@@ -48,6 +52,7 @@ export default function App() {
     </AppointmentProvider>
     </ClientProvider>
     </AvailabilityProvider>
+    </ToastProvider>
     </ThemeProvider>
   )
 }

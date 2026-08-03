@@ -1,8 +1,8 @@
 import { useState } from 'react'
 
 const INITIAL = {
-  name: '', phone: '', service: '', artistPreference: 'Any Available',
-  vendorId: '1',
+  name: '', phone: '', service: '', addOns: ['Makeup Artist'],
+  vendorId: '1', personCount: 1,
   date: '', time: '', locationType: 'Studio', venue: '', venueAddress: '', location: '', notes: '',
 }
 
@@ -11,11 +11,19 @@ export function useBookingForm() {
   const [form, setFormState]      = useState(INITIAL)
   const [step1Touched, setStep1Touched] = useState(false)
 
-  const setField = (key, value) => setFormState(f => ({ ...f, [key]: value }))
+  const filterName  = v => v.replace(/[^a-zA-Z\s.'`-]/g, '')
+  const filterPhone = v => v.replace(/[^0-9]/g, '').slice(0, 10)
+  const setField = (key, value) =>
+    setFormState(f => ({
+      ...f,
+      [key]: key === 'name'  ? filterName(value)
+           : key === 'phone' ? filterPhone(value)
+           : value,
+    }))
 
   const step1Valid = Boolean(
     form.name.trim() &&
-    form.phone.trim() &&
+    form.phone.length === 10 &&
     form.service
   )
 

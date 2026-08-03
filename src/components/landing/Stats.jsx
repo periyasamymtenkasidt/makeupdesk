@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useCounter } from '../../hooks/useCounter'
 import { useReveal } from '../../hooks/useReveal'
-
-const STATS = [
-  { end: 500,  suffix: '+', label: 'Happy Clients',    sublabel: 'And counting',        decimal: false, color: '#c9956c' },
-  { end: 8,    suffix: '+', label: 'Years Experience', sublabel: 'Expert artistry',      decimal: false, color: '#e8a4b8' },
-  { end: 1000, suffix: '+', label: 'Events Completed', sublabel: 'Bridal to editorial',  decimal: false, color: '#f5e1c0' },
-  { end: 4.9,  suffix: '★', label: 'Average Rating',   sublabel: 'Google & Instagram',  decimal: true,  color: '#f59e0b' },
-]
+import { useSettings } from '../../hooks/useSettings'
 
 const BADGES = ['Bridal Specialist', 'Airbrush Certified', 'HD Makeup Expert', 'Pan India Service', 'WhatsApp Support']
 
@@ -28,6 +22,13 @@ function StatItem({ end, suffix, label, sublabel, decimal, triggered, color }) {
 }
 
 export default function Stats() {
+  const { settings } = useSettings()
+  const STATS = [
+    { end: settings.clientCount ?? 500,  suffix: '+', label: 'Happy Clients',    sublabel: 'And counting',       decimal: false, color: '#c9956c' },
+    { end: settings.yearsExp    ?? 8,    suffix: '+', label: 'Years Experience', sublabel: 'Expert artistry',     decimal: false, color: '#e8a4b8' },
+    { end: settings.eventsCount ?? 1000, suffix: '+', label: 'Events Completed', sublabel: 'Bridal to editorial', decimal: false, color: '#f5e1c0' },
+    { end: settings.rating      ?? 4.9,  suffix: '★', label: 'Average Rating',   sublabel: 'Google & Instagram', decimal: true,  color: '#f59e0b' },
+  ]
   const [triggered, setTriggered] = useState(false)
   const triggerRef = useRef(null)
   const ref = useReveal(0.1)

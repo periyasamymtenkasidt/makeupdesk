@@ -7,9 +7,9 @@ const DEFAULT_SETTINGS = {
   studioName:  'Ananya Makeup Studio',
   artistName:  'Ananya Roy',
   tagline:     'Certified Luxury Bridal & Editorial Artist',
-  phone:       '+91 98765 43210',
+  phone:       '98765 43210',
   email:       'ananya@makeupdesk.com',
-  address:     'Studio #204, Bandra West, Mumbai, MH - 400050',
+  address:     'Studio #204, Chennai, TN- 600001',
   gstin:       '27AABCU9603R1ZM',
 
   // Payments & UPI
@@ -29,6 +29,13 @@ const DEFAULT_SETTINGS = {
   leadAlerts:    true,
   allergyAlerts: true,
   autoReminders: true,
+  bookingBuffer: 60,
+
+  // Landing Page Stats
+  clientCount:  500,
+  yearsExp:     8,
+  eventsCount:  1000,
+  rating:       4.9,
 }
 
 export function useSettings() {

@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Menu, X, Sparkles } from 'lucide-react'
+import { Menu, X, Sparkles, Sun, Moon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useScrolled } from '../../hooks/useScrolled'
 import { NAV_LINKS } from '../../data/navigation'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function Navbar() {
   const scrolled    = useScrolled(60)
   const [open, setOpen] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
@@ -49,6 +51,18 @@ export default function Navbar() {
 
           {/* Right actions */}
           <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 border-none cursor-pointer"
+              style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.16)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+            >
+              {theme === 'dark'
+                ? <Sun size={16} style={{ color: '#f59e0b' }} />
+                : <Moon size={16} style={{ color: '#c9956c' }} />}
+            </button>
             <Link to="/login"
                   className="text-sm font-medium transition-colors"
                   style={{ color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}>
@@ -59,12 +73,22 @@ export default function Navbar() {
             </a>
           </div>
 
-          {/* Mobile toggle */}
-          <button className="md:hidden p-2 rounded-lg"
-                  style={{ color: 'white' }}
-                  onClick={() => setOpen(o => !o)}>
-            {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {/* Mobile controls */}
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              className="p-2 rounded-lg border-none cursor-pointer transition-all"
+              style={{ color: 'rgba(255,255,255,0.75)', background: 'transparent' }}
+            >
+              {theme === 'dark' ? <Sun size={18} style={{ color: '#f59e0b' }} /> : <Moon size={18} style={{ color: '#c9956c' }} />}
+            </button>
+            <button className="p-2 rounded-lg"
+                    style={{ color: 'white' }}
+                    onClick={() => setOpen(o => !o)}>
+              {open ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile drawer */}

@@ -1,17 +1,18 @@
-const ITEMS = [
-  { icon: '★', text: 'Google 5.0 Rating' },
-  { icon: '✦', text: 'Bridal Makeup Specialist' },
-  { icon: '✦', text: '500+ Happy Clients' },
-  { icon: '✦', text: '1000+ Events Completed' },
-  { icon: '✦', text: 'Party & Editorial Looks' },
-  { icon: '✦', text: 'Certified Professional Artists' },
-  { icon: '✦', text: 'Premium Products Only' },
-  { icon: '✦', text: 'Trusted Makeup Studio' },
-]
-
-const ALL = [...ITEMS, ...ITEMS]
+import { useSettings } from '../../hooks/useSettings'
 
 export default function MarqueeBar() {
+  const { settings } = useSettings()
+  const ITEMS = [
+    { icon: '★', text: `Google ${settings.rating ?? 4.9} Rating` },
+    { icon: '✦', text: 'Bridal Makeup Specialist' },
+    { icon: '✦', text: `${settings.clientCount ?? 500}+ Happy Clients` },
+    { icon: '✦', text: `${settings.eventsCount ?? 1000}+ Events Completed` },
+    { icon: '✦', text: 'Party & Editorial Looks' },
+    { icon: '✦', text: 'Certified Professional Artists' },
+    { icon: '✦', text: 'Premium Products Only' },
+    { icon: '✦', text: 'Trusted Makeup Studio' },
+  ]
+  const ALL = [...ITEMS, ...ITEMS]
   return (
     <div
       style={{

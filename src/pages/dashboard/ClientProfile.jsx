@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Phone, Mail, MessageCircle, Pencil, Calendar, TrendingUp, DollarSign, CreditCard } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MessageCircle, Pencil, Calendar, TrendingUp, DollarSign, CreditCard, AlertTriangle, Sparkles } from 'lucide-react'
 import { useClients } from '../../context/ClientContext'
 import { useAppointments } from '../../context/AppointmentContext'
 import AppointmentTable from '../../components/dashboard/AppointmentTable'
@@ -80,11 +80,15 @@ export default function ClientProfile() {
   const balanceDue  = totalValue - totalPaid
 
   function openEdit() {
-    setEditForm({ name: client.name, phone: client.phone, email: client.email || '', notes: client.notes || '' })
+    setEditForm({
+      name: client.name, phone: client.phone, email: client.email || '', notes: client.notes || '',
+      skinType: client.skinType || '', allergies: client.allergies || '', preferredLook: client.preferredLook || '',
+    })
     setEditOpen(true)
   }
   function handleEditSave() {
     if (!editForm.name?.trim()) return
+    if (editForm.phone && editForm.phone.length !== 10) return
     updateClient(client.id, editForm)
     setEditOpen(false)
   }
@@ -92,24 +96,6 @@ export default function ClientProfile() {
   return (
     <>
       <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-        {/* Back */}
-        <div>
-          <button
-            onClick={() => navigate('/dashboard/clients')}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--dash-border)',
-              background: 'var(--dash-surface)', color: 'var(--dash-text-secondary)',
-              fontSize: '13px', fontWeight: 500, cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'var(--dash-surface)'}
-          >
-            <ArrowLeft size={14} /> Back to Clients
-          </button>
-        </div>
 
         {/* Client Header Card */}
         <div style={{
@@ -189,15 +175,34 @@ export default function ClientProfile() {
           <StatBox icon={DollarSign} label="Balance Due"    value={formatCurrency(balanceDue)} color={balanceDue > 0 ? 'var(--badge-pending)' : 'var(--badge-confirmed)'} bg={balanceDue > 0 ? 'var(--badge-pending-bg)' : 'var(--badge-confirmed-bg)'} />
         </div>
 
-        {/* Notes */}
-        {client.notes && (
-          <Card style={{ padding: '20px 24px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>
-              Notes & Preferences
+        {/* Skin & Preferences Card */}
+        {(client.skinType || client.allergies || client.preferredLook || client.notes) && (
+          <Card style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+              Skin Profile & Preferences
             </div>
-            <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--dash-text-primary)', lineHeight: 1.6 }}>
-              {client.notes}
-            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              {client.skinType && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, background: 'var(--icon-booking-bg)', border: '1px solid var(--dash-border)', fontSize: 12, fontWeight: 600, color: 'var(--dash-text-primary)' }}>
+                  <Sparkles size={12} style={{ color: 'var(--icon-booking)' }} /> {client.skinType}
+                </span>
+              )}
+              {client.allergies && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, background: 'var(--badge-rejected-bg)', border: '1px solid rgba(220,38,38,0.2)', fontSize: 12, fontWeight: 600, color: 'var(--badge-rejected)' }}>
+                  <AlertTriangle size={12} /> {client.allergies}
+                </span>
+              )}
+              {client.preferredLook && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, background: 'var(--dash-subtle-row-bg)', border: '1px solid var(--dash-border)', fontSize: 12, fontWeight: 500, color: 'var(--dash-text-secondary)' }}>
+                  ✨ {client.preferredLook}
+                </span>
+              )}
+            </div>
+            {client.notes && (
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--dash-text-primary)', lineHeight: 1.6 }}>
+                {client.notes}
+              </p>
+            )}
           </Card>
         )}
 
@@ -239,22 +244,39 @@ export default function ClientProfile() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
               <label style={lbl}>Full Name *</label>
-              <input style={inpStyle} value={editForm.name || ''} onChange={e => setF('name', e.target.value)} />
+              <input style={inpStyle} value={editForm.name || ''} onChange={e => setF('name', e.target.value.replace(/[^a-zA-Z\s.'`-]/g, ''))} />
             </div>
             <div>
               <label style={lbl}>Phone</label>
-              <input style={inpStyle} value={editForm.phone || ''} onChange={e => setF('phone', e.target.value)} />
+              <input style={inpStyle} value={editForm.phone || ''} onChange={e => setF('phone', e.target.value.replace(/[^0-9]/g, '').slice(0, 10))} />
             </div>
           </div>
           <div>
             <label style={lbl}>Email</label>
             <input style={inpStyle} placeholder="client@email.com" value={editForm.email || ''} onChange={e => setF('email', e.target.value)} />
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={lbl}>Skin Type</label>
+              <input style={inpStyle} placeholder="e.g. Dry & Sensitive, Oily T-Zone"
+                value={editForm.skinType || ''} onChange={e => setF('skinType', e.target.value)} />
+            </div>
+            <div>
+              <label style={lbl}>Known Allergies</label>
+              <input style={inpStyle} placeholder="e.g. Latex, Heavy Fragrance"
+                value={editForm.allergies || ''} onChange={e => setF('allergies', e.target.value)} />
+            </div>
+          </div>
           <div>
-            <label style={lbl}>Notes & Skin Preferences</label>
+            <label style={lbl}>Preferred Look</label>
+            <input style={inpStyle} placeholder="e.g. Natural Dewy Airbrush, Matte Glam"
+              value={editForm.preferredLook || ''} onChange={e => setF('preferredLook', e.target.value)} />
+          </div>
+          <div>
+            <label style={lbl}>Notes</label>
             <textarea
-              style={{ ...inpStyle, resize: 'vertical', minHeight: '90px', lineHeight: 1.5 }}
-              placeholder="e.g. Sensitive skin, prefers natural look, airbrush only…"
+              style={{ ...inpStyle, resize: 'vertical', minHeight: '70px', lineHeight: 1.5 }}
+              placeholder="e.g. Prefers early morning slots, brings own foundation…"
               value={editForm.notes || ''}
               onChange={e => setF('notes', e.target.value)}
             />
