@@ -1,11 +1,26 @@
 import { useState, useEffect, useRef } from 'react'
 import { Clock } from 'lucide-react'
-import { getFreeWindows } from '../../utils/slots'
+import { getFreeWindows, earliestBookableMins } from '../../utils/slots'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
 const HOURS    = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
 const EARLIEST = 5 * 60
+const DAY_NAMES_SLOT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function getArtistShiftWindow(artistObjs, dateStr) {
+  if (!artistObjs || artistObjs.length === 0 || !dateStr) return null
+  const dayName = DAY_NAMES_SLOT[new Date(dateStr + 'T00:00:00').getDay()]
+  let start = 0, end = 24 * 60
+  for (const a of artistObjs) {
+    if (!(a.workDays || DAY_NAMES_SLOT).includes(dayName)) return { start: 0, end: 0 }
+    const [ssh, ssm] = (a.shiftStart || '05:00').split(':').map(Number)
+    const [seh, sem] = (a.shiftEnd   || '21:00').split(':').map(Number)
+    start = Math.max(start, ssh * 60 + ssm)
+    end   = Math.min(end,   seh * 60 + sem)
+  }
+  return { start, end }
+}
 
 export function parseSlotHour(v) {
   if (!v) return 9
@@ -33,6 +48,7 @@ export function SlotTimePicker({
   durationMins = 120,
   vendorId     = null,
   excludeId    = null,
+  artistObjs   = [],
 }) {
   const [selHour, setSelHour] = useState(() => parseSlotHour(value))
   const skipEmit = useRef(true)
@@ -67,9 +83,16 @@ export function SlotTimePicker({
   })
   const fullyFree = date && !hasBlocking
 
+  const shiftWindow = getArtistShiftWindow(artistObjs, date)
+
   function slotOk(h) {
-    if (!date || fullyFree) return true
+    if (!date) return true
     const mins = h * 60
+    if (mins < earliestBookableMins(date)) return false
+    if (shiftWindow) {
+      if (mins < shiftWindow.start || mins + durationMins > shiftWindow.end) return false
+    }
+    if (fullyFree) return true
     return freeWindows.some(w => mins >= w.start && mins + durationMins <= w.end)
   }
 

@@ -36,7 +36,7 @@ export default function Settings() {
 
   function handleSave(e) {
     e?.preventDefault()
-    if (formState.phone && formState.phone.length !== 10) {
+    if (formState.phone && formState.phone.replace(/\s/g, '').length !== 10) {
       alert('Phone number must be exactly 10 digits.')
       return
     }
@@ -163,7 +163,7 @@ export default function Settings() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={lblStyle}>Phone / WhatsApp Number *</label>
-                <input style={inpStyle} value={formState.phone} onChange={e => set('phone', e.target.value.replace(/[^0-9]/g, '').slice(0, 10))} placeholder="98765 43210" />
+                <input style={inpStyle} value={formState.phone} onChange={e => set('phone', e.target.value.replace(/[^0-9 ]/g, '').slice(0, 15))} placeholder="98765 43210" />
               </div>
               <div>
                 <label style={lblStyle}>Business Email *</label>

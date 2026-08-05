@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, Calendar, Users, FileText, CreditCard,
+  LayoutDashboard, Calendar, Users, FileText, CreditCard, Wallet,
   Settings, Scissors, MapPin, UserCheck, LogOut,
-  Layers, ChevronDown, Clock, X, Sparkles
+  Layers, ChevronDown, X, Sparkles
 } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 
@@ -12,14 +12,17 @@ const MAIN_NAV = [
   { icon: Calendar,        label: 'Appointments', to: '/dashboard/appointments' },
   { icon: Users,           label: 'Clients',      to: '/dashboard/clients' },
   { icon: FileText,        label: 'Quotations',   to: '/dashboard/quotations' },
-  { icon: CreditCard,      label: 'Payments',     to: '/dashboard/payments' },
+]
+
+const PAYMENTS_NAV = [
+  { icon: CreditCard, label: 'Client Payments', to: '/dashboard/payments' },
+  { icon: Wallet,     label: 'Vendor Pay',      to: '/dashboard/vendor-payments' },
 ]
 
 const MASTER_NAV = [
   { icon: Scissors,   label: 'Services',      to: '/dashboard/masters/services'     },
   { icon: MapPin,     label: 'Venues',        to: '/dashboard/masters/venues'       },
   { icon: UserCheck,  label: 'Vendors',       to: '/dashboard/masters/vendors'      },
-  { icon: Clock,      label: 'Availability',  to: '/dashboard/masters/availability' },
 ]
 
 const navStyle = (isActive) => ({
@@ -37,9 +40,13 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
   const [mastersOpen, setMastersOpen] = useState(() =>
     location.pathname.startsWith('/dashboard/masters')
   )
+  const [paymentsOpen, setPaymentsOpen] = useState(() =>
+    location.pathname.startsWith('/dashboard/payments') || location.pathname.startsWith('/dashboard/vendor-payments')
+  )
 
   useEffect(() => {
     if (location.pathname.startsWith('/dashboard/masters')) setMastersOpen(true)
+    if (location.pathname.startsWith('/dashboard/payments') || location.pathname.startsWith('/dashboard/vendor-payments')) setPaymentsOpen(true)
   }, [location.pathname])
 
   // Close mobile drawer on route change
@@ -71,6 +78,56 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
             {label}
           </NavLink>
         ))}
+
+        {/* Payments Accordion */}
+        <div>
+          <button
+            onClick={() => setPaymentsOpen(o => !o)}
+            className="sidebar-btn-no-filter"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              width: '100%', padding: '10px 12px', borderRadius: '12px',
+              border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+              fontSize: '14px', fontWeight: 500, textAlign: 'left',
+              background: paymentsOpen ? 'var(--sidebar-masters-open)' : 'transparent',
+              color: 'var(--sidebar-link-color)', transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={e => { if (!paymentsOpen) e.currentTarget.style.background = 'var(--sidebar-link-hover-bg)' }}
+            onMouseLeave={e => { if (!paymentsOpen) e.currentTarget.style.background = 'transparent' }}
+          >
+            <CreditCard size={17} style={{ color: 'var(--sidebar-label-color)', flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>Payments</span>
+            <ChevronDown
+              size={14}
+              style={{
+                color: 'var(--sidebar-label-color)',
+                transform: paymentsOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                transition: 'transform 0.2s ease',
+                flexShrink: 0,
+              }}
+            />
+          </button>
+
+          {paymentsOpen && (
+            <div style={{ marginTop: '2px', paddingLeft: '14px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div style={{ borderLeft: '1.5px solid var(--sidebar-accent-border)', paddingLeft: '10px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {PAYMENTS_NAV.map(({ icon: Icon, label, to }) => (
+                  <NavLink key={to} to={to}
+                    onClick={onClose}
+                    className={({ isActive }) => `sidebar-nav-link${isActive ? ' sidebar-nav-active' : ''}`}
+                    style={({ isActive }) => ({
+                      ...navStyle(isActive),
+                      fontSize: '13.5px',
+                      padding: '8px 12px',
+                    })}>
+                    <Icon size={15} />
+                    {label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Masters Accordion */}
         <div style={{ marginTop: '12px' }}>
@@ -169,6 +226,22 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
               color: isActive ? '#ffffff' : 'var(--sidebar-link-color)',
             })}>
             <Icon size={18} />
+          </NavLink>
+        ))}
+
+        {/* Payment Icons */}
+        {PAYMENTS_NAV.map(({ icon: Icon, label, to }) => (
+          <NavLink key={to} to={to}
+            onClick={onClose}
+            data-tooltip={label}
+            className={({ isActive }) => `sidebar-nav-link${isActive ? ' sidebar-nav-active' : ''}`}
+            style={({ isActive }) => ({
+              width: '42px', height: '42px', borderRadius: '12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              textDecoration: 'none', transition: 'all 0.2s ease',
+              color: isActive ? '#ffffff' : 'var(--sidebar-link-color)',
+            })}>
+            <Icon size={17} />
           </NavLink>
         ))}
 

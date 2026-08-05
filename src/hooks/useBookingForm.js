@@ -12,7 +12,7 @@ export function useBookingForm() {
   const [step1Touched, setStep1Touched] = useState(false)
 
   const filterName  = v => v.replace(/[^a-zA-Z\s.'`-]/g, '')
-  const filterPhone = v => v.replace(/[^0-9]/g, '').slice(0, 10)
+  const filterPhone = v => v.replace(/[^0-9 ]/g, '').slice(0, 15)
   const setField = (key, value) =>
     setFormState(f => ({
       ...f,
@@ -23,7 +23,7 @@ export function useBookingForm() {
 
   const step1Valid = Boolean(
     form.name.trim() &&
-    form.phone.length === 10 &&
+    form.phone.replace(/\s/g, '').length === 10 &&
     form.service
   )
 

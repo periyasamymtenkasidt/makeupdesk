@@ -229,14 +229,9 @@ export default function Hero() {
             </div>
 
             {/* ── Center: Rating badge — floats above the collage ── */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 text-center pointer-events-none animate-float"
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 text-center pointer-events-none animate-float glass rounded-[18px]"
                  style={{
                    padding: '10px 16px',
-                   borderRadius: '18px',
-                   background: 'var(--land-glass-bg)',
-                   backdropFilter: 'blur(20px)',
-                   WebkitBackdropFilter: 'blur(20px)',
-                   border: '1px solid var(--land-glass-border)',
                    boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 4px 20px rgba(201,149,108,0.2)',
                    animationDelay: '0.4s',
                  }}>

@@ -7,7 +7,6 @@ import { useSettings } from '../../hooks/useSettings'
 import { useToast } from '../../context/ToastContext'
 import { to12h } from '../../utils/timeFormat'
 import { parseDurationMins, checkTimeAvailability } from '../../utils/slots'
-import { useAvailability } from '../../context/AvailabilityContext'
 import { useArtists, checkArtistAvailability } from '../../hooks/useArtists'
 import { DashTimePicker } from '../ui/DashTimePicker'
 import { DrumRollTimePicker } from '../ui/DrumRollTimePicker'
@@ -68,7 +67,6 @@ const lbl = {
 
 export default function NewBookingModal({ open, onClose, initialData }) {
   const { appointments, addAppointment, genId } = useAppointments()
-  const { availability }            = useAvailability()
   const { clients, addClient }      = useClients()
   const { settings }                = useSettings()
   const { showToast }               = useToast()
@@ -77,7 +75,11 @@ export default function NewBookingModal({ open, onClose, initialData }) {
   const { items: venues }           = useMaster('md_venues', VENUE_DEFAULTS)
   const services = allServices.filter(s => s.active !== false)
 
-  const [form, setForm] = useState(EMPTY)
+  const [form, setForm] = useState(() => ({
+    ...EMPTY,
+    ...(initialData || {}),
+    date: initialData?.date || new Date().toISOString().split('T')[0],
+  }))
   const [showSlots, setShowSlots] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -93,16 +95,6 @@ export default function NewBookingModal({ open, onClose, initialData }) {
     })
   }
 
-  useEffect(() => {
-    if (open) {
-      setForm({
-        ...EMPTY,
-        ...(initialData || {}),
-        date: initialData?.date || new Date().toISOString().split('T')[0],
-      })
-      setShowSlots(false)
-    }
-  }, [open, initialData])
 
   function handleClientSelect(e) {
     const val = e.target.value
@@ -110,7 +102,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
       setForm(f => ({ ...f, clientId: '', client: '', phone: '' }))
     } else {
       const c = clients.find(c => c.id === val)
-      if (c) setForm(f => ({ ...f, clientId: c.id, client: c.name, phone: c.phone }))
+      if (c) setForm(f => ({ ...f, clientId: c.id, client: c.name, phone: c.phone.replace(/^\+\d{1,3}/, '') }))
     }
   }
 
@@ -166,7 +158,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
   }
 
   function handleSave() {
-    if (!form.client.trim() || form.phone.length !== 10) {
+    if (!form.client.trim() || form.phone.replace(/\s/g, '').length !== 10) {
       alert('Please fill in client name and a valid 10-digit phone number.')
       return
     }
@@ -228,6 +220,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
   const vendorId               = form.vendorId ? Number(form.vendorId) : 1
   const durationMins           = parseDurationMins(form.duration)
   const effectiveDurationMins  = durationMins * (form.personCount || 1)
+  const selectedArtistObjs     = artists.filter(a => (form.selectedArtists || []).includes(a.name))
 
   return (
     <Modal
@@ -246,7 +239,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
           value={form.clientId || 'new'}
           options={[
             { value: 'new', label: '+ New Client' },
-            ...clients.map(c => ({ value: c.id, label: `${c.name} · ${c.phone}` })),
+            ...clients.map(c => ({ value: c.id, label: `${c.name} · ${c.phone.replace(/^\+\d{1,3}/, '')}` })),
           ]}
           onChange={val => handleClientSelect({ target: { value: val } })}
         />
@@ -265,7 +258,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
             <input style={{ ...inpStyle, opacity: isExistingClient ? 0.6 : 1 }}
               placeholder="98765 43210"
               readOnly={isExistingClient}
-              value={form.phone} onChange={e => set('phone', e.target.value.replace(/[^0-9]/g, '').slice(0, 10))} />
+              value={form.phone} onChange={e => set('phone', e.target.value.replace(/[^0-9 ]/g, '').slice(0, 15))} />
           </div>
         </div>
 
@@ -313,6 +306,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
           date={form.date}
           time={form.time}
           appointments={appointments}
+          durationMins={effectiveDurationMins}
         />
 
         {/* Number of Persons */}
@@ -387,6 +381,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
               appointments={appointments}
               durationMins={effectiveDurationMins}
               vendorId={vendorId}
+              artistObjs={selectedArtistObjs}
             />
           ) : (
             <div>
@@ -398,6 +393,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
                 appointments={appointments}
                 durationMins={effectiveDurationMins}
                 vendorId={vendorId}
+                artistObjs={selectedArtistObjs}
               />
               {form.time && effectiveDurationMins > 0 && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--dash-text-muted)' }}>

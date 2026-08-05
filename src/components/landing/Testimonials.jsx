@@ -1,8 +1,11 @@
-import { useState } from 'react'
-import { Star, X, MessageSquare, ArrowRight } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Star, X, MessageSquare, ArrowRight, Play, Volume2, VolumeX } from 'lucide-react'
 import { TESTIMONIALS } from '../../data/testimonials'
 import { useReveal } from '../../hooks/useReveal'
 import { useMaster } from '../../hooks/useMaster'
+import vid1 from '../../assets/videos/testimonal_1.mp4'
+import vid2 from '../../assets/videos/testimonal_2.mp4'
+import vid3 from '../../assets/videos/testimonal_3.mp4'
 
 function Stars({ count = 5 }) {
   return (
@@ -21,12 +24,135 @@ const AVATAR_GRADIENTS = [
   'linear-gradient(135deg, #9b51e0, #e8a4b8)',
 ]
 
+const VIDEO_SOURCES = [vid1, vid2, vid3]
+
+function VideoTestiCard({ item, index }) {
+  const videoRef            = useRef(null)
+  const [muted, setMuted]   = useState(true)
+  const [hovering, setHovering] = useState(false)
+  const gradient            = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length]
+
+  function onEnter() {
+    setHovering(true)
+    videoRef.current?.play()
+  }
+  function onLeave() {
+    setHovering(false)
+    if (videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+    setMuted(true)
+  }
+  function toggleMute(e) {
+    e.stopPropagation()
+    setMuted(m => !m)
+  }
+
+  return (
+    <div
+      className="relative overflow-hidden cursor-pointer"
+      style={{
+        borderRadius: '20px',
+        aspectRatio: '9/16',
+        background: '#0d0a10',
+        transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease',
+        transform: hovering ? 'translateY(-6px) scale(1.02)' : 'translateY(0) scale(1)',
+        boxShadow: hovering
+          ? `0 24px 48px rgba(0,0,0,0.7), 0 0 0 1.5px ${item.color}50`
+          : '0 8px 24px rgba(0,0,0,0.4)',
+      }}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+    >
+      <video
+        ref={videoRef}
+        src={item.src}
+        muted={muted}
+        loop
+        playsInline
+        preload="metadata"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+
+      {/* Overlays */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 35%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 35%, rgba(0,0,0,0.1) 60%, transparent 80%)' }} />
+
+      {/* Top row: Mute toggle */}
+      <div style={{ position: 'absolute', top: 14, left: 14, right: 14, display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          onClick={toggleMute}
+          style={{
+            width: 30, height: 30, borderRadius: '50%',
+            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', padding: 0,
+            opacity: hovering ? 1 : 0, transition: 'opacity 0.25s ease',
+          }}
+          aria-label={muted ? 'Unmute' : 'Mute'}
+        >
+          {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+        </button>
+      </div>
+
+      {/* Center play icon shown when paused */}
+      {!hovering && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)',
+            border: '1.5px solid rgba(255,255,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Play size={20} fill="white" color="white" style={{ marginLeft: 3 }} />
+          </div>
+        </div>
+      )}
+
+      {/* Bottom: Author */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: '50%',
+            background: gradient, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: '11px', fontWeight: 700,
+            boxShadow: `0 0 0 2px ${item.color}50`,
+          }}>
+            {item.initials}
+          </div>
+          <div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '13px', lineHeight: 1.2 }}>{item.name}</div>
+            <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: '11px', marginTop: '2px' }}>{item.event}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Accent border on hover */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: '20px', pointerEvents: 'none',
+        boxShadow: hovering ? `inset 0 0 0 1.5px ${item.color}45` : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+        transition: 'box-shadow 0.3s ease',
+      }} />
+    </div>
+  )
+}
+
 export default function Testimonials() {
   const ref = useReveal(0.1)
   const [showModal, setShowModal] = useState(false)
-  const { items: allReviews } = useMaster('md_reviews', TESTIMONIALS)
-  const displayReviews = allReviews.filter(r => r.featured !== false)
+  const { items: crmReviews } = useMaster('md_reviews', [])
+  const crmFeatured    = crmReviews.filter(r => r.featured !== false)
+  const displayReviews = crmFeatured.length > 0 ? crmFeatured : TESTIMONIALS
   const initialReviews = displayReviews.slice(0, 4)
+  const videoItems     = VIDEO_SOURCES.map((src, i) => ({
+    ...(TESTIMONIALS[i] || {}),
+    ...(displayReviews[i] || {}),
+    src,
+    id: `video-${i}`,
+  }))
 
   return (
     <section
@@ -72,6 +198,30 @@ export default function Testimonials() {
           </p>
         </div>
 
+        {/* ── Video Testimonials ── */}
+        <div className="mb-16 reveal">
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <span style={{ color: '#c9956c', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              Watch & Believe
+            </span>
+            <h3 className="font-display mt-2" style={{ fontSize: 'clamp(22px, 3vw, 32px)', fontWeight: 700, color: 'var(--land-text)' }}>
+              Hear It In Their Own Words
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 max-w-2xl mx-auto">
+            {videoItems.map((item, i) => (
+              <VideoTestiCard key={item.id} item={item} index={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* ── Written Reviews ── */}
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <span style={{ color: '#c9956c', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+            Written Reviews
+          </span>
+        </div>
+
         {/* 4 Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger">
           {initialReviews.map(({ id, name, event, rating, text, initials, color }, i) => {
@@ -96,11 +246,8 @@ export default function Testimonials() {
                   e.currentTarget.style.boxShadow = 'none'
                 }}
               >
-                {/* Top accent */}
                 <div className="absolute top-0 left-8 right-8 h-px"
                      style={{ background: `linear-gradient(90deg, transparent, ${cardColor}80, transparent)` }} />
-
-                {/* Large decorative open-quote */}
                 <div
                   aria-hidden="true"
                   style={{
@@ -112,16 +259,11 @@ export default function Testimonials() {
                   ❝
                 </div>
 
-                {/* Stars */}
                 <Stars count={rating || 5} />
-
-                {/* Quote */}
                 <p className="mt-4 text-xs sm:text-sm leading-relaxed flex-1 relative z-10"
                    style={{ color: 'var(--land-text-sub)' }}>
                   "{text}"
                 </p>
-
-                {/* Author */}
                 <div className="mt-5 pt-4 flex items-center gap-3"
                      style={{ borderTop: '1px solid var(--land-card-border)' }}>
                   <div
@@ -149,7 +291,7 @@ export default function Testimonials() {
               style={{
                 background: 'linear-gradient(135deg, rgba(201,149,108,0.15) 0%, rgba(212,114,143,0.15) 100%)',
                 border: '1px solid rgba(201,149,108,0.4)',
-                color: '#ffffff',
+                color: 'var(--land-text)',
                 backdropFilter: 'blur(8px)',
               }}
             >
@@ -196,13 +338,10 @@ export default function Testimonials() {
       {/* All Reviews Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8">
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
             onClick={() => setShowModal(false)}
           />
-
-          {/* Modal Content */}
           <div
             className="relative w-full max-w-4xl max-h-[85vh] rounded-3xl p-6 sm:p-8 flex flex-col z-10 shadow-2xl animate-fade-in-up"
             style={{
@@ -211,7 +350,6 @@ export default function Testimonials() {
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 40px rgba(201,149,108,0.1)',
             }}
           >
-            {/* Modal Header */}
             <div className="flex items-center justify-between pb-5 mb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               <div>
                 <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
@@ -231,8 +369,6 @@ export default function Testimonials() {
                 <X size={18} />
               </button>
             </div>
-
-            {/* Modal Body - Scrollable Grid */}
             <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2">
                 {displayReviews.map(({ id, name, event, rating, text, initials, color }, i) => {
@@ -268,8 +404,6 @@ export default function Testimonials() {
                 })}
               </div>
             </div>
-
-            {/* Modal Footer */}
             <div className="pt-4 mt-2 flex justify-end" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
               <button
                 onClick={() => setShowModal(false)}
@@ -287,4 +421,3 @@ export default function Testimonials() {
     </section>
   )
 }
-

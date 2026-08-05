@@ -42,14 +42,14 @@ function computeEndTime(time24h, mins) {
 // ── styles ────────────────────────────────────────────────────────────────────
 const inpStyle = {
   width: "100%", padding: "10px 14px", borderRadius: "12px",
-  border: "1.5px solid rgba(201,149,108,0.25)", fontSize: "14px",
-  color: "rgba(255,255,255,0.9)", background: "rgba(255,255,255,0.07)", fontFamily: "Inter,sans-serif",
+  border: "1.5px solid var(--dash-border)", fontSize: "14px",
+  color: "var(--dash-input-text)", background: "var(--dash-input-bg)", fontFamily: "Inter,sans-serif",
   outline: "none", boxSizing: "border-box",
 }
 const lblStyle = {
   display: "block", fontSize: "11px", fontWeight: 600,
   textTransform: "uppercase", letterSpacing: "0.08em",
-  color: "rgba(255,255,255,0.45)", marginBottom: "6px",
+  color: "var(--dash-label-text)", marginBottom: "6px",
 }
 
 // ── modal ─────────────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ function BookingModal({ onClose }) {
     >
       <div
         className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl"
-        style={{ background: "#1a0f1b", maxHeight: "92vh", overflowY: "auto" }}
+        style={{ background: "var(--dash-card-bg)", color: "var(--dash-text-primary)", maxHeight: "92vh", overflowY: "auto" }}
       >
         {/* ── success screen ── */}
         {confirmed ? (
@@ -233,7 +233,7 @@ function BookingModal({ onClose }) {
                         Please enter your WhatsApp number.
                       </p>
                     )}
-                    {step1Touched && form.phone.trim() && form.phone.length !== 10 && (
+                    {step1Touched && form.phone.trim() && form.phone.replace(/\s/g, '').length !== 10 && (
                       <p style={{ fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }}>
                         Phone number must be exactly 10 digits.
                       </p>

@@ -26,6 +26,7 @@ export function DashTimePicker({
   durationMins  = 120,
   vendorId      = null,
   excludeId     = null,
+  artistObjs    = [],
 }) {
   const currentVal = slotTo24h(parseSlotHour(value))
 
@@ -111,6 +112,7 @@ export function DashTimePicker({
         durationMins={durationMins}
         vendorId={vendorId}
         excludeId={excludeId}
+        artistObjs={artistObjs}
       />
 
       {/* Availability badge */}

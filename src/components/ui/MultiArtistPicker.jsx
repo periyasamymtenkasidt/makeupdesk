@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Check, X, Users, ChevronDown } from 'lucide-react'
-import { checkArtistAvailability } from '../../hooks/useArtists'
+import { checkArtistAvailability, isArtistAvailableAt } from '../../hooks/useArtists'
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export function MultiArtistPicker({
   selected = [],
@@ -11,6 +13,7 @@ export function MultiArtistPicker({
   appointments = [],
   currentApptId = null,
   disabled = false,
+  durationMins = 120,
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef(null)
@@ -139,16 +142,38 @@ export function MultiArtistPicker({
 
                 {group.map(artist => {
                   const isSelected = selected.includes(artist.name)
-                  const check = checkArtistAvailability(artist.name, date, time, appointments, currentApptId)
+                  const bookCheck = checkArtistAvailability(artist.name, date, time, appointments, currentApptId)
+
+                  const worksToday = !date || (() => {
+                    const dayName = DAY_NAMES[new Date(date + 'T00:00:00').getDay()]
+                    return (artist.workDays || DAY_NAMES).includes(dayName)
+                  })()
+                  const inShift = !date || !time || isArtistAvailableAt(artist, date, time, durationMins)
+                  const isUnavailable = bookCheck.isBooked || !worksToday || !inShift
+
+                  let statusLabel, statusColor
+                  if (bookCheck.isBooked) {
+                    statusLabel = `⚠️ Booked (${bookCheck.bookedTime})`
+                    statusColor = 'var(--badge-pending)'
+                  } else if (!worksToday) {
+                    statusLabel = '📅 Day off'
+                    statusColor = 'var(--badge-rejected)'
+                  } else if (!inShift) {
+                    statusLabel = `⏰ Off-shift (${artist.shiftStart || '08:00'}–${artist.shiftEnd || '20:00'})`
+                    statusColor = 'var(--badge-pending)'
+                  } else {
+                    statusLabel = '✓ Available'
+                    statusColor = 'var(--badge-confirmed)'
+                  }
 
                   return (
                     <div
                       key={artist.id}
-                      onClick={() => !check.isBooked && toggleArtist(artist.name)}
+                      onClick={() => !isUnavailable && toggleArtist(artist.name)}
                       style={{
                         padding: '9px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        fontSize: '12.5px', cursor: check.isBooked ? 'not-allowed' : 'pointer',
-                        opacity: check.isBooked ? 0.45 : 1,
+                        fontSize: '12.5px', cursor: isUnavailable ? 'not-allowed' : 'pointer',
+                        opacity: isUnavailable ? 0.45 : 1,
                         background: isSelected ? 'var(--select-hover-bg)' : 'transparent',
                         transition: 'background 0.15s ease',
                       }}
@@ -167,11 +192,8 @@ export function MultiArtistPicker({
                         </span>
                       </div>
 
-                      <span style={{
-                        fontSize: '11px', fontWeight: 600,
-                        color: check.isBooked ? 'var(--badge-pending)' : 'var(--badge-confirmed)',
-                      }}>
-                        {check.isBooked ? `⚠️ Booked (${check.bookedTime})` : '✓ Available'}
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: statusColor }}>
+                        {statusLabel}
                       </span>
                     </div>
                   )

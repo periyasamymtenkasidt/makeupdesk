@@ -11,7 +11,6 @@ import {
   Sparkles,
   Building2,
   Users,
-  Clock,
 } from "lucide-react";
 import { Card } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
@@ -25,6 +24,7 @@ import {
   VENDOR_KEY,
   VENDOR_DEFAULTS,
   VENDOR_CATEGORIES,
+  ALL_DAYS,
 } from "../../../data/vendors";
 import { CustomSelect } from "../../../components/ui/CustomSelect";
 
@@ -34,6 +34,7 @@ const DEFAULTS = VENDOR_DEFAULTS;
 const EMPTY = {
   name: "",
   category: "Hair Stylist",
+  customCategory: "",
   contact: "",
   whatsapp: "",
   charges: "",
@@ -41,6 +42,9 @@ const EMPTY = {
   availability: "Available",
   rating: 5,
   notes: "",
+  workDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  shiftStart: "08:00",
+  shiftEnd: "20:00",
 };
 
 const AVAIL_COLORS = {
@@ -131,6 +135,7 @@ export default function Vendors() {
     setForm({
       name: i.name,
       category: i.category,
+      customCategory: i.customCategory || "",
       contact: i.contact,
       whatsapp: i.whatsapp,
       charges: i.charges,
@@ -138,14 +143,22 @@ export default function Vendors() {
       availability: i.availability,
       rating: i.rating,
       notes: i.notes,
+      workDays: i.workDays || ["Mon","Tue","Wed","Thu","Fri","Sat"],
+      shiftStart: i.shiftStart || "08:00",
+      shiftEnd: i.shiftEnd || "20:00",
     });
     setOpen(true);
   }
   function handleSave() {
-    if (!form.name.trim()) return;
-    if (form.whatsapp && form.whatsapp.length !== 10) {
-      alert('WhatsApp number must be exactly 10 digits.');
-      return;
+    if (!form.name.trim()) { alert('Vendor name is required.'); return; }
+    if (form.category === 'Other' && !form.customCategory.trim()) {
+      alert('Please specify the category.'); return;
+    }
+    if (form.contact && form.contact.replace(/\s/g, '').length !== 10) {
+      alert('Contact number must be exactly 10 digits.'); return;
+    }
+    if (form.whatsapp && form.whatsapp.replace(/\s/g, '').length !== 10) {
+      alert('WhatsApp number must be exactly 10 digits.'); return;
     }
     const data = {
       ...form,
@@ -248,23 +261,6 @@ export default function Vendors() {
           >
             <Users size={15} style={{ color: "var(--icon-booking)" }} /> Vendor
             Master
-          </Link>
-          <Link
-            to="/dashboard/masters/availability"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              paddingBottom: "12px",
-              fontSize: "14px",
-              fontWeight: 500,
-              color: "var(--dash-text-secondary)",
-              borderBottom: "2.5px solid transparent",
-              textDecoration: "none",
-              fontFamily: "Inter, sans-serif",
-            }}
-          >
-            <Clock size={15} /> Availability Master
           </Link>
         </div>
 
@@ -527,7 +523,7 @@ export default function Vendors() {
                           border: "1px solid var(--dash-border)",
                         }}
                       >
-                        {item.category}
+                        {item.category === "Other" && item.customCategory ? item.customCategory : item.category}
                       </span>
                     </td>
 
@@ -731,16 +727,30 @@ export default function Vendors() {
                 style={inp}
                 placeholder="Full name"
                 value={form.name}
-                onChange={(e) => set("name", e.target.value)}
+                onChange={(e) => set("name", e.target.value.replace(/[^a-zA-Z\s.]/g, ""))}
               />
             </div>
             <CustomSelect
               label="Category"
               value={form.category}
               options={CATEGORIES}
-              onChange={(val) => set("category", val)}
+              onChange={(val) => {
+                set("category", val);
+                if (val !== "Other") set("customCategory", "");
+              }}
             />
           </div>
+          {form.category === "Other" && (
+            <div>
+              <label style={lbl}>Specify Category</label>
+              <input
+                style={inp}
+                placeholder="e.g. Florist, Decorator..."
+                value={form.customCategory}
+                onChange={(e) => set("customCategory", e.target.value)}
+              />
+            </div>
+          )}
           <div
             style={{
               display: "grid",
@@ -754,7 +764,7 @@ export default function Vendors() {
                 style={inp}
                 placeholder="99999 88888"
                 value={form.contact}
-                onChange={(e) => set("contact", e.target.value)}
+                onChange={(e) => set("contact", e.target.value.replace(/[^0-9 ]/g, "").slice(0, 11))}
               />
             </div>
             <div>
@@ -763,7 +773,7 @@ export default function Vendors() {
                 style={inp}
                 placeholder="99999 88888"
                 value={form.whatsapp}
-                onChange={(e) => set("whatsapp", e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+                onChange={(e) => set("whatsapp", e.target.value.replace(/[^0-9 ]/g, '').slice(0, 15))}
               />
             </div>
           </div>
@@ -817,6 +827,57 @@ export default function Vendors() {
               onChange={(val) => set("rating", Number(val))}
             />
           </div>
+          {/* Working Days */}
+          <div>
+            <label style={lbl}>Working Days</label>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {ALL_DAYS.map((day) => {
+                const active = (form.workDays || []).includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      const cur = form.workDays || [];
+                      set("workDays", active ? cur.filter((d) => d !== day) : [...cur, day]);
+                    }}
+                    style={{
+                      padding: "5px 11px", borderRadius: "8px", fontSize: "12px",
+                      fontWeight: 600, cursor: "pointer", border: "1.5px solid",
+                      borderColor: active ? "var(--icon-booking)" : "var(--dash-border)",
+                      background: active ? "var(--icon-booking-bg)" : "var(--dash-input-bg)",
+                      color: active ? "var(--icon-booking)" : "var(--dash-text-muted)",
+                    }}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Shift Hours */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <div>
+              <label style={lbl}>Shift Start</label>
+              <input
+                type="time"
+                style={inp}
+                value={form.shiftStart || "08:00"}
+                onChange={(e) => set("shiftStart", e.target.value)}
+              />
+            </div>
+            <div>
+              <label style={lbl}>Shift End</label>
+              <input
+                type="time"
+                style={inp}
+                value={form.shiftEnd || "20:00"}
+                onChange={(e) => set("shiftEnd", e.target.value)}
+              />
+            </div>
+          </div>
+
           <div>
             <label style={lbl}>Notes</label>
             <input

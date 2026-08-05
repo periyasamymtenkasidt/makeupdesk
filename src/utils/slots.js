@@ -1,4 +1,18 @@
-import { to12h } from './timeFormat'
+/**
+ * Returns the earliest bookable minute-of-day for a given date.
+ * - Past date  → Infinity  (nothing bookable)
+ * - Today      → now + 120 min (2-hour lead time)
+ * - Future     → 0          (only studio hours constrain it)
+ */
+export function earliestBookableMins(dateStr) {
+  const today = new Date().toISOString().split('T')[0]
+  if (dateStr < today) return Infinity
+  if (dateStr === today) {
+    const now = new Date()
+    return now.getHours() * 60 + now.getMinutes() + 120
+  }
+  return 0
+}
 
 const BLOCKING_STATUSES = new Set([
   'Shift Reserved', 'Approved', 'Payment Pending',
@@ -30,50 +44,6 @@ function isSameDate(apptDateStr, inputDateStr) {
   return d.getFullYear() === y && d.getMonth() + 1 === mo && d.getDate() === day
 }
 
-/**
- * Generate time slots for a given date.
- * @param {string}      date                 - "YYYY-MM-DD"
- * @param {object}      availability         - from AvailabilityContext (studio hours)
- * @param {array}       appointments         - all appointments from context
- * @param {number}      serviceDurationMins
- * @param {string|null} excludeId            - appointment id to skip in conflict check (edit flow)
- * @param {number|null} vendorId             - only flag conflicts for this artist; null = no filtering
- * @returns {{ value, label, booked }[]}
- */
-export function generateSlots(date, availability, appointments, serviceDurationMins = 60, excludeId = null, vendorId = null) {
-  if (!date) return []
-
-  const dayOfWeek = new Date(date + 'T00:00:00').getDay()
-  if (!availability.workDays.includes(dayOfWeek)) return []
-
-  const [startH, startM] = availability.startTime.split(':').map(Number)
-  const [endH,   endM]   = availability.endTime.split(':').map(Number)
-  const dayStart = startH * 60 + startM
-  const dayEnd   = endH   * 60 + endM
-  const interval = availability.slotInterval || 30
-
-  const slots = []
-  for (let t = dayStart; t + serviceDurationMins <= dayEnd; t += interval) {
-    const slotEnd = t + serviceDurationMins
-
-    const booked = appointments.some(appt => {
-      if (excludeId && appt.id === excludeId)    return false
-      if (!BLOCKING_STATUSES.has(appt.status))   return false
-      if (!isSameDate(appt.date, date))           return false
-      // Only block if same artist — artist is always available unless already booked
-      if (vendorId !== null && appt.vendorId !== vendorId) return false
-      const start = parseTimeMins(appt.time)
-      const end   = start + parseDurationMins(appt.duration)
-      return !(slotEnd <= start || t >= end)
-    })
-
-    const hh    = Math.floor(t / 60)
-    const mm    = t % 60
-    const value = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
-    slots.push({ value, label: to12h(value), booked })
-  }
-  return slots
-}
 
 /**
  * Return free time windows on a given date for a given artist.
@@ -89,6 +59,9 @@ export function generateSlots(date, availability, appointments, serviceDurationM
  */
 export function getFreeWindows(date, appointments, vendorId = null, durationMins = 120, bufferMins = 120) {
   if (!date) return []
+
+  const cutoff = earliestBookableMins(date)
+  if (cutoff === Infinity) return []
 
   const blocked = appointments
     .filter(appt => {
@@ -107,7 +80,7 @@ export function getFreeWindows(date, appointments, vendorId = null, durationMins
   if (blocked.length === 0) return []
 
   const windows = []
-  let cursor = 0
+  let cursor = cutoff
 
   for (const blk of blocked) {
     if (blk.start > cursor && blk.start - cursor >= durationMins) {
@@ -139,9 +112,12 @@ export function getFreeWindows(date, appointments, vendorId = null, durationMins
 export function checkTimeAvailability(timeHHMM, durationMins, date, appointments, excludeId = null, vendorId = null, bufferMins = 120) {
   if (!timeHHMM || !date) return { available: null }
 
+  const cutoff = earliestBookableMins(date)
   const [hh, mm] = timeHHMM.split(':').map(Number)
   const newStart = hh * 60 + mm
   const newEnd   = newStart + (durationMins || 120)
+
+  if (newStart < cutoff) return { available: false }
 
   const conflict = appointments.some(appt => {
     if (excludeId && appt.id === excludeId)             return false
@@ -156,4 +132,81 @@ export function checkTimeAvailability(timeHHMM, durationMins, date, appointments
   })
 
   return { available: !conflict }
+}
+
+// ── team-based availability ────────────────────────────────────────────────────
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function isAssignedToArtist(appt, artistName) {
+  const name = artistName.toLowerCase()
+  if (appt.artist && appt.artist.toLowerCase().includes(name)) return true
+  if (Array.isArray(appt.assignedArtists) && appt.assignedArtists.some(n => n && n.toLowerCase() === name)) return true
+  if (appt.assignedArtists && typeof appt.assignedArtists === 'object' && !Array.isArray(appt.assignedArtists)) {
+    if (Object.values(appt.assignedArtists).some(n => n && String(n).toLowerCase().includes(name))) return true
+  }
+  return false
+}
+
+/**
+ * Returns the team's working window on a given date as { start, end } in minutes.
+ * start = earliest shiftStart among artists working that day.
+ * end   = latest shiftEnd among artists working that day.
+ * Returns null if no artist works on that date.
+ */
+export function getTeamWorkWindow(artists, dateStr) {
+  if (!dateStr || !artists || artists.length === 0) return null
+  const dayName = DAY_NAMES[new Date(dateStr + 'T00:00:00').getDay()]
+  let earliest = Infinity, latest = -Infinity
+  for (const a of artists) {
+    if (a.availability === 'Inactive') continue
+    const workDays = a.workDays || DAY_NAMES
+    if (!workDays.includes(dayName)) continue
+    const [ssh, ssm] = (a.shiftStart || '05:00').split(':').map(Number)
+    const [seh, sem] = (a.shiftEnd   || '21:00').split(':').map(Number)
+    earliest = Math.min(earliest, ssh * 60 + ssm)
+    latest   = Math.max(latest,   seh * 60 + sem)
+  }
+  if (earliest === Infinity) return null
+  return { start: earliest, end: latest }
+}
+
+/**
+ * Returns a Set of slot-start minutes where at least one artist is free.
+ * Accounts for work days, shift hours, the 2-hour booking cutoff, and appointment conflicts.
+ */
+export function getTeamOpenMinutes(artists, dateStr, appointments, durationMins = 120, slotInterval = 30) {
+  if (!dateStr || !artists || artists.length === 0) return new Set()
+  const cutoff  = earliestBookableMins(dateStr)
+  if (cutoff === Infinity) return new Set()
+  const dayName = DAY_NAMES[new Date(dateStr + 'T00:00:00').getDay()]
+  const open    = new Set()
+
+  for (const artist of artists) {
+    if (artist.availability === 'Inactive') continue
+    const workDays = artist.workDays || DAY_NAMES
+    if (!workDays.includes(dayName)) continue
+
+    const [ssh, ssm] = (artist.shiftStart || '05:00').split(':').map(Number)
+    const [seh, sem] = (artist.shiftEnd   || '21:00').split(':').map(Number)
+    const shiftStart = ssh * 60 + ssm
+    const shiftEnd   = seh * 60 + sem
+
+    const artistAppts = appointments.filter(a =>
+      BLOCKING_STATUSES.has(a.status) && isSameDate(a.date, dateStr) && isAssignedToArtist(a, artist.name)
+    )
+
+    for (let t = shiftStart; t + durationMins <= shiftEnd; t += slotInterval) {
+      if (t < cutoff) continue
+      const slotEnd = t + durationMins
+      const booked  = artistAppts.some(a => {
+        const s = parseTimeMins(a.time)
+        const e = s + parseDurationMins(a.duration)
+        return !(slotEnd <= s || t >= e)
+      })
+      if (!booked) open.add(t)
+    }
+  }
+
+  return open
 }

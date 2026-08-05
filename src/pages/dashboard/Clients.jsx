@@ -50,7 +50,7 @@ export default function Clients() {
 
   function handleAdd() {
     if (!form.name.trim() || !form.phone.trim()) return
-    if (form.phone.length !== 10) return
+    if (form.phone.replace(/\s/g, '').length !== 10) return
     addClient(form)
     setForm(EMPTY)
     setAddOpen(false)
@@ -183,8 +183,8 @@ export default function Clients() {
             <div>
               <label style={lbl}>Phone *</label>
               <input style={inpStyle} placeholder="98765 43210"
-                value={form.phone} onChange={e => set('phone', e.target.value.replace(/[^0-9]/g, '').slice(0, 10))} />
-              {form.phone && form.phone.length !== 10 && (
+                value={form.phone} onChange={e => set('phone', e.target.value.replace(/[^0-9 ]/g, '').slice(0, 15))} />
+              {form.phone && form.phone.replace(/\s/g, '').length !== 10 && (
                 <p style={{ fontSize: '11px', color: 'var(--color-danger, #e8748a)', marginTop: '4px' }}>
                   Must be 10 digits.
                 </p>

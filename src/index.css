@@ -256,13 +256,14 @@ button:not([disabled]):hover {
   color: white;
   font-weight: 500;
   border-radius: 9999px;
-  border: none;
+  border: 1.5px solid rgba(232, 164, 184, 0.45);
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
   text-decoration: none;
   font-size: 15px;
+  box-shadow: 0 4px 20px rgba(201, 149, 108, 0.35);
 }
 .btn-primary:hover {
   box-shadow: 0 12px 32px rgba(var(--rgb-rose-gold), 0.45);
@@ -278,6 +279,12 @@ button:not([disabled]):hover {
 .btn-primary:hover::after {
   transform: translateX(110%);
   transition: transform 0.6s ease;
+}
+
+[data-theme="light"] .btn-primary {
+  color: #2d1b2e;
+  border: 1.5px solid rgba(201, 149, 108, 0.5);
+  box-shadow: 0 4px 20px rgba(201, 149, 108, 0.32);
 }
 
 .btn-outline {

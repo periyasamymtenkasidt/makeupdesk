@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
+import { earliestBookableMins } from '../../utils/slots'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Users, TrendingUp, Clock, ChevronRight, Plus } from 'lucide-react'
 import StatsCard from '../../components/dashboard/StatsCard'
@@ -15,7 +16,6 @@ import { Badge } from '../../components/ui/Badge'
 import { APPOINTMENT_PIPELINE } from '../../data/navigation'
 import { useAppointments } from '../../context/AppointmentContext'
 import { useClients } from '../../context/ClientContext'
-import { useAvailability } from '../../context/AvailabilityContext'
 import { useSettings } from '../../hooks/useSettings'
 import { useToast } from '../../context/ToastContext'
 
@@ -26,7 +26,6 @@ export default function Overview() {
   const [openRecordPayment, setOpenRecordPayment] = useState(false)
   const { appointments }  = useAppointments()
   const { clients }       = useClients()
-  const { availability }  = useAvailability()
   const { settings }      = useSettings()
   const { showToast }    = useToast()
   const recentAppointments = appointments.slice(0, 5)
@@ -70,15 +69,13 @@ export default function Overview() {
   ).length
 
   // ── open slots today ─────────────────────────────────────────────
-  const DAY_NAMES    = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const todayDayName = DAY_NAMES[new Date().getDay()]
-  const isWorkingDay = availability?.days?.[todayDayName] !== false
+  const isWorkingDay = true
   let openSlotsToday = 0
-  if (isWorkingDay && availability?.startTime && availability?.endTime) {
-    const dur   = availability.slotDuration || 60
-    const [sh, sm] = availability.startTime.split(':').map(Number)
-    const [eh, em] = availability.endTime.split(':').map(Number)
-    for (let t = sh * 60 + sm; t + dur <= eh * 60 + em; t += dur) {
+  {
+    const dur = 60
+    const cutoff = earliestBookableMins(new Date().toISOString().split('T')[0])
+    for (let t = 5 * 60; t + dur <= 21 * 60; t += dur) {
+      if (t < cutoff) continue
       const occupied = todayAppts.some(a => {
         const at = parse12h(a.time)
         if (at == null) return false
@@ -361,14 +358,16 @@ export default function Overview() {
 
       </div>
 
-      <NewBookingModal
-        open={openBookingModal}
-        onClose={() => {
-          setOpenBookingModal(false)
-          setSlotInitialData(null)
-        }}
-        initialData={slotInitialData}
-      />
+      {openBookingModal && (
+        <NewBookingModal
+          open={openBookingModal}
+          onClose={() => {
+            setOpenBookingModal(false)
+            setSlotInitialData(null)
+          }}
+          initialData={slotInitialData}
+        />
+      )}
       <RecordPaymentModal
         open={openRecordPayment}
         onClose={() => setOpenRecordPayment(false)}

@@ -37,10 +37,6 @@ const TITLES = {
     title: "Vendor Master",
     subtitle: "Manage your external professionals and partners.",
   },
-  "/dashboard/masters/availability": {
-    title: "Availability",
-    subtitle: "Set your working days, hours, and slot intervals.",
-  },
   "/dashboard/settings": {
     title: "Settings",
     subtitle:

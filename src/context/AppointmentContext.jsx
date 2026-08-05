@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useMemo } from 'react'
 import { SERVICES } from '../data/services'
+import { VENDOR_KEY, VENDOR_DEFAULTS } from '../data/vendors'
 import { useClients } from './ClientContext'
 
 const KEY = 'md_appointments'
 
 const INITIAL = [
-  { id: 'APT-001', vendorId: 1, clientId: 'CLT-001', name: 'Priya Mehta',   phone: ' 98765 43210', service: 'Bridal Makeup',    date: 'Jul 26, 2026', time: '05:30 AM', duration: '3 hrs',    status: 'Confirmed',       amount: 12000, advanceAmount: 4000, advancePaid: true,  balancePaid: false, location: 'Venue', venue: 'Grand Convention Center (EC)' },
+  { id: 'APT-001', vendorId: 1, clientId: 'CLT-001', name: 'Priya Mehta',   phone: '98765 43210', service: 'Bridal Makeup',    date: 'Jul 26, 2026', time: '05:30 AM', duration: '3 hrs',    status: 'Confirmed',       amount: 12000, advanceAmount: 4000, advancePaid: true,  balancePaid: false, location: 'Venue', venue: 'Grand Convention Center (EC)' },
   { id: 'APT-002', vendorId: 1, clientId: 'CLT-002', name: 'Anjali Sharma', phone: ' 91234 56789', service: 'Party Makeup',     date: 'Jul 27, 2026', time: '06:00 PM', duration: '2 hrs',    status: 'Payment Pending', amount: 4500,  advanceAmount: 1500, advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
   { id: 'APT-003', vendorId: 7, clientId: 'CLT-003', name: 'Kavya Nair',    phone: ' 99887 76655', service: 'HD Makeup',        date: 'Jul 28, 2026', time: '02:00 PM', duration: '1.75 hrs', status: 'Quotation Sent',  amount: 5000,  advanceAmount: 2000, advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
   { id: 'APT-004', vendorId: 1, clientId: 'CLT-004', name: 'Ritika Joshi',  phone: ' 87654 32109', service: 'Pre-Wedding',      date: 'Jul 30, 2026', time: '07:00 AM', duration: '2.5 hrs',  status: 'Confirmed',       amount: 7500,  advanceAmount: 2500, advancePaid: true,  balancePaid: false, location: 'Venue', venue: '5-Star Hotel Ballroom (EC)' },
@@ -31,8 +32,7 @@ function nextId(appointments) {
 function load() {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return INITIAL
-    let records = JSON.parse(raw)
+    let records = raw ? JSON.parse(raw) : INITIAL.map(r => ({ ...r }))
 
     // backfill clientId for records saved before it was added
     records = records.map(a => {
@@ -58,6 +58,46 @@ function load() {
       if (!isTimestampId(a.id)) return a
       counter++
       return { ...a, id: 'APT-' + String(counter).padStart(3, '0') }
+    })
+
+    // backfill vendorPayments from vendorId / assignedArtists
+    let vendorList = VENDOR_DEFAULTS
+    try {
+      const sv = localStorage.getItem(VENDOR_KEY)
+      if (sv) vendorList = JSON.parse(sv)
+    } catch {}
+
+    records = records.map(a => {
+      if (Array.isArray(a.vendorPayments)) return a
+      if (a.status === 'Rejected' || a.status === 'Closed') return a
+
+      if (Array.isArray(a.assignedArtists) && a.assignedArtists.length > 0) {
+        const vendorPayments = a.assignedArtists.map(name => {
+          const v = vendorList.find(x => x.name === name)
+          return { vendorName: name, category: v?.category || 'Other', amount: v?.charges || 0, paid: false, paidDate: null, method: null, note: '' }
+        })
+        return { ...a, vendorPayments }
+      }
+
+      if (a.vendorId) {
+        const v = vendorList.find(x => x.id === Number(a.vendorId))
+        if (v) {
+          return {
+            ...a,
+            vendorPayments: [{
+              vendorName: v.name,
+              category: v.category,
+              amount: a.vendorCost || v.charges || 0,
+              paid: false,
+              paidDate: null,
+              method: null,
+              note: '',
+            }],
+          }
+        }
+      }
+
+      return a
     })
 
     return records
@@ -146,9 +186,12 @@ export function AppointmentProvider({ children }) {
     }))
   }
   function deleteAppointment(id)       { mutate(prev => prev.filter(a => a.id !== id)) }
+  function updateVendorPayments(id, payments) {
+    mutate(prev => prev.map(a => a.id === id ? { ...a, vendorPayments: payments } : a))
+  }
 
   return (
-    <Ctx.Provider value={{ appointments: enrichedAppointments, genId, addAppointment, updateStatus, updateAppointment, deleteAppointment }}>
+    <Ctx.Provider value={{ appointments: enrichedAppointments, genId, addAppointment, updateStatus, updateAppointment, deleteAppointment, updateVendorPayments }}>
       {children}
     </Ctx.Provider>
   )

@@ -4,7 +4,6 @@ import { Card, CardHeader, CardBody } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { to24h } from '../../utils/timeFormat'
 import { useAppointments } from '../../context/AppointmentContext'
-import { useAvailability } from '../../context/AvailabilityContext'
 
 function parse12h(t) {
   if (!t) return null
@@ -16,11 +15,6 @@ function parse12h(t) {
   return h * 60 + mn
 }
 
-function hhmm2mins(hhmm) {
-  if (!hhmm) return null
-  const [h, m] = hhmm.split(':').map(Number)
-  return h * 60 + (m || 0)
-}
 
 function mins2display(mins) {
   const h = Math.floor(mins / 60) % 24
@@ -46,12 +40,14 @@ function waNum(phone) {
 export default function TodayTimeline({ onBookSlot }) {
   const [filter, setFilter] = useState('all')
   const { appointments } = useAppointments()
-  const { availability } = useAvailability()
 
   const timeline = useMemo(() => {
-    const todayStr  = new Date().toISOString().split('T')[0]
-    const workStart = hhmm2mins(availability?.startTime) ?? 9 * 60
-    const workEnd   = hhmm2mins(availability?.endTime)   ?? 18 * 60
+    const now       = new Date()
+    const todayStr  = now.toISOString().split('T')[0]
+    const nowMins   = now.getHours() * 60 + now.getMinutes()
+    const cutoff    = nowMins + 120
+    const workStart = 5 * 60
+    const workEnd   = 21 * 60
 
     const todayAppts = appointments
       .filter(a => a.date === todayStr && !['Rejected', 'Closed'].includes(a.status))
@@ -82,14 +78,22 @@ export default function TodayTimeline({ onBookSlot }) {
       .filter(Boolean)
       .sort((a, b) => a.startMins - b.startMins)
 
-    if (todayAppts.length === 0) {
-      return [{
-        id: 'open-all', type: 'open',
-        startMins: workStart, endMins: workEnd,
-        startTime: mins2display(workStart), endTime: mins2display(workEnd),
-        duration: `${fmtDur(workEnd - workStart)} free`,
+    function pushOpenSlot(result, rawStart, rawEnd) {
+      const openStart = Math.max(rawStart, cutoff)
+      if (openStart >= rawEnd) return
+      result.push({
+        id: `open-${openStart}`, type: 'open',
+        startMins: openStart, endMins: rawEnd,
+        startTime: mins2display(openStart), endTime: mins2display(rawEnd),
+        duration: `${fmtDur(rawEnd - openStart)} free`,
         label: 'Open for Bookings',
-      }]
+      })
+    }
+
+    if (todayAppts.length === 0) {
+      const result = []
+      pushOpenSlot(result, workStart, workEnd)
+      return result
     }
 
     const result = []
@@ -102,32 +106,20 @@ export default function TodayTimeline({ onBookSlot }) {
     for (const appt of withinWork) {
       const slotStart = Math.max(appt.startMins, workStart)
       if (slotStart > cursor) {
-        result.push({
-          id: `open-${cursor}`, type: 'open',
-          startMins: cursor, endMins: slotStart,
-          startTime: mins2display(cursor), endTime: mins2display(slotStart),
-          duration: `${fmtDur(slotStart - cursor)} free`,
-          label: 'Open for Bookings',
-        })
+        pushOpenSlot(result, cursor, slotStart)
       }
       result.push(appt)
       cursor = Math.max(cursor, appt.endMins)
     }
 
     if (cursor < workEnd) {
-      result.push({
-        id: `open-${cursor}`, type: 'open',
-        startMins: cursor, endMins: workEnd,
-        startTime: mins2display(cursor), endTime: mins2display(workEnd),
-        duration: `${fmtDur(workEnd - cursor)} free`,
-        label: 'Open for Bookings',
-      })
+      pushOpenSlot(result, cursor, workEnd)
     }
 
     todayAppts.filter(a => a.startMins >= workEnd).forEach(a => result.push(a))
 
     return result
-  }, [appointments, availability])
+  }, [appointments])
 
   const bookedCount = timeline.filter(s => s.type === 'booking').length
   const openCount   = timeline.filter(s => s.type === 'open').length

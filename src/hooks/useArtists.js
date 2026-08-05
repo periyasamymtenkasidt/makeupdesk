@@ -9,6 +9,8 @@ export const BOOKING_STAFF_CATEGORIES = [
   'Mehendi Artist',
 ]
 
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
 export function useArtists() {
   const { items } = useMaster(VENDOR_KEY, VENDOR_DEFAULTS)
   return items.filter(v =>
@@ -17,7 +19,45 @@ export function useArtists() {
 }
 
 /**
- * Utility to check if a specific artist/vendor is already booked on a given date/time slot
+ * Returns true if the artist's schedule allows them to work at the given date/time.
+ * Checks work days and shift hours only — does NOT check appointment conflicts.
+ */
+export function isArtistAvailableAt(artist, dateStr, startTimeHHMM, durationMins = 120) {
+  if (!artist || !dateStr || !startTimeHHMM) return true
+
+  // Work day check
+  const dayName = DAY_NAMES[new Date(dateStr + 'T00:00:00').getDay()]
+  const workDays = artist.workDays || DAY_NAMES
+  if (!workDays.includes(dayName)) return false
+
+  // Shift hours check
+  const [ssh, ssm] = (artist.shiftStart || '05:00').split(':').map(Number)
+  const [seh, sem] = (artist.shiftEnd   || '21:00').split(':').map(Number)
+  const shiftStart = ssh * 60 + ssm
+  const shiftEnd   = seh * 60 + sem
+
+  const [hh, mm] = startTimeHHMM.split(':').map(Number)
+  const slotStart = hh * 60 + mm
+  const slotEnd   = slotStart + durationMins
+
+  return slotStart >= shiftStart && slotEnd <= shiftEnd
+}
+
+/**
+ * Checks if an artist is assigned to a given appointment record.
+ */
+function isAssignedTo(appt, artistName) {
+  const name = artistName.toLowerCase()
+  if (appt.artist && appt.artist.toLowerCase().includes(name)) return true
+  if (Array.isArray(appt.assignedArtists) && appt.assignedArtists.some(n => n && n.toLowerCase() === name)) return true
+  if (appt.assignedArtists && typeof appt.assignedArtists === 'object' && !Array.isArray(appt.assignedArtists)) {
+    if (Object.values(appt.assignedArtists).some(n => n && String(n).toLowerCase().includes(name))) return true
+  }
+  return false
+}
+
+/**
+ * Checks if a specific artist is booked (appointment conflict) AND available per their schedule.
  */
 export function checkArtistAvailability(artistName, selectedDate, selectedTime, appointments = [], currentApptId = null) {
   if (!artistName || !selectedDate) return { isBooked: false }
@@ -25,24 +65,9 @@ export function checkArtistAvailability(artistName, selectedDate, selectedTime, 
   const conflict = appointments.find(a => {
     if (currentApptId && String(a.id) === String(currentApptId)) return false
     if (a.status === 'Rejected' || a.status === 'Closed') return false
-
-    // Same date check
     const sameDate = String(a.date).toLowerCase() === String(selectedDate).toLowerCase()
     if (!sameDate) return false
-
-    // Check if artist is assigned (legacy artist string or assignedArtists object)
-    let isAssigned = false
-    if (a.artist && a.artist.toLowerCase().includes(artistName.toLowerCase())) {
-      isAssigned = true
-    }
-    if (a.assignedArtists && typeof a.assignedArtists === 'object') {
-      const assignedNames = Object.values(a.assignedArtists).map(v => String(v).toLowerCase())
-      if (assignedNames.some(name => name && name.includes(artistName.toLowerCase()))) {
-        isAssigned = true
-      }
-    }
-
-    return isAssigned
+    return isAssignedTo(a, artistName)
   })
 
   if (conflict) {

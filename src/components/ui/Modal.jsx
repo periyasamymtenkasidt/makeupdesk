@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { Button } from './Button'
 
-export function Modal({ open, onClose, title, children, onSave, saveLabel = 'Save', width = '540px' }) {
+export function Modal({ open, onClose, title, children, onSave, saveLabel = 'Save', saveVariant = 'primary', width = '540px', footer }) {
   if (!open) return null
   return createPortal(
     <div
@@ -46,17 +46,19 @@ export function Modal({ open, onClose, title, children, onSave, saveLabel = 'Sav
         </div>
 
         {/* Modal Footer Actions */}
-        <div style={{
-          padding: '16px 24px', borderTop: '1px solid var(--dash-border)',
-          display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0,
-        }}>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" size="sm" onClick={onSave}>
-            {saveLabel}
-          </Button>
-        </div>
+        {footer !== undefined ? footer : (
+          <div style={{
+            padding: '16px 24px', borderTop: '1px solid var(--dash-border)',
+            display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0,
+          }}>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant={saveVariant} size="sm" onClick={onSave}>
+              {saveLabel}
+            </Button>
+          </div>
+        )}
       </div>
     </div>,
     document.body

@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Badge'
 import { MapPin, Clock, Pencil, Calendar, Trash2, XCircle } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatCurrency'
-
 import { EmptyState } from '../ui/EmptyState'
+import { Modal } from '../ui/Modal'
 
 const BASE_HEADERS = ['Appt ID', 'Client', 'Mobile', 'Service', 'Location', 'Date & Time', 'Status', 'Amount']
 
@@ -27,6 +28,7 @@ const iconBtn = (color = 'var(--icon-booking)', bg = 'var(--dash-surface)') => (
 
 export default function AppointmentTable({ appointments, onEdit, onDelete, onReject, renderRowActions }) {
   const navigate = useNavigate()
+  const [apptToDelete, setApptToDelete] = useState(null)
   const hasActions = onEdit || onDelete || onReject || renderRowActions
   const headers  = [...BASE_HEADERS, ...(hasActions ? [''] : [])]
 
@@ -96,7 +98,7 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
 
               {/* Mobile */}
               <td style={{ ...tdBase, fontSize: '13px', color: 'var(--dash-text-secondary)' }}>
-                {appt.phone ?? '—'}
+                {appt.phone ? appt.phone.replace(/^\+\d{1,3}/, '') : '—'}
               </td>
 
               {/* Service */}
@@ -188,7 +190,7 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
                         )}
                         {onDelete && (
                           <button
-                            onClick={() => { if (window.confirm(`Delete ${appt.id} — ${appt.name}? This cannot be undone.`)) onDelete(appt.id) }}
+                            onClick={() => setApptToDelete(appt)}
                             title="Delete appointment"
                             style={iconBtn('var(--badge-rejected)', 'var(--badge-rejected-bg)')}
                           >
@@ -213,6 +215,84 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
           style={{ border: 'none', background: 'transparent', padding: '48px 20px' }}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={!!apptToDelete}
+        onClose={() => setApptToDelete(null)}
+        title="Confirm Deletion"
+        width="440px"
+        saveLabel="Delete Appointment"
+        saveVariant="danger"
+        onSave={() => {
+          if (apptToDelete) {
+            onDelete(apptToDelete.id)
+            setApptToDelete(null)
+          }
+        }}
+      >
+        {apptToDelete && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '42px', height: '42px', borderRadius: '12px',
+                background: 'var(--badge-rejected-bg)', color: 'var(--badge-rejected)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+              }}>
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--dash-text-primary)' }}>
+                  Delete Appointment?
+                </div>
+                <div style={{ fontSize: '12.5px', color: 'var(--dash-text-muted)', marginTop: '2px' }}>
+                  This action cannot be undone.
+                </div>
+              </div>
+            </div>
+
+            {/* Appointment Details Box */}
+            <div style={{
+              background: 'var(--dash-surface)',
+              border: '1px solid var(--dash-border)',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              fontSize: '13px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--icon-booking)', background: 'var(--icon-booking-bg)', padding: '2px 8px', borderRadius: '6px', fontFamily: 'monospace' }}>
+                  {apptToDelete.id}
+                </span>
+                <span style={{ fontWeight: 700, color: 'var(--dash-text-primary)' }}>
+                  {typeof apptToDelete.amount === 'number' ? formatCurrency(apptToDelete.amount) : apptToDelete.amount}
+                </span>
+              </div>
+
+              <div style={{ fontWeight: 600, color: 'var(--dash-text-primary)', fontSize: '14px' }}>
+                {apptToDelete.name}
+                {apptToDelete.phone && (
+                  <span style={{ fontWeight: 400, color: 'var(--dash-text-muted)', fontSize: '12.5px', marginLeft: '6px' }}>
+                    ({apptToDelete.phone})
+                  </span>
+                )}
+              </div>
+
+              <div style={{ color: 'var(--dash-text-secondary)', fontSize: '12.5px' }}>
+                {apptToDelete.service}
+              </div>
+
+              <div style={{ fontSize: '12px', color: 'var(--dash-text-muted)', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
+                <span>📅 {apptToDelete.date}</span>
+                <span>⏰ {apptToDelete.time || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

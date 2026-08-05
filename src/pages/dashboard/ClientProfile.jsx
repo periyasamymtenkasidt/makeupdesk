@@ -88,7 +88,7 @@ export default function ClientProfile() {
   }
   function handleEditSave() {
     if (!editForm.name?.trim()) return
-    if (editForm.phone && editForm.phone.length !== 10) return
+    if (editForm.phone && editForm.phone.replace(/\s/g, '').length !== 10) return
     updateClient(client.id, editForm)
     setEditOpen(false)
   }
@@ -229,7 +229,7 @@ export default function ClientProfile() {
 
       </div>
 
-      <EditAppointmentModal appt={editAppt} onClose={() => setEditAppt(null)} />
+      {editAppt && <EditAppointmentModal appt={editAppt} onClose={() => setEditAppt(null)} />}
 
       {/* Edit Profile Modal */}
       <Modal
@@ -248,7 +248,7 @@ export default function ClientProfile() {
             </div>
             <div>
               <label style={lbl}>Phone</label>
-              <input style={inpStyle} value={editForm.phone || ''} onChange={e => setF('phone', e.target.value.replace(/[^0-9]/g, '').slice(0, 10))} />
+              <input style={inpStyle} value={editForm.phone || ''} onChange={e => setF('phone', e.target.value.replace(/[^0-9 ]/g, '').slice(0, 15))} />
             </div>
           </div>
           <div>

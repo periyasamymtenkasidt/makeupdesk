@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign, Users, Check, Hourglass, Smartphone, Banknote } from 'lucide-react'
 import { useAppointments } from '../../context/AppointmentContext'
 import { useClients } from '../../context/ClientContext'
 import { useToast } from '../../context/ToastContext'
+import { useMaster } from '../../hooks/useMaster'
+import { VENDOR_KEY, VENDOR_DEFAULTS } from '../../data/vendors'
+import { Modal } from '../../components/ui/Modal'
 import EditAppointmentModal from '../../components/dashboard/EditAppointmentModal'
 import MarkDoneFlow from '../../components/dashboard/MarkDoneFlow'
 import SendQuoteModal from '../../components/dashboard/SendQuoteModal'
@@ -48,12 +51,16 @@ function StatBox({ icon: Icon, label, value, color, bg }) {
 export default function AppointmentProfile() {
   const { appointmentId } = useParams()
   const navigate = useNavigate()
-  const { appointments, updateAppointment } = useAppointments()
+  const { appointments, updateAppointment, updateVendorPayments } = useAppointments()
   const { clients } = useClients()
   const { showToast } = useToast()
+  const { items: allVendors } = useMaster(VENDOR_KEY, VENDOR_DEFAULTS)
   const [editOpen,      setEditOpen]      = useState(false)
   const [markDoneOpen,  setMarkDoneOpen]  = useState(false)
   const [sendQuoteOpen, setSendQuoteOpen] = useState(false)
+  const [vendorPayModal, setVendorPayModal] = useState(null)
+  const [vpMethod, setVpMethod]   = useState('UPI')
+  const [vpTxnRef, setVpTxnRef]   = useState('')
 
   const appt = appointments.find(a => a.id === appointmentId)
 
@@ -364,6 +371,187 @@ export default function AppointmentProfile() {
           )
         })()}
 
+        {/* Team Payments */}
+        {(() => {
+          const assigned = Array.isArray(appt.assignedArtists) ? appt.assignedArtists : []
+          const vendorPayments = Array.isArray(appt.vendorPayments) ? appt.vendorPayments : []
+          if (assigned.length === 0 && vendorPayments.length === 0) return null
+
+          function initVendorPayments() {
+            const entries = assigned.map(name => {
+              const v = allVendors.find(x => x.name === name)
+              return { vendorName: name, category: v?.category || 'Other', amount: v?.charges || 0, paid: false, paidDate: null, method: null, note: '' }
+            })
+            updateVendorPayments(appt.id, entries)
+          }
+
+          function openVpModal(vp) {
+            setVendorPayModal({ apptId: appt.id, vendorName: vp.vendorName, amount: vp.amount })
+            setVpMethod('UPI')
+            setVpTxnRef('')
+          }
+
+          function handleVpMarkPaid() {
+            if (!vendorPayModal) return
+            const paidDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+            const updated = vendorPayments.map(vp =>
+              vp.vendorName === vendorPayModal.vendorName
+                ? { ...vp, paid: true, paidDate, method: vpMethod, note: vpTxnRef }
+                : vp
+            )
+            updateVendorPayments(appt.id, updated)
+            setVendorPayModal(null)
+          }
+
+          return (
+            <Card style={{ padding: '20px 24px' }}>
+              <CardHeader style={{ padding: '0 0 14px', borderBottom: '1px solid var(--dash-border)', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <Users size={15} style={{ color: 'var(--color-rose-gold)' }} /> Team Payments
+                </span>
+                {vendorPayments.length > 0 && (
+                  <span style={{ fontSize: '11px', color: 'var(--dash-text-muted)' }}>
+                    {vendorPayments.filter(v => v.paid).length}/{vendorPayments.length} settled
+                  </span>
+                )}
+              </CardHeader>
+
+              {vendorPayments.length === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--dash-text-primary)', marginBottom: '3px' }}>
+                      {assigned.length} artist{assigned.length !== 1 ? 's' : ''} assigned
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--dash-text-muted)' }}>
+                      {assigned.join(', ')}
+                    </div>
+                  </div>
+                  <button
+                    onClick={initVendorPayments}
+                    style={{
+                      padding: '8px 16px', borderRadius: '10px', fontSize: '12.5px', fontWeight: 600,
+                      border: '1.5px solid #c9956c',
+                      background: '#c9956c', color: '#fff',
+                      cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    Set Up Payments
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {vendorPayments.map((vp, i) => (
+                    <div key={i} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 16px', borderRadius: '12px',
+                      background: 'var(--dash-subtle-row-bg)', border: '1px solid var(--dash-border-subtle)',
+                      gap: '12px', flexWrap: 'wrap',
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--dash-text-primary)' }}>{vp.vendorName}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--dash-text-muted)', marginTop: '1px' }}>{vp.category}</div>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--dash-text-primary)', whiteSpace: 'nowrap' }}>
+                        {formatCurrency(vp.amount || 0)}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '5px',
+                          padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600,
+                          border: '1.5px solid',
+                          ...(vp.paid
+                            ? { background: 'var(--badge-confirmed-bg)', color: 'var(--badge-confirmed)', borderColor: 'var(--badge-confirmed)' }
+                            : { background: 'var(--badge-pending-bg)',   color: 'var(--badge-pending)',   borderColor: 'var(--badge-pending)' }
+                          ),
+                        }}>
+                          {vp.paid ? <Check size={11} /> : <Hourglass size={11} />}
+                          {vp.paid ? 'Paid' : 'Pending'}
+                        </span>
+                        {!vp.paid && (
+                          <button
+                            onClick={() => openVpModal(vp)}
+                            style={{
+                              padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                              border: '1.5px solid #c9956c',
+                              background: '#c9956c', color: '#fff',
+                              cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                            }}
+                          >
+                            Pay
+                          </button>
+                        )}
+                        {vp.paid && vp.paidDate && (
+                          <span style={{ fontSize: '11px', color: 'var(--dash-text-muted)' }}>
+                            {vp.paidDate}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Modal
+                open={!!vendorPayModal}
+                onClose={() => setVendorPayModal(null)}
+                title="Mark Vendor Payment"
+                onSave={handleVpMarkPaid}
+                saveLabel="Confirm Payment Made"
+                width="440px"
+              >
+                {vendorPayModal && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ padding: '12px 16px', borderRadius: '12px', background: 'var(--dash-subtle-row-bg)', border: '1.5px solid var(--dash-border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                        <span style={{ color: 'var(--dash-text-secondary)' }}>Vendor</span>
+                        <span style={{ fontWeight: 700, color: 'var(--dash-text-primary)' }}>{vendorPayModal.vendorName}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', paddingTop: '8px', borderTop: '1px solid var(--dash-border-subtle)' }}>
+                        <span style={{ color: 'var(--dash-text-secondary)', fontWeight: 600 }}>Amount</span>
+                        <span style={{ fontWeight: 800, color: 'var(--dash-text-primary)' }}>{formatCurrency(vendorPayModal.amount || 0)}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--dash-label-text)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Payment Mode *
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                        {[
+                          { id: 'UPI',  icon: Smartphone, label: 'UPI / QR' },
+                          { id: 'Cash', icon: Banknote,   label: 'Cash' },
+                          { id: 'Card', icon: CreditCard, label: 'Card / NetBank' },
+                        ].map(({ id, icon: Icon, label }) => (
+                          <button key={id} type="button" onClick={() => setVpMethod(id)} style={{
+                            padding: '10px 8px', borderRadius: '12px', border: '2px solid',
+                            borderColor: vpMethod === id ? '#c9956c' : 'rgba(201,149,108,0.22)',
+                            background: vpMethod === id ? 'linear-gradient(135deg, rgba(201,149,108,0.16), rgba(232,164,184,0.1))' : 'var(--dash-card-bg)',
+                            cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            <Icon size={16} style={{ color: vpMethod === id ? '#c9956c' : 'var(--dash-text-muted)' }} />
+                            <span style={{ fontSize: '11.5px', fontWeight: 700, color: vpMethod === id ? '#8b5a2b' : 'var(--dash-text-secondary)' }}>{label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--dash-label-text)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Reference / Note (optional)
+                      </label>
+                      <input
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '12px', border: '1.5px solid var(--dash-border)', background: 'var(--dash-input-bg)', fontSize: '13px', color: 'var(--dash-input-text)', outline: 'none', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box' }}
+                        placeholder="e.g. GPay Ref #4821033"
+                        value={vpTxnRef}
+                        onChange={e => setVpTxnRef(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </Modal>
+            </Card>
+          )
+        })()}
+
         {/* Prompt to collect feedback on completed appointments without it */}
         {appt.status === 'Completed' && !appt.feedback && (
           <div style={{
@@ -380,7 +568,7 @@ export default function AppointmentProfile() {
 
       </div>
 
-      <EditAppointmentModal appt={editOpen ? appt : null} onClose={() => setEditOpen(false)} />
+      {editOpen && <EditAppointmentModal appt={appt} onClose={() => setEditOpen(false)} />}
 
       {sendQuoteOpen && (
         <SendQuoteModal

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { checkTimeAvailability } from '../../utils/slots'
 
 // ── constants ─────────────────────────────────────────────────────────────────
@@ -47,18 +47,18 @@ function DrumColumn({ items, value, onChange, narrow = false, theme = 'dark' }) 
   const colW      = narrow ? 64 : 76
   const viewH     = ITEM_H * 3
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = scrollRef.current
     if (!el || idx < 0) return
     el.scrollTop = (n + idx) * ITEM_H
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = scrollRef.current
     if (!el || idx < 0) return
     const target = (n + idx) * ITEM_H
     if (Math.abs(el.scrollTop - target) > ITEM_H * 0.5) {
-      el.scrollTo({ top: target, behavior: 'smooth' })
+      el.scrollTop = target
     }
   }, [idx, n])
 
@@ -166,6 +166,30 @@ function DrumColumn({ items, value, onChange, narrow = false, theme = 'dark' }) 
 
 // ── main export ───────────────────────────────────────────────────────────────
 
+const DAY_NAMES_DRUM = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function getShiftWarning(artistObjs, dateStr, timeHHMM, durationMins) {
+  if (!artistObjs || artistObjs.length === 0 || !dateStr) return null
+  const dayName = DAY_NAMES_DRUM[new Date(dateStr + 'T00:00:00').getDay()]
+  const offToday = artistObjs.filter(a => !(a.workDays || DAY_NAMES_DRUM).includes(dayName))
+  if (offToday.length > 0) {
+    const names = offToday.map(a => a.name).join(', ')
+    return `${names} ${offToday.length === 1 ? 'doesn\'t' : 'don\'t'} work today`
+  }
+  if (!timeHHMM) return null
+  const [hh, mm] = timeHHMM.split(':').map(Number)
+  const slotStart = hh * 60 + mm
+  const slotEnd = slotStart + durationMins
+  const offShift = artistObjs.filter(a => {
+    const [ssh, ssm] = (a.shiftStart || '05:00').split(':').map(Number)
+    const [seh, sem] = (a.shiftEnd   || '21:00').split(':').map(Number)
+    return slotStart < ssh * 60 + ssm || slotEnd > seh * 60 + sem
+  })
+  if (offShift.length === 0) return null
+  const names = offShift.map(a => a.name).join(', ')
+  return `${names} ${offShift.length === 1 ? 'is' : 'are'} off-shift at this time`
+}
+
 export function DrumRollTimePicker({
   value,
   onChange,
@@ -174,6 +198,7 @@ export function DrumRollTimePicker({
   durationMins  = 120,
   vendorId      = null,
   theme         = 'dark',
+  artistObjs    = [],
 }) {
   const [state, setState] = useState(() => parse24(value))
   const skipEmit          = useRef(true)
@@ -184,7 +209,7 @@ export function DrumRollTimePicker({
     onChange(to24(state.h, state.m, state.ap))
   }, [state.h, state.m, state.ap]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const parsed = parse24(value)
     setState(s => {
       if (s.h === parsed.h && s.m === parsed.m && s.ap === parsed.ap) return s
@@ -196,6 +221,7 @@ export function DrumRollTimePicker({
   const avail = date
     ? checkTimeAvailability(currentVal, durationMins, date, appointments, null, vendorId)
     : { available: null }
+  const shiftWarning = getShiftWarning(artistObjs, date, currentVal, durationMins)
 
   const colonColor = isDark ? 'rgba(255,255,255,0.5)' : 'var(--dash-text-muted)'
 
@@ -251,6 +277,18 @@ export function DrumRollTimePicker({
           {avail.available
             ? '✓ This time slot looks available'
             : "✗ Artist may be unavailable — we'll confirm after review"}
+        </div>
+      )}
+      {shiftWarning && (
+        <div style={{
+          marginTop: 8, padding: '7px 14px', borderRadius: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          fontSize: 12, fontWeight: 600,
+          background: isDark ? 'rgba(245,158,11,0.13)' : 'var(--badge-pending-bg)',
+          color: isDark ? '#fbbf24' : 'var(--badge-pending)',
+          border: `1px solid ${isDark ? 'rgba(251,191,36,0.25)' : 'rgba(245,158,11,0.2)'}`,
+        }}>
+          ⏰ {shiftWarning}
         </div>
       )}
     </div>

@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import { AppointmentProvider } from './context/AppointmentContext'
 import { ClientProvider } from './context/ClientContext'
-import { AvailabilityProvider } from './context/AvailabilityContext'
 import { ToastProvider } from './context/ToastContext'
 import LandingPage    from './pages/LandingPage'
 import PortfolioPage  from './pages/PortfolioPage'
@@ -15,17 +14,16 @@ import Clients       from './pages/dashboard/Clients'
 import ClientProfile from './pages/dashboard/ClientProfile'
 import Quotations   from './pages/dashboard/Quotations'
 import Payments     from './pages/dashboard/Payments'
+import VendorPayments from './pages/dashboard/VendorPayments'
 import Services     from './pages/dashboard/masters/Services'
 import Venues        from './pages/dashboard/masters/Venues'
 import Vendors       from './pages/dashboard/masters/Vendors'
-import Availability  from './pages/dashboard/masters/Availability'
 import Settings      from './pages/dashboard/Settings'
 
 export default function App() {
   return (
     <ThemeProvider>
     <ToastProvider>
-    <AvailabilityProvider>
     <ClientProvider>
     <AppointmentProvider>
     <BrowserRouter>
@@ -41,17 +39,16 @@ export default function App() {
           <Route path="clients/:clientId"    element={<ClientProfile />} />
           <Route path="quotations"           element={<Quotations />}   />
           <Route path="payments"             element={<Payments />}     />
+          <Route path="vendor-payments"     element={<VendorPayments />} />
           <Route path="masters/services"     element={<Services />}     />
           <Route path="masters/venues"       element={<Venues />}       />
           <Route path="masters/vendors"       element={<Vendors />}       />
-          <Route path="masters/availability"  element={<Availability />}  />
           <Route path="settings"             element={<Settings />}     />
         </Route>
       </Routes>
     </BrowserRouter>
     </AppointmentProvider>
     </ClientProvider>
-    </AvailabilityProvider>
     </ToastProvider>
     </ThemeProvider>
   )

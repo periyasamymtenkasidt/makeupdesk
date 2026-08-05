@@ -81,7 +81,7 @@ export default function Appointments() {
         </div>
       </div>
 
-      <NewBookingModal open={openNew} onClose={() => setOpenNew(false)} />
+      {openNew && <NewBookingModal open={openNew} onClose={() => setOpenNew(false)} />}
     </>
   )
 }

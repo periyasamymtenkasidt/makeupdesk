@@ -335,23 +335,6 @@ export default function Services() {
           >
             <Users size={15} /> Vendor Master
           </Link>
-          <Link
-            to="/dashboard/masters/availability"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              paddingBottom: "12px",
-              fontSize: "14px",
-              fontWeight: 500,
-              color: "var(--dash-text-secondary)",
-              borderBottom: "2.5px solid transparent",
-              textDecoration: "none",
-              fontFamily: "Inter, sans-serif",
-            }}
-          >
-            <Clock size={15} /> Availability Master
-          </Link>
         </div>
 
         {/* Sub-Toolbar */}

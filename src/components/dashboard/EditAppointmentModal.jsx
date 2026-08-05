@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Modal } from '../ui/Modal'
 import { useMaster } from '../../hooks/useMaster'
 import { useAppointments } from '../../context/AppointmentContext'
@@ -41,6 +41,41 @@ const lbl = {
   marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em',
 }
 
+function buildForm(appt) {
+  let initialSelected = []
+  if (Array.isArray(appt.assignedArtists) && appt.assignedArtists.length > 0) {
+    initialSelected = appt.assignedArtists
+  } else if (typeof appt.assignedArtists === 'object' && appt.assignedArtists && !Array.isArray(appt.assignedArtists)) {
+    initialSelected = Object.values(appt.assignedArtists).filter(Boolean)
+  } else if (appt.artist && appt.artist !== 'Any Available') {
+    initialSelected = [appt.artist.split('+')[0].trim()]
+  }
+  const locType = (appt.venue && appt.venue.trim())
+    || appt.locationType === 'Venue'
+    || appt.location === 'Venue'
+    || appt.location === 'On-Location'
+      ? 'Venue' : 'Studio'
+  return {
+    clientId:        appt.clientId      ?? '',
+    name:            appt.name          ?? '',
+    phone:           appt.phone         ?? '',
+    service:         appt.service       ?? '',
+    date:            formatDateInput(appt.date),
+    time:            to24h(appt.time),
+    location:        locType,
+    venue:           appt.venue         ?? '',
+    venueAddress:    appt.venueAddress  ?? '',
+    status:          appt.status        ?? 'Inquiry',
+    amount:          String(appt.amount        ?? ''),
+    advanceAmount:   String(appt.advanceAmount ?? ''),
+    vendorCost:      String(appt.vendorCost    ?? ''),
+    duration:        appt.duration      ?? '',
+    notes:           appt.notes         ?? '',
+    vendorId:        appt.vendorId      ?? '1',
+    selectedArtists: initialSelected,
+  }
+}
+
 function computeEndTime(time24h, mins) {
   if (!time24h || !mins) return ''
   const [h, m] = time24h.split(':').map(Number)
@@ -58,48 +93,9 @@ export default function EditAppointmentModal({ appt, onClose }) {
   const { items: venues }      = useMaster('md_venues', VENUE_DEFAULTS)
   const services = allServices.filter(s => s.active !== false)
 
-  const [form, setForm] = useState({})
+  const [form, setForm] = useState(() => buildForm(appt))
   const [showSlots, setShowSlots] = useState(false)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  useEffect(() => {
-    if (!appt) return
-    let initialSelected = []
-    if (Array.isArray(appt.assignedArtists) && appt.assignedArtists.length > 0) {
-      initialSelected = appt.assignedArtists
-    } else if (typeof appt.assignedArtists === 'object' && appt.assignedArtists && !Array.isArray(appt.assignedArtists)) {
-      initialSelected = Object.values(appt.assignedArtists).filter(Boolean)
-    } else if (appt.artist && appt.artist !== 'Any Available') {
-      initialSelected = [appt.artist.split('+')[0].trim()]
-    }
-
-    // Normalize location to 'Studio' | 'Venue' regardless of how it was saved
-    const locType = (appt.venue && appt.venue.trim())
-      || appt.locationType === 'Venue'
-      || appt.location === 'Venue'
-      || appt.location === 'On-Location'
-        ? 'Venue' : 'Studio'
-
-    setForm({
-      clientId:        appt.clientId      ?? '',
-      name:            appt.name          ?? '',
-      phone:           appt.phone         ?? '',
-      service:         appt.service       ?? '',
-      date:            formatDateInput(appt.date),
-      time:            to24h(appt.time),
-      location:        locType,
-      venue:           appt.venue         ?? '',
-      venueAddress:    appt.venueAddress  ?? '',
-      status:          appt.status        ?? 'Inquiry',
-      amount:          String(appt.amount        ?? ''),
-      advanceAmount:   String(appt.advanceAmount ?? ''),
-      vendorCost:      String(appt.vendorCost    ?? ''),
-      duration:        appt.duration      ?? '',
-      notes:           appt.notes         ?? '',
-      vendorId:        appt.vendorId      ?? '1',
-      selectedArtists: initialSelected,
-    })
-  }, [appt])
 
   function recalculateAmounts(serviceIdentifier, venueCategory) {
     let basePrice = 0
@@ -146,7 +142,7 @@ export default function EditAppointmentModal({ appt, onClose }) {
 
   function handleSave() {
     if (!appt) return
-    if (form.phone && form.phone.length !== 10) {
+    if (form.phone && form.phone.replace(/\s/g, '').length !== 10) {
       alert('Phone number must be exactly 10 digits.')
       return
     }
@@ -184,10 +180,11 @@ export default function EditAppointmentModal({ appt, onClose }) {
     onClose()
   }
 
-  const timeLocked   = appt && LOCKED_STATUSES.has(appt.status)
-  const vendorId     = form.vendorId ? Number(form.vendorId) : 1
-  const dateForSlots = form.date || appt?.date || ''
-  const durationMins = parseDurationMins(form.duration || appt?.duration || '')
+  const timeLocked         = appt && LOCKED_STATUSES.has(appt.status)
+  const vendorId           = form.vendorId ? Number(form.vendorId) : 1
+  const dateForSlots       = form.date || appt?.date || ''
+  const durationMins       = parseDurationMins(form.duration || appt?.duration || '')
+  const selectedArtistObjs = artists.filter(a => (form.selectedArtists || []).includes(a.name))
 
   return (
     <Modal open={!!appt} onClose={onClose} onSave={handleSave} saveLabel="Save Changes" title={`Edit Booking — ${appt?.name || ''}`}>
@@ -226,7 +223,7 @@ export default function EditAppointmentModal({ appt, onClose }) {
               style={inp}
               placeholder="98765 43210"
               value={form.phone ?? ''}
-              onChange={e => set('phone', e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+              onChange={e => set('phone', e.target.value.replace(/[^0-9 ]/g, '').slice(0, 15))}
             />
           </div>
         </div>
@@ -301,6 +298,7 @@ export default function EditAppointmentModal({ appt, onClose }) {
           time={form.time || appt?.time}
           appointments={appointments}
           currentApptId={appt?.id}
+          durationMins={durationMins}
         />
 
         {/* Time Slot */}
@@ -338,6 +336,7 @@ export default function EditAppointmentModal({ appt, onClose }) {
                   durationMins={durationMins}
                   vendorId={vendorId}
                   excludeId={appt?.id}
+                  artistObjs={selectedArtistObjs}
                 />
               ) : (
                 <div>
@@ -349,6 +348,7 @@ export default function EditAppointmentModal({ appt, onClose }) {
                     appointments={appointments}
                     durationMins={durationMins}
                     vendorId={vendorId}
+                    artistObjs={selectedArtistObjs}
                   />
                   {form.time && durationMins > 0 && (
                     <div style={{ marginTop: 8, fontSize: 12, color: 'var(--dash-text-muted)' }}>
