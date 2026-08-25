@@ -234,16 +234,17 @@ export default function Testimonials() {
                 style={{
                   background: 'var(--land-card-bg)',
                   border: '1px solid var(--land-card-border)',
+                  boxShadow: 'var(--land-card-shadow)',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = 'var(--land-pill-bg)'
                   e.currentTarget.style.transform = 'translateY(-6px)'
-                  e.currentTarget.style.boxShadow = `0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px ${cardColor}25`
+                  e.currentTarget.style.boxShadow = `0 16px 36px rgba(0,0,0,0.18), 0 0 0 1px ${cardColor}25`
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = 'var(--land-card-bg)'
                   e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = 'none'
+                  e.currentTarget.style.boxShadow = 'var(--land-card-shadow)'
                 }}
               >
                 <div className="absolute top-0 left-8 right-8 h-px"
@@ -345,26 +346,26 @@ export default function Testimonials() {
           <div
             className="relative w-full max-w-4xl max-h-[85vh] rounded-3xl p-6 sm:p-8 flex flex-col z-10 shadow-2xl animate-fade-in-up"
             style={{
-              background: '#120815',
-              border: '1px solid rgba(201,149,108,0.25)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 40px rgba(201,149,108,0.1)',
+              background: 'var(--land-card-bg)',
+              border: '1px solid var(--land-card-border)',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)',
             }}
           >
-            <div className="flex items-center justify-between pb-5 mb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center justify-between pb-5 mb-5" style={{ borderBottom: '1px solid var(--land-divider)' }}>
               <div>
                 <span style={{ color: '#c9956c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
                   Client Feedback
                 </span>
-                <h3 className="font-display text-xl sm:text-2xl font-bold text-white mt-0.5">
+                <h3 className="font-display text-xl sm:text-2xl font-bold mt-0.5" style={{ color: 'var(--land-text)' }}>
                   All Client Reviews ({displayReviews.length})
                 </h3>
               </div>
               <button
                 onClick={() => setShowModal(false)}
                 className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
-                style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+                style={{ background: 'var(--land-pill-bg)', color: 'var(--land-text-muted)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--land-card-border)'; e.currentTarget.style.color = 'var(--land-text)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--land-pill-bg)'; e.currentTarget.style.color = 'var(--land-text-muted)' }}
               >
                 <X size={18} />
               </button>
@@ -379,15 +380,15 @@ export default function Testimonials() {
                       key={id}
                       className="relative rounded-2xl p-5 flex flex-col transition-all duration-300"
                       style={{
-                        background: 'rgba(255,255,255,0.035)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'var(--land-pill-bg)',
+                        border: '1px solid var(--land-card-border)',
                       }}
                     >
                       <Stars count={rating || 5} />
-                      <p className="mt-3 text-xs sm:text-sm leading-relaxed flex-1" style={{ color: 'rgba(255,255,255,0.72)' }}>
+                      <p className="mt-3 text-xs sm:text-sm leading-relaxed flex-1" style={{ color: 'var(--land-text-sub)' }}>
                         "{text}"
                       </p>
-                      <div className="mt-4 pt-3.5 flex items-center gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="mt-4 pt-3.5 flex items-center gap-3" style={{ borderTop: '1px solid var(--land-card-border)' }}>
                         <div
                           className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs text-white flex-shrink-0"
                           style={{ background: avatarGradient }}
@@ -395,8 +396,8 @@ export default function Testimonials() {
                           {initials || (name ? name.slice(0, 2).toUpperCase() : 'CL')}
                         </div>
                         <div>
-                          <div className="font-semibold text-xs sm:text-sm text-white">{name}</div>
-                          <div className="text-[11px]" style={{ color: 'rgba(255,255,255,0.38)' }}>{event}</div>
+                          <div className="font-semibold text-xs sm:text-sm" style={{ color: 'var(--land-text)' }}>{name}</div>
+                          <div className="text-[11px]" style={{ color: 'var(--land-text-faint)' }}>{event}</div>
                         </div>
                       </div>
                     </div>
@@ -404,13 +405,13 @@ export default function Testimonials() {
                 })}
               </div>
             </div>
-            <div className="pt-4 mt-2 flex justify-end" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="pt-4 mt-2 flex justify-end" style={{ borderTop: '1px solid var(--land-divider)' }}>
               <button
                 onClick={() => setShowModal(false)}
-                className="px-6 py-2.5 rounded-full text-xs font-semibold text-white transition-all"
-                style={{ background: 'rgba(255,255,255,0.08)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                className="px-6 py-2.5 rounded-full text-xs font-semibold transition-all"
+                style={{ background: 'var(--land-pill-bg)', color: 'var(--land-text)', border: '1px solid var(--land-card-border)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--land-card-border)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'var(--land-pill-bg)'}
               >
                 Close
               </button>

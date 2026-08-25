@@ -16,6 +16,7 @@ import { MultiArtistPicker } from '../ui/MultiArtistPicker'
 import { CustomSelect } from '../ui/CustomSelect'
 import { ClientCombobox } from '../ui/ClientCombobox'
 import { Users, UserCheck } from 'lucide-react'
+import { DatePicker } from '../ui/DatePicker'
 
 const SVC_DEFAULTS = [
   { id: 4412, name: 'Bridal Makeup — HD / Airbrush Finish', basePrice: 8000, duration: '3–4 hrs', active: true },
@@ -353,11 +354,12 @@ export default function NewBookingModal({ open, onClose, initialData }) {
         </div>
 
         {/* Date */}
-        <div>
-          <label style={lbl}>Event Date</label>
-          <input type="date" min={new Date().toISOString().split('T')[0]} style={inpStyle} value={form.date}
-            onChange={e => { set('date', e.target.value); set('time', '') }} />
-        </div>
+        <DatePicker
+          label="Event Date"
+          min={new Date().toISOString().split('T')[0]}
+          value={form.date}
+          onChange={val => { set('date', val); set('time', '') }}
+        />
 
         {/* Time section */}
         <div>

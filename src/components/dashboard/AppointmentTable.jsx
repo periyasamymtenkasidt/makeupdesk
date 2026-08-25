@@ -103,20 +103,7 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
 
               {/* Service */}
               <td style={{ ...tdBase, fontSize: '13.5px', fontWeight: 500, color: 'var(--dash-text-primary)' }}>
-                <div>{appt.service}</div>
-                {appt.addOns?.length > 1 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '5px' }}>
-                    {appt.addOns.filter(r => r !== 'Makeup Artist').map(role => (
-                      <span key={role} style={{
-                        fontSize: '10.5px', fontWeight: 600, padding: '2px 7px', borderRadius: '9999px',
-                        background: 'var(--badge-pending-bg)', color: 'var(--badge-pending)',
-                        border: '1px solid rgba(245,158,11,0.2)',
-                      }}>
-                        {role}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {appt.service}
               </td>
 
               {/* Location */}

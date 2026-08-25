@@ -1,8 +1,15 @@
 import { createPortal } from 'react-dom'
+import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Button } from './Button'
 
 export function Modal({ open, onClose, title, children, onSave, saveLabel = 'Save', saveVariant = 'primary', width = '540px', footer }) {
+  useEffect(() => {
+    if (!open) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
   if (!open) return null
   return createPortal(
     <div

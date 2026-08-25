@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { X, Calendar, User, Phone, MapPin, CheckCircle, Sparkles } from "lucide-react"
+import { X, User, Phone, MapPin, CheckCircle, Sparkles } from "lucide-react"
 import { useBookingForm } from "../../hooks/useBookingForm"
 import { useAppointments } from "../../context/AppointmentContext"
 import { useClients } from "../../context/ClientContext"
@@ -17,6 +17,7 @@ import { SlotTimePicker } from "../ui/SlotTimePicker"
 import { DrumRollTimePicker } from "../ui/DrumRollTimePicker"
 import { NominatimVenueSearch } from "../ui/NominatimVenueSearch"
 import { CustomSelect } from "../ui/CustomSelect"
+import { DatePicker } from "../ui/DatePicker"
 
 function formatDateForStorage(dateStr) {
   const [y, m, d] = dateStr.split("-").map(Number)
@@ -263,8 +264,8 @@ function BookingModal({ onClose }) {
                           <label key={cat} style={{
                             display: 'flex', alignItems: 'center', gap: '8px',
                             padding: '10px 12px', borderRadius: '10px',
-                            border: `1.5px solid ${checked ? 'rgba(201,149,108,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                            background: checked ? 'rgba(201,149,108,0.12)' : 'rgba(255,255,255,0.04)',
+                            border: `1.5px solid ${checked ? 'rgba(201,149,108,0.5)' : 'var(--dash-border)'}`,
+                            background: checked ? 'rgba(201,149,108,0.12)' : 'transparent',
                             cursor: isBase ? 'default' : 'pointer',
                             transition: 'all 0.15s',
                           }}>
@@ -281,7 +282,7 @@ function BookingModal({ onClose }) {
                               }}
                               style={{ accentColor: '#c9956c', width: 14, height: 14, cursor: isBase ? 'default' : 'pointer' }}
                             />
-                            <span style={{ fontSize: '12px', fontWeight: checked ? 600 : 400, color: checked ? '#f5e1c0' : 'rgba(255,255,255,0.45)' }}>
+                            <span style={{ fontSize: '12px', fontWeight: checked ? 600 : 400, color: checked ? 'var(--icon-booking)' : 'var(--dash-text-secondary)' }}>
                               {ARTIST_EMOJI[cat] || '🎨'} {cat}
                             </span>
                           </label>
@@ -303,10 +304,13 @@ function BookingModal({ onClose }) {
               ) : (
                 <>
                   {/* Date */}
-                  <Input label="Event Date *" icon={Calendar} type="date"
-                         min={new Date().toISOString().split('T')[0]}
-                         value={form.date}
-                         onChange={e => { setField("date", e.target.value); setField("time", "") }} />
+                  <DatePicker
+                    label="Event Date *"
+                    dark={true}
+                    min={new Date().toISOString().split('T')[0]}
+                    value={form.date}
+                    onChange={val => { setField("date", val); setField("time", "") }}
+                  />
 
                   {/* Time section */}
                   {form.date && (
@@ -423,7 +427,7 @@ function BookingModal({ onClose }) {
 
                   <div className="flex gap-3 mt-2">
                     <Button variant="ghost" size="lg" onClick={prevStep}
-                            style={{ flex: 1, justifyContent: "center", background: "rgba(255,255,255,0.08)", color: "#ffffff", border: "1.5px solid rgba(255,255,255,0.2)" }}>
+                            style={{ flex: 1, justifyContent: "center", background: "var(--dash-surface, transparent)", color: "var(--dash-text-primary)", border: "1.5px solid var(--dash-border)" }}>
                       ← Back
                     </Button>
                     <Button variant="primary" size="lg" onClick={handleRegister}

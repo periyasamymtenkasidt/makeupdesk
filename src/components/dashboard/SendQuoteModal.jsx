@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Send, FileText, MessageCircle, QrCode } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { formatCurrency } from '../../utils/formatCurrency'
@@ -6,6 +6,11 @@ import { useSettings } from '../../hooks/useSettings'
 
 export default function SendQuoteModal({ appt, onClose, onSend }) {
   const { settings } = useSettings()
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
   const [amount, setAmount] = useState(String(appt.amount || ''))
   const [note,   setNote]   = useState('')
 
