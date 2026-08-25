@@ -37,7 +37,7 @@ function CollectBalanceModal({ appt, onClose, onConfirm }) {
             ))}
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)' }}>Balance Due</span>
-              <span style={{ fontSize: '18px', fontWeight: 800, color: balanceDue > 0 ? 'var(--color-rose-gold)' : 'var(--badge-confirmed)' }}>
+              <span style={{ fontSize: '18px', fontWeight: 800, color: balanceDue > 0 ? 'var(--dash-label-text)' : 'var(--badge-confirmed)' }}>
                 {formatCurrency(balanceDue)}
               </span>
             </div>
@@ -49,12 +49,12 @@ function CollectBalanceModal({ appt, onClose, onConfirm }) {
               {[{ id: 'Cash', icon: Banknote }, { id: 'UPI', icon: Smartphone }].map(({ id, icon: Icon }) => (
                 <button key={id} onClick={() => setMethod(id)} style={{
                   flex: 1, padding: '12px', borderRadius: '12px', border: '2px solid',
-                  borderColor: method === id ? 'var(--color-rose-gold)' : 'var(--dash-border)',
-                  background: method === id ? 'rgba(201,149,108,0.08)' : 'var(--dash-card-bg)',
+                  borderColor: method === id ? 'var(--dash-label-text)' : 'var(--dash-border)',
+                  background: method === id ? 'rgba(201,149,108,0.18)' : 'var(--dash-card-bg)',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', transition: 'all 0.2s',
                 }}>
-                  <Icon size={18} style={{ color: method === id ? 'var(--color-rose-gold)' : 'var(--dash-text-muted)' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: method === id ? 'var(--color-rose-gold)' : 'var(--dash-text-secondary)' }}>{id}</span>
+                  <Icon size={18} style={{ color: method === id ? 'var(--dash-label-text)' : 'var(--dash-text-muted)' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: method === id ? 'var(--dash-label-text)' : 'var(--dash-text-secondary)' }}>{id}</span>
                 </button>
               ))}
             </div>
