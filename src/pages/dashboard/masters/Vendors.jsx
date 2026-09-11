@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
   Search,
@@ -99,6 +99,7 @@ function Stars({ rating }) {
 }
 
 export default function Vendors() {
+  const navigate = useNavigate()
   const { items, add, update, remove } = useMaster(VENDOR_KEY, DEFAULTS);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
@@ -483,15 +484,22 @@ export default function Vendors() {
                             fontSize: "13px",
                             fontWeight: 600,
                             color: "white",
+                            cursor: "pointer",
                           }}
+                          onClick={() => navigate(`/dashboard/masters/vendors/${item.id}`)}
                         >
                           {item.name.charAt(0)}
                         </div>
                         <div>
                           <div
+                            onClick={() => navigate(`/dashboard/masters/vendors/${item.id}`)}
                             style={{
                               fontWeight: 600,
-                              color: "var(--dash-text-primary)",
+                              color: "var(--icon-booking)",
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                              textDecorationStyle: "dotted",
+                              textUnderlineOffset: "3px",
                             }}
                           >
                             {item.name}

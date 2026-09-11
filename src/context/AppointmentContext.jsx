@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo } from 'react'
+import { createContext, useContext, useState, useMemo, useEffect } from 'react'
 import { SERVICES } from '../data/services'
 import { VENDOR_KEY, VENDOR_DEFAULTS } from '../data/vendors'
 import { useClients } from './ClientContext'
@@ -110,6 +110,15 @@ const Ctx = createContext(null)
 
 export function AppointmentProvider({ children }) {
   const [appointments, setAppointments] = useState(load)
+
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key === KEY) setAppointments(load())
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const clientCtx = useClients()
   const clients = clientCtx?.clients || []
   const updateClient = clientCtx?.updateClient
@@ -148,7 +157,14 @@ export function AppointmentProvider({ children }) {
 
   function genId()                      { return nextId(appointments) }
   function addAppointment(appt)        { mutate(prev => [{ createdAt: new Date().toISOString(), ...appt }, ...prev]) }
-  function updateStatus(id, status)    { mutate(prev => prev.map(a => a.id === id ? { ...a, status } : a)) }
+  function updateStatus(id, status) {
+    mutate(prev => prev.map(a => {
+      if (a.id !== id) return a
+      const updated = { ...a, status }
+      if (status === 'Completed' && !a.completedAt) updated.completedAt = new Date().toISOString()
+      return updated
+    }))
+  }
   function updateAppointment(id, data) {
     mutate(prev => prev.map(a => {
       if (a.id !== id) return a
@@ -167,6 +183,10 @@ export function AppointmentProvider({ children }) {
       }, [])
 
       const updated = { ...a, ...data }
+
+      if (data.status === 'Completed' && !a.completedAt) {
+        updated.completedAt = new Date().toISOString()
+      }
 
       if (changes.length > 0) {
         updated.changeLog = [

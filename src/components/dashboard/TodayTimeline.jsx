@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
-import { Clock, MapPin, User, MessageCircle, Plus } from 'lucide-react'
+import { Clock, MapPin, User, MessageCircle, Plus, Car } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { to24h } from '../../utils/timeFormat'
 import { useAppointments } from '../../context/AppointmentContext'
+import { useMaster } from '../../hooks/useMaster'
+import { VENUE_DEFAULTS } from '../../data/venues'
 
 function parse12h(t) {
   if (!t) return null
@@ -40,10 +42,11 @@ function waNum(phone) {
 export default function TodayTimeline({ onBookSlot }) {
   const [filter, setFilter] = useState('all')
   const { appointments } = useAppointments()
+  const { items: venues } = useMaster('md_venues', VENUE_DEFAULTS)
 
   const timeline = useMemo(() => {
     const now       = new Date()
-    const todayStr  = now.toISOString().split('T')[0]
+    const todayStr  = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     const nowMins   = now.getHours() * 60 + now.getMinutes()
     const cutoff    = nowMins + 120
     const workStart = 5 * 60
@@ -54,15 +57,18 @@ export default function TodayTimeline({ onBookSlot }) {
       .map(a => {
         const startMins = parse12h(a.time)
         if (startMins == null) return null
-        const dur     = a.totalDurationMins || 60
-        const endMins = startMins + dur
-        const isVenue = a.location && !a.location.toLowerCase().includes('studio')
-        const team    = Array.isArray(a.assignedArtists) && a.assignedArtists.length > 0
+        const dur        = a.totalDurationMins || 60
+        const endMins    = startMins + dur
+        const isVenue    = a.location && !a.location.toLowerCase().includes('studio')
+        const venueData  = isVenue ? venues.find(v => v.category === a.venue) : null
+        const travelMins = venueData?.travelMins ?? (isVenue ? 30 : 0)
+        const blockedEnd = endMins + travelMins
+        const team       = Array.isArray(a.assignedArtists) && a.assignedArtists.length > 0
           ? a.assignedArtists
           : a.artist ? a.artist.split(',').map(s => s.trim()).filter(Boolean) : []
         return {
           id: `booking-${a.id}`, type: 'booking',
-          startMins, endMins,
+          startMins, endMins, blockedEnd, travelMins,
           startTime: mins2display(startMins),
           endTime:   mins2display(endMins),
           duration:  fmtDur(dur),
@@ -98,10 +104,10 @@ export default function TodayTimeline({ onBookSlot }) {
 
     const result = []
 
-    todayAppts.filter(a => a.startMins < workStart && a.endMins <= workStart).forEach(a => result.push(a))
+    todayAppts.filter(a => a.startMins < workStart && a.blockedEnd <= workStart).forEach(a => result.push(a))
 
     let cursor = workStart
-    const withinWork = todayAppts.filter(a => a.endMins > workStart && a.startMins < workEnd)
+    const withinWork = todayAppts.filter(a => a.blockedEnd > workStart && a.startMins < workEnd)
 
     for (const appt of withinWork) {
       const slotStart = Math.max(appt.startMins, workStart)
@@ -109,7 +115,16 @@ export default function TodayTimeline({ onBookSlot }) {
         pushOpenSlot(result, cursor, slotStart)
       }
       result.push(appt)
-      cursor = Math.max(cursor, appt.endMins)
+      if (appt.travelMins > 0) {
+        result.push({
+          id: `travel-${appt.id}`, type: 'travel',
+          startMins: appt.endMins, endMins: appt.blockedEnd,
+          startTime: mins2display(appt.endMins), endTime: mins2display(appt.blockedEnd),
+          duration: fmtDur(appt.travelMins),
+          venue: appt.locationName,
+        })
+      }
+      cursor = Math.max(cursor, appt.blockedEnd)
     }
 
     if (cursor < workEnd) {
@@ -119,13 +134,13 @@ export default function TodayTimeline({ onBookSlot }) {
     todayAppts.filter(a => a.startMins >= workEnd).forEach(a => result.push(a))
 
     return result
-  }, [appointments])
+  }, [appointments, venues])
 
   const bookedCount = timeline.filter(s => s.type === 'booking').length
   const openCount   = timeline.filter(s => s.type === 'open').length
 
   const filteredItems = timeline.filter(item => {
-    if (filter === 'booked') return item.type === 'booking'
+    if (filter === 'booked') return item.type === 'booking' || item.type === 'travel'
     if (filter === 'open')   return item.type === 'open'
     return true
   })
@@ -255,6 +270,28 @@ export default function TodayTimeline({ onBookSlot }) {
                     </span>
                   )}
                 </div>
+              </div>
+            )
+          }
+
+          if (slot.type === 'travel') {
+            return (
+              <div key={slot.id} style={{
+                display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px',
+                borderRadius: '12px', background: 'var(--dash-surface)',
+                border: '1px dashed var(--dash-border)',
+                opacity: 0.75,
+              }}>
+                <Car size={14} style={{ color: 'var(--dash-text-muted)', flexShrink: 0 }} />
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--dash-text-secondary)' }}>
+                  Travel buffer
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--dash-text-muted)' }}>
+                  {slot.startTime} – {slot.endTime} · {slot.duration}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--dash-text-muted)', marginLeft: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
+                  from {slot.venue}
+                </span>
               </div>
             )
           }

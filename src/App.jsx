@@ -18,6 +18,7 @@ import VendorPayments from './pages/dashboard/VendorPayments'
 import Services     from './pages/dashboard/masters/Services'
 import Venues        from './pages/dashboard/masters/Venues'
 import Vendors       from './pages/dashboard/masters/Vendors'
+import VendorProfile from './pages/dashboard/masters/VendorProfile'
 import Settings      from './pages/dashboard/Settings'
 
 export default function App() {
@@ -42,7 +43,8 @@ export default function App() {
           <Route path="vendor-payments"     element={<VendorPayments />} />
           <Route path="masters/services"     element={<Services />}     />
           <Route path="masters/venues"       element={<Venues />}       />
-          <Route path="masters/vendors"       element={<Vendors />}       />
+          <Route path="masters/vendors"           element={<Vendors />}        />
+          <Route path="masters/vendors/:vendorId" element={<VendorProfile />} />
           <Route path="settings"             element={<Settings />}     />
         </Route>
       </Routes>

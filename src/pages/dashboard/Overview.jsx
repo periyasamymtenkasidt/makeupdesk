@@ -52,7 +52,7 @@ export default function Overview() {
   }
 
   // ── today ────────────────────────────────────────────────────────
-  const todayStr   = new Date().toISOString().split('T')[0]
+  const todayStr   = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   const nowMins    = new Date().getHours() * 60 + new Date().getMinutes()
   const todayAppts = appointments.filter(a =>
     a.date === todayStr && !['Rejected', 'Closed'].includes(a.status)

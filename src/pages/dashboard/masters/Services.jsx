@@ -19,99 +19,14 @@ import { EmptyState } from "../../../components/ui/EmptyState";
 import { useMaster } from "../../../hooks/useMaster";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { CustomSelect } from "../../../components/ui/CustomSelect";
+import { SERVICE_MASTER_DEFAULTS } from "../../../data/services";
 
 const CATEGORIES = ["All", "Bridal", "Events", "Photoshoot"];
 
-const DEFAULTS = [
-  {
-    id: 4412,
-    name: "Bridal Makeup — HD / Airbrush Finish",
-    category: "Bridal",
-    badge: "✨",
-    basePrice: 8000,
-    duration: "3–4 hrs",
-    description:
-      "Plywood (BWP / MR 18-19mm) · Premium HD / Airbrush Finish · Lashes & Hair Styling Included",
-    active: true,
-  },
-  {
-    id: 9403,
-    name: "Reception Glam — Long-Lasting Finish",
-    category: "Bridal",
-    badge: "👑",
-    basePrice: 9000,
-    duration: "3–4 hrs",
-    description:
-      "Grand reception looks with waterproof long-lasting finish for evening lights & stage.",
-    active: true,
-  },
-  {
-    id: 9404,
-    name: "Engagement Ceremony Look",
-    category: "Bridal",
-    badge: "💍",
-    basePrice: 6500,
-    duration: "2–3 hrs",
-    description:
-      "Elegant, camera-ready subtle glam for engagement & ring ceremony.",
-    active: true,
-  },
-  {
-    id: 9405,
-    name: "Party Makeup — Cocktail & Sangeet",
-    category: "Events",
-    badge: "🎉",
-    basePrice: 3500,
-    duration: "1–2 hrs",
-    description:
-      "Bold, glamorous looks for sangeet, cocktail parties & guest family functions.",
-    active: true,
-  },
-  {
-    id: 9406,
-    name: "HD Shoot Makeup — Studio Ready",
-    category: "Photoshoot",
-    badge: "📸",
-    basePrice: 4500,
-    duration: "1.5 hrs",
-    description:
-      "High-definition formulas optimized for studio 4K lighting & high-res photography.",
-    active: true,
-  },
-  {
-    id: 9407,
-    name: "Airbrush Perfection Finish",
-    category: "Photoshoot",
-    badge: "💨",
-    basePrice: 5000,
-    duration: "2 hrs",
-    description:
-      "Ultra-fine micro-spray finish for skin-like featherweight texture all day.",
-    active: true,
-  },
-  {
-    id: 9408,
-    name: "Pre-Wedding Shoot & Mehendi Glam",
-    category: "Events",
-    badge: "🌸",
-    basePrice: 5500,
-    duration: "2–3 hrs",
-    description:
-      "Trial sessions, vibrant mehendi color tones & outdoor shoot glam.",
-    active: true,
-  },
-  {
-    id: 9409,
-    name: "Editorial High-Fashion Look",
-    category: "Photoshoot",
-    badge: "💄",
-    basePrice: 6000,
-    duration: "2–3 hrs",
-    description:
-      "Avant-garde runway & magazine shoot styling with custom artistic accents.",
-    active: true,
-  },
-];
+const DEFAULTS = SERVICE_MASTER_DEFAULTS.map(s => ({
+  ...s,
+  description: s.description || "",
+}));
 
 const EMPTY = {
   name: "",

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Badge'
-import { MapPin, Clock, Pencil, Calendar, Trash2, XCircle, CheckCircle } from 'lucide-react'
+import { MapPin, Clock, Pencil, Calendar, Trash2, XCircle, CheckCircle, MoreHorizontal } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { formatDate } from '../../utils/formatDate'
 import { EmptyState } from '../ui/EmptyState'
@@ -27,9 +27,33 @@ const iconBtn = (color = 'var(--icon-booking)', bg = 'var(--dash-surface)') => (
   cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
 })
 
+function MenuItem({ icon, label, onClick, color = 'var(--dash-text-primary)', disabled = false }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: '9px',
+        padding: '9px 14px', background: hovered && !disabled ? 'var(--dash-row-hover)' : 'transparent',
+        border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
+        color: disabled ? 'var(--dash-text-muted)' : color,
+        fontSize: '13px', fontWeight: 500, textAlign: 'left',
+        opacity: disabled ? 0.5 : 1, transition: 'background 0.12s',
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  )
+}
+
 export default function AppointmentTable({ appointments, onEdit, onDelete, onReject, onMarkDone, renderRowActions }) {
   const navigate = useNavigate()
   const [apptToDelete, setApptToDelete] = useState(null)
+  const [openMenuId,   setOpenMenuId]   = useState(null)
   const hasActions = onEdit || onDelete || onReject || renderRowActions
   const headers  = [...BASE_HEADERS, ...(hasActions ? [''] : [])]
 
@@ -163,50 +187,77 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
 
               {hasActions && (
                 <td style={{ ...tdBase, whiteSpace: 'nowrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {renderRowActions ? renderRowActions(appt) : (
-                      <>
-                        {onMarkDone && ['Confirmed', 'In Progress'].includes(appt.status) && (() => {
-                          const today    = new Date(); today.setHours(0, 0, 0, 0)
-                          const apptDate = new Date(appt.date); apptDate.setHours(0, 0, 0, 0)
-                          const canMark  = apptDate <= today
-                          return (
-                            <button
-                              disabled={!canMark}
-                              title={canMark ? 'Mark as Done' : `Available on ${appt.date}`}
-                              onClick={() => canMark && onMarkDone(appt)}
-                              style={{
-                                ...iconBtn('#16a34a', '#dcfce7'),
-                                opacity: canMark ? 1 : 0.4,
-                                cursor: canMark ? 'pointer' : 'not-allowed',
-                              }}
-                            >
-                              <CheckCircle size={13} />
-                            </button>
-                          )
-                        })()}
-                        {onEdit && (
-                          <button onClick={() => onEdit(appt)} title="Edit appointment" style={iconBtn()}>
-                            <Pencil size={13} />
-                          </button>
-                        )}
-                        {onReject && appt.status !== 'Rejected' && appt.status !== 'Completed' && (
-                          <button onClick={() => onReject(appt)} title="Reject appointment" style={iconBtn('var(--badge-pending)', 'var(--badge-pending-bg)')}>
-                            <XCircle size={13} />
-                          </button>
-                        )}
-                        {onDelete && (
-                          <button
-                            onClick={() => setApptToDelete(appt)}
-                            title="Delete appointment"
-                            style={iconBtn('var(--badge-rejected)', 'var(--badge-rejected-bg)')}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
+                  {renderRowActions ? renderRowActions(appt) : (
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === appt.id ? null : appt.id) }}
+                        style={iconBtn()}
+                        title="Actions"
+                      >
+                        <MoreHorizontal size={15} />
+                      </button>
+
+                      {openMenuId === appt.id && (() => {
+                        const canReject = appt.status !== 'Rejected' && appt.status !== 'Completed'
+                        const canMarkDone = onMarkDone && ['Confirmed', 'In Progress'].includes(appt.status)
+
+                        return (
+                          <>
+                            <div
+                              style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                              onClick={() => setOpenMenuId(null)}
+                            />
+                            <div style={{
+                              position: 'absolute', right: 0, top: '36px', zIndex: 100,
+                              background: 'var(--dash-card-bg)',
+                              border: '1px solid var(--dash-border)',
+                              borderRadius: '10px',
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                              minWidth: '168px',
+                              overflow: 'hidden',
+                            }}>
+                              {onEdit && (
+                                <MenuItem
+                                  icon={<Pencil size={13} />}
+                                  label="Edit"
+                                  onClick={() => { setOpenMenuId(null); onEdit(appt) }}
+                                />
+                              )}
+                              {canMarkDone && (
+                                <MenuItem
+                                  icon={<CheckCircle size={13} />}
+                                  label="Mark as Done"
+                                  color="#16a34a"
+                                  onClick={() => { setOpenMenuId(null); onMarkDone(appt) }}
+                                />
+                              )}
+                              {onReject && canReject && (
+                                <MenuItem
+                                  icon={<XCircle size={13} />}
+                                  label="Reject"
+                                  color="var(--badge-pending)"
+                                  onClick={() => { setOpenMenuId(null); onReject(appt) }}
+                                />
+                              )}
+                              {onDelete && (
+                                <>
+                                  {(onEdit || canMarkDone || (onReject && canReject)) && (
+                                    <div style={{ height: '1px', background: 'var(--dash-border)', margin: '4px 0' }} />
+                                  )}
+                                  <MenuItem
+                                    icon={<Trash2 size={13} />}
+                                    label="Delete"
+                                    color="var(--badge-rejected)"
+                                    onClick={() => { setOpenMenuId(null); setApptToDelete(appt) }}
+                                  />
+                                </>
+                              )}
+                            </div>
+                          </>
+                        )
+                      })()}
+                    </div>
+                  )}
                 </td>
               )}
             </tr>

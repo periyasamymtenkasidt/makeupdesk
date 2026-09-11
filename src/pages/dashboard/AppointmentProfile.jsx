@@ -83,12 +83,6 @@ export default function AppointmentProfile() {
 
   const nextAction = PIPELINE_NEXT[appt.status]
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const apptDate = new Date(appt.date)
-  apptDate.setHours(0, 0, 0, 0)
-  const canMarkDone = apptDate <= today
-
   return (
     <>
       <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -128,12 +122,9 @@ export default function AppointmentProfile() {
             {nextAction && (
               <Button
                 variant="primary" size="sm"
-                disabled={nextAction.action === 'mark-done' && !canMarkDone}
-                title={nextAction.action === 'mark-done' && !canMarkDone ? `Available on ${appt.date}` : undefined}
                 onClick={() => {
-                  if (nextAction.action === 'mark-done' && !canMarkDone) return
-                  if (nextAction.action === 'send-quote')    return setSendQuoteOpen(true)
-                  if (nextAction.action === 'mark-done')     return setMarkDoneOpen(true)
+                  if (nextAction.action === 'send-quote') return setSendQuoteOpen(true)
+                  if (nextAction.action === 'mark-done')  return setMarkDoneOpen(true)
                   updateAppointment(appt.id, {
                     'approve-quote':   { status: 'Approved' },
                     'collect-advance': { status: 'Advance Paid', advancePaid: true },
@@ -142,13 +133,7 @@ export default function AppointmentProfile() {
                 }}
                 style={{
                   gap: '6px',
-                  ...(nextAction.action === 'mark-done' && !canMarkDone && {
-                    opacity: 0.45,
-                    cursor: 'not-allowed',
-                    background: 'var(--dash-border)',
-                    boxShadow: 'none',
-                  }),
-                  ...(nextAction.action === 'mark-done' && canMarkDone && {
+                  ...(nextAction.action === 'mark-done' && {
                     background: 'linear-gradient(135deg,#22c55e,#16a34a)',
                     boxShadow: '0 2px 8px rgba(34,197,94,0.3)',
                   }),

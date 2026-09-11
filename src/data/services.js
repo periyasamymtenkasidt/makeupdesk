@@ -78,6 +78,17 @@ export const SERVICES = [
 
 export const SERVICE_NAMES = SERVICES.map(s => s.title)
 
+export const SERVICE_MASTER_DEFAULTS = [
+  { id: 4412, name: 'Bridal Makeup — HD / Airbrush Finish',  category: 'Bridal',      badge: '✨', basePrice: 8000, duration: '3–4 hrs', active: true },
+  { id: 9403, name: 'Reception Glam — Long-Lasting Finish',  category: 'Bridal',      badge: '👑', basePrice: 9000, duration: '3–4 hrs', active: true },
+  { id: 9404, name: 'Engagement Ceremony Look',              category: 'Bridal',      badge: '💍', basePrice: 6500, duration: '2–3 hrs', active: true },
+  { id: 9405, name: 'Party Makeup — Cocktail & Sangeet',     category: 'Events',      badge: '🎉', basePrice: 3500, duration: '1–2 hrs', active: true },
+  { id: 9406, name: 'HD Shoot Makeup — Studio Ready',        category: 'Photoshoot',  badge: '📸', basePrice: 4500, duration: '1.5 hrs', active: true },
+  { id: 9407, name: 'Airbrush Perfection Finish',            category: 'Photoshoot',  badge: '💨', basePrice: 5000, duration: '2 hrs',   active: true },
+  { id: 9408, name: 'Pre-Wedding Shoot & Mehendi Glam',      category: 'Events',      badge: '🌸', basePrice: 5500, duration: '2–3 hrs', active: true },
+  { id: 9409, name: 'Editorial High-Fashion Look',           category: 'Photoshoot',  badge: '💄', basePrice: 6000, duration: '2–3 hrs', active: true },
+]
+
 export const SERVICE_DURATIONS = {
   'Bridal Makeup':    180,
   'Party Makeup':     120,

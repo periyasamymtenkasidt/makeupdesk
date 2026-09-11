@@ -6,7 +6,7 @@ import { useClients } from "../../context/ClientContext"
 import { chatOnWhatsApp } from "../../utils/whatsapp"
 import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
-import { SERVICES, SERVICE_NAMES, SERVICE_DURATIONS } from "../../data/services"
+import { SERVICE_MASTER_DEFAULTS } from "../../data/services"
 import { to12h } from "../../utils/timeFormat"
 import { parseDurationMins } from "../../utils/slots"
 import { BOOKING_STAFF_CATEGORIES, useArtists, checkArtistAvailability } from "../../hooks/useArtists"
@@ -62,8 +62,9 @@ function BookingModal({ onClose }) {
 
   const { step, form, setField, nextStep, prevStep, reset, step1Valid, step1Touched, step2Valid } = useBookingForm()
   const { appointments, addAppointment, genId } = useAppointments()
-  const { clients, addClient } = useClients()
+  const { clients, addClient, updateClient } = useClients()
   const { items: venues }      = useMaster('md_venues', VENUE_DEFAULTS)
+  const { items: masterServices } = useMaster('md_services', SERVICE_MASTER_DEFAULTS)
   const artists                = useArtists()
   const { settings }           = useSettings()
   const [confirmed, setConfirmed] = useState(null)
@@ -78,9 +79,10 @@ function BookingModal({ onClose }) {
     'Mehendi Artist':          '🌿',
   }
 
-
-  const durationMins    = SERVICE_DURATIONS[form.service] ?? parseDurationMins(null)
-  const servicePriceRaw = SERVICES.find(s => s.title === form.service)?.priceRaw ?? 0
+  const activeServices  = masterServices.filter(s => s.active !== false)
+  const selectedService = activeServices.find(s => s.name === form.service)
+  const durationMins    = selectedService ? parseDurationMins(selectedService.duration) : 120
+  const servicePriceRaw = selectedService?.basePrice ?? 0
 
   const selectedVenueObj = venues.find(v => v.category === form.venue)
   const venueExtra       = selectedVenueObj ? ((selectedVenueObj.adjustment || 0) + (selectedVenueObj.travelCharge || 0)) : 0
@@ -108,7 +110,15 @@ function BookingModal({ onClose }) {
 
     setConflictError(null)
     const existing = clients.find(c => c.phone === form.phone)
-    const clientId = existing ? existing.id : addClient({ name: form.name, phone: form.phone })
+    let clientId
+    if (existing) {
+      clientId = existing.id
+      if (existing.name.trim().toLowerCase() !== form.name.trim().toLowerCase()) {
+        updateClient(existing.id, { name: form.name.trim() })
+      }
+    } else {
+      clientId = addClient({ name: form.name, phone: form.phone })
+    }
 
     const addOns = form.addOns && form.addOns.length ? form.addOns : ['Makeup Artist']
     const isVenue = form.locationType === 'Venue'
@@ -264,7 +274,7 @@ function BookingModal({ onClose }) {
                       label="Service Package *"
                       value={form.service}
                       placeholder="Select a service package…"
-                      options={SERVICE_NAMES}
+                      options={activeServices.map(s => s.name)}
                       onChange={val => setField("service", val)}
                     />
                     {step1Touched && !form.service && (

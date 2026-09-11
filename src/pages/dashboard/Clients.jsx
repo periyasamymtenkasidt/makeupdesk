@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, UserPlus, Phone, Calendar, TrendingUp } from 'lucide-react'
+import { Search, UserPlus, Phone, Calendar, TrendingUp, Trash2 } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
@@ -23,12 +23,13 @@ const EMPTY = { name: '', phone: '', email: '', notes: '' }
 
 export default function Clients() {
   const navigate = useNavigate()
-  const { clients, addClient } = useClients()
+  const { clients, addClient, removeClient } = useClients()
   const { appointments }       = useAppointments()
 
-  const [search,   setSearch]  = useState('')
-  const [addOpen,  setAddOpen] = useState(false)
-  const [form,     setForm]    = useState(EMPTY)
+  const [search,         setSearch]        = useState('')
+  const [addOpen,        setAddOpen]       = useState(false)
+  const [form,           setForm]          = useState(EMPTY)
+  const [clientToDelete, setClientToDelete] = useState(null)
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const enriched = clients.map(c => {
@@ -158,11 +159,97 @@ export default function Clients() {
                 <Button variant="primary" size="xs" fullWidth onClick={() => navigate(`/dashboard/clients/${client.id}`)}>
                   View Profile
                 </Button>
+                <button
+                  title="Delete client"
+                  onClick={() => setClientToDelete(client)}
+                  style={{
+                    width: '30px', height: '30px', flexShrink: 0, borderRadius: '8px',
+                    border: '1px solid var(--dash-border)',
+                    background: 'var(--dash-surface)',
+                    color: 'var(--badge-rejected)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--badge-rejected-bg)'; e.currentTarget.style.borderColor = 'var(--badge-rejected)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--dash-surface)'; e.currentTarget.style.borderColor = 'var(--dash-border)' }}
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
             </Card>
           ))}
         </div>
       </div>
+
+      {/* Delete Client Modal */}
+      {clientToDelete && (() => {
+        const blocked = clientToDelete.bookings > 0
+        return (
+          <Modal
+            open={!!clientToDelete}
+            onClose={() => setClientToDelete(null)}
+            title="Delete Client"
+            width="440px"
+            saveLabel={blocked ? undefined : 'Delete Client'}
+            saveVariant={blocked ? undefined : 'danger'}
+            onSave={blocked ? undefined : () => { removeClient(clientToDelete.id); setClientToDelete(null) }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '42px', height: '42px', borderRadius: '12px', flexShrink: 0,
+                  background: blocked ? 'var(--badge-pending-bg)' : 'var(--badge-rejected-bg)',
+                  color: blocked ? 'var(--badge-pending)' : 'var(--badge-rejected)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: `1px solid ${blocked ? 'rgba(234,179,8,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                }}>
+                  <Trash2 size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--dash-text-primary)' }}>
+                    {blocked ? 'Cannot Delete Client' : 'Delete Client?'}
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: 'var(--dash-text-muted)', marginTop: '2px' }}>
+                    {blocked
+                      ? `${clientToDelete.name} has ${clientToDelete.bookings} appointment${clientToDelete.bookings > 1 ? 's' : ''} on record.`
+                      : 'This action cannot be undone.'}
+                  </div>
+                </div>
+              </div>
+
+              {blocked ? (
+                <div style={{
+                  padding: '12px 14px', borderRadius: '10px', fontSize: '13px', lineHeight: 1.6,
+                  background: 'var(--badge-pending-bg)', border: '1px solid rgba(234,179,8,0.25)',
+                  color: 'var(--dash-text-secondary)',
+                }}>
+                  Clients with appointment history cannot be deleted to preserve booking records.
+                  You can archive or reassign appointments before retrying.
+                </div>
+              ) : (
+                <div style={{
+                  padding: '12px 16px', borderRadius: '12px', fontSize: '13px',
+                  background: 'var(--dash-surface)', border: '1px solid var(--dash-border)',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                }}>
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                    background: `linear-gradient(135deg, ${clientToDelete.color}, ${clientToDelete.color}99)`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '13px', fontWeight: 700, color: '#fff',
+                  }}>
+                    {clientToDelete.initials}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--dash-text-primary)' }}>{clientToDelete.name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--dash-text-muted)', marginTop: '1px' }}>{clientToDelete.phone}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Modal>
+        )
+      })()}
 
       {/* Add Client Modal */}
       <Modal
