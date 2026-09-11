@@ -1,12 +1,23 @@
+import { useState, useMemo } from 'react'
 import { Smartphone, DollarSign, TrendingUp, Clock, CheckCircle, Check, Hourglass } from 'lucide-react'
 import StatsCard from '../../components/dashboard/StatsCard'
 import { Card, CardHeader } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
+import { TableControls } from '../../components/ui/TableControls'
 import { formatCurrency, formatCurrencyShort } from '../../utils/formatCurrency'
 import { Pagination } from '../../components/ui/Pagination'
 import { usePagination } from '../../hooks/usePagination'
+import { useTableFilters } from '../../hooks/useTableFilters'
 import { useAppointments } from '../../context/AppointmentContext'
 import { sendBalanceInvoiceViaWhatsApp } from '../../utils/whatsapp'
+
+const SORTS = [
+  { label: 'Date (Newest)', key: 'date',   dir: 'desc' },
+  { label: 'Date (Oldest)', key: 'date',   dir: 'asc'  },
+  { label: 'Amount ↓',      key: 'amount', dir: 'desc' },
+  { label: 'Amount ↑',      key: 'amount', dir: 'asc'  },
+  { label: 'Name A–Z',      key: 'name',   dir: 'asc'  },
+]
 
 function PaymentStatus({ paid }) {
   return (
@@ -30,7 +41,51 @@ function PaymentStatus({ paid }) {
 export default function Payments() {
   const { appointments } = useAppointments()
 
-  const active = appointments.filter(a => a.status !== 'Rejected' && a.status !== 'Closed')
+  const [advFilter, setAdvFilter] = useState('all')
+  const [balFilter, setBalFilter] = useState('all')
+
+  const active = useMemo(
+    () => appointments.filter(a => a.status !== 'Rejected' && a.status !== 'Closed'),
+    [appointments]
+  )
+
+  const preFiltered = useMemo(
+    () => active
+      .filter(a => advFilter === 'all' || (advFilter === 'paid' ? a.advancePaid : !a.advancePaid))
+      .filter(a => balFilter === 'all' || (balFilter === 'paid' ? a.balancePaid : !a.balancePaid)),
+    [active, advFilter, balFilter]
+  )
+
+  const {
+    result, search, setSearch, dateFrom, setDateFrom, dateTo, setDateTo,
+    sort, setSort, sorts, hasFilters, clearFilters,
+  } = useTableFilters(preFiltered, { searchFields: ['name', 'service'], dateField: 'date', sorts: SORTS })
+
+  const allHasFilters = hasFilters || advFilter !== 'all' || balFilter !== 'all'
+  function clearAll() { clearFilters(); setAdvFilter('all'); setBalFilter('all') }
+
+  const filterFields = [
+    {
+      label: 'Advance Payment',
+      value: advFilter,
+      onChange: setAdvFilter,
+      options: [
+        { label: 'All',     value: 'all'     },
+        { label: 'Paid',    value: 'paid'    },
+        { label: 'Pending', value: 'pending' },
+      ],
+    },
+    {
+      label: 'Balance Payment',
+      value: balFilter,
+      onChange: setBalFilter,
+      options: [
+        { label: 'All',     value: 'all'     },
+        { label: 'Paid',    value: 'paid'    },
+        { label: 'Pending', value: 'pending' },
+      ],
+    },
+  ]
 
   const totalRevenue   = active.reduce((s, a) => s + (a.amount || 0), 0)
   const collected      = active.reduce((s, a) => {
@@ -48,7 +103,8 @@ export default function Payments() {
     { label: 'Balance Pending', value: String(balPending) + ' bookings',  delta: '',     icon: DollarSign,  color: 'var(--badge-rejected)',  bg: 'var(--badge-rejected-bg)'  },
   ]
 
-  const { page, setPage, totalPages, paginated } = usePagination(active, 6)
+  const resetKey = `${advFilter}|${balFilter}|${search}|${dateFrom}|${dateTo}|${sort?.key}|${sort?.dir}`
+  const { page, setPage, totalPages, paginated } = usePagination(result, 6, resetKey)
 
   return (
     <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: '20px', boxSizing: 'border-box' }}>
@@ -56,6 +112,17 @@ export default function Payments() {
       {/* Stats */}
       <div style={{ flexShrink: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px' }}>
         {PAYMENT_STATS.map(s => <StatsCard key={s.label} {...s} />)}
+      </div>
+
+      {/* Controls */}
+      <div style={{ flexShrink: 0 }}>
+        <TableControls
+          search={search} onSearch={setSearch} searchPlaceholder="Search by client or service…"
+          dateFrom={dateFrom} dateTo={dateTo} onDateFrom={setDateFrom} onDateTo={setDateTo}
+          sorts={sorts} sort={sort} onSort={setSort}
+          filterFields={filterFields}
+          hasFilters={allHasFilters} onClear={clearAll}
+        />
       </div>
 
       {/* Table */}
@@ -151,7 +218,7 @@ export default function Payments() {
           background: 'var(--dash-subtle-row-bg)', flexWrap: 'wrap', gap: '12px'
         }}>
           <span style={{ fontSize: '12.5px', color: 'var(--dash-text-secondary)', fontWeight: 500 }}>
-            Showing {active.length > 0 ? Math.min((page - 1) * 6 + 1, active.length) : 0}–{Math.min(page * 6, active.length)} of {active.length} payments
+            Showing {result.length > 0 ? Math.min((page - 1) * 6 + 1, result.length) : 0}–{Math.min(page * 6, result.length)} of {result.length} payments
           </span>
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>

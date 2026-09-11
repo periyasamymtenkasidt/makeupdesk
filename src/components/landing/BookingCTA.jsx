@@ -68,6 +68,7 @@ function BookingModal({ onClose }) {
   const { settings }           = useSettings()
   const [confirmed, setConfirmed] = useState(null)
   const [showSlots, setShowSlots] = useState(false)
+  const [conflictError, setConflictError] = useState(null)
 
   const ARTIST_EMOJI = {
     'Makeup Artist':           '💄',
@@ -88,6 +89,24 @@ function BookingModal({ onClose }) {
   function handleRegister() {
     if (!step2Valid) return
 
+    if (form.time) {
+      const storedDateCheck = formatDateForStorage(form.date)
+      const requestedRoles = form.addOns && form.addOns.length ? form.addOns : ['Makeup Artist']
+
+      for (const role of requestedRoles) {
+        const roleArtists = artists.filter(a => a.category === role)
+        if (roleArtists.length === 0) continue
+        const anyFree = roleArtists.some(
+          a => !checkArtistAvailability(a.name, storedDateCheck, form.time, appointments, null, durationMins).isBooked
+        )
+        if (!anyFree) {
+          setConflictError(`All ${role}s are fully booked on this date & time. Please choose a different slot.`)
+          return
+        }
+      }
+    }
+
+    setConflictError(null)
     const existing = clients.find(c => c.phone === form.phone)
     const clientId = existing ? existing.id : addClient({ name: form.name, phone: form.phone })
 
@@ -102,7 +121,7 @@ function BookingModal({ onClose }) {
     for (const role of addOns) {
       const pick = artists
         .filter(a => a.category === role)
-        .find(a => !checkArtistAvailability(a.name, storedDate, form.time, appointments).isBooked)
+        .find(a => !checkArtistAvailability(a.name, storedDate, form.time, appointments, null, durationMins).isBooked)
       if (pick) autoAssigned.push(pick.name)
     }
     const autoVendorCost = autoAssigned.reduce((sum, name) => {
@@ -424,6 +443,16 @@ function BookingModal({ onClose }) {
                       style={{ ...inpStyle, resize: "vertical", minHeight: "72px" }}
                     />
                   </div>
+
+                  {conflictError && (
+                    <div style={{
+                      padding: '10px 14px', borderRadius: '10px',
+                      background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)',
+                      color: '#f87171', fontSize: '13px', fontWeight: 500, lineHeight: 1.5,
+                    }}>
+                      {conflictError}
+                    </div>
+                  )}
 
                   <div className="flex gap-3 mt-2">
                     <Button variant="ghost" size="lg" onClick={prevStep}

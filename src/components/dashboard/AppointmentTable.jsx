@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Badge'
-import { MapPin, Clock, Pencil, Calendar, Trash2, XCircle } from 'lucide-react'
+import { MapPin, Clock, Pencil, Calendar, Trash2, XCircle, CheckCircle } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatCurrency'
+import { formatDate } from '../../utils/formatDate'
 import { EmptyState } from '../ui/EmptyState'
 import { Modal } from '../ui/Modal'
 
@@ -26,7 +27,7 @@ const iconBtn = (color = 'var(--icon-booking)', bg = 'var(--dash-surface)') => (
   cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
 })
 
-export default function AppointmentTable({ appointments, onEdit, onDelete, onReject, renderRowActions }) {
+export default function AppointmentTable({ appointments, onEdit, onDelete, onReject, onMarkDone, renderRowActions }) {
   const navigate = useNavigate()
   const [apptToDelete, setApptToDelete] = useState(null)
   const hasActions = onEdit || onDelete || onReject || renderRowActions
@@ -52,11 +53,11 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
               key={appt.id ?? i}
               style={{
                 borderBottom: '1px solid var(--dash-border-subtle)',
-                background: i % 2 !== 0 ? 'var(--dash-subtle-row-bg)' : 'transparent',
+                background: 'transparent',
                 transition: 'background 0.15s',
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
-              onMouseLeave={e => e.currentTarget.style.background = i % 2 !== 0 ? 'var(--dash-subtle-row-bg)' : 'transparent'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               {/* Appt ID */}
               <td style={tdBase}>
@@ -133,7 +134,7 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
               <td style={tdBase}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--dash-text-secondary)', marginBottom: '5px' }}>
                   <Calendar size={12} style={{ color: 'var(--dash-text-muted)', flexShrink: 0 }} />
-                  {appt.date}
+                  {appt.date ? formatDate(appt.date) : '—'}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--dash-text-primary)', fontWeight: 500 }}>
                   <Clock size={12} style={{ color: 'var(--icon-booking)', flexShrink: 0 }} />
@@ -165,6 +166,25 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {renderRowActions ? renderRowActions(appt) : (
                       <>
+                        {onMarkDone && ['Confirmed', 'In Progress'].includes(appt.status) && (() => {
+                          const today    = new Date(); today.setHours(0, 0, 0, 0)
+                          const apptDate = new Date(appt.date); apptDate.setHours(0, 0, 0, 0)
+                          const canMark  = apptDate <= today
+                          return (
+                            <button
+                              disabled={!canMark}
+                              title={canMark ? 'Mark as Done' : `Available on ${appt.date}`}
+                              onClick={() => canMark && onMarkDone(appt)}
+                              style={{
+                                ...iconBtn('#16a34a', '#dcfce7'),
+                                opacity: canMark ? 1 : 0.4,
+                                cursor: canMark ? 'pointer' : 'not-allowed',
+                              }}
+                            >
+                              <CheckCircle size={13} />
+                            </button>
+                          )
+                        })()}
                         {onEdit && (
                           <button onClick={() => onEdit(appt)} title="Edit appointment" style={iconBtn()}>
                             <Pencil size={13} />
@@ -273,7 +293,7 @@ export default function AppointmentTable({ appointments, onEdit, onDelete, onRej
               </div>
 
               <div style={{ fontSize: '12px', color: 'var(--dash-text-muted)', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
-                <span>📅 {apptToDelete.date}</span>
+                <span>📅 {apptToDelete.date ? formatDate(apptToDelete.date) : '—'}</span>
                 <span>⏰ {apptToDelete.time || 'N/A'}</span>
               </div>
             </div>

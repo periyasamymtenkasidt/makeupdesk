@@ -164,6 +164,21 @@ export default function NewBookingModal({ open, onClose, initialData }) {
       return
     }
 
+    if (form.time) {
+      const hasArtists = (form.selectedArtists || []).length > 0
+      const checkVendorId = hasArtists ? vendorId : null
+      const { available } = checkTimeAvailability(
+        form.time, effectiveDurationMins, form.date, appointments, null, checkVendorId
+      )
+      if (available === false) {
+        const msg = hasArtists
+          ? `Booking conflict: ${form.selectedArtists[0]} is already booked at this time. Choose a different slot or artist.`
+          : `This time slot is already taken. Please choose a different date or time.`
+        showToast(msg, 'warning', 6000)
+        return
+      }
+    }
+
     let clientId = form.clientId || null
 
     if (!clientId) {

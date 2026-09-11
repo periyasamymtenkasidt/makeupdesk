@@ -147,7 +147,7 @@ export function AppointmentProvider({ children }) {
   }
 
   function genId()                      { return nextId(appointments) }
-  function addAppointment(appt)        { mutate(prev => [appt, ...prev]) }
+  function addAppointment(appt)        { mutate(prev => [{ createdAt: new Date().toISOString(), ...appt }, ...prev]) }
   function updateStatus(id, status)    { mutate(prev => prev.map(a => a.id === id ? { ...a, status } : a)) }
   function updateAppointment(id, data) {
     mutate(prev => prev.map(a => {

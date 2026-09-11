@@ -178,6 +178,51 @@ export function buildWhatsAppBalanceInvoice(appt) {
     : `https://web.whatsapp.com/send/`
 }
 
+export function buildWhatsAppConfirmation(appt) {
+  const saved = (() => { try { return JSON.parse(localStorage.getItem('md_settings') || '{}') } catch { return {} } })()
+  const studioName = saved.studioName || 'MakeupDesk'
+
+  const totalAmount = Number(appt?.amount || 0)
+  const advancePaid = appt?.advancePaid ? Number(appt?.advanceAmount || 0) : 0
+  const balanceDue  = Math.max(0, totalAmount - advancePaid)
+  const artists     = Array.isArray(appt?.assignedArtists) && appt.assignedArtists.length > 0
+    ? appt.assignedArtists.join(', ')
+    : null
+
+  const msg = [
+    `Hi ${appt?.name || 'Client'}! 👋`,
+    '',
+    `Your appointment is *confirmed* with *${studioName}*. ✅`,
+    '',
+    `📅 *Date:* ${appt?.date || ''}`,
+    `⏰ *Time:* ${appt?.time || ''}${appt?.duration ? ` (${appt.duration})` : ''}`,
+    `📍 *Venue:* ${appt?.location || 'Studio'}${appt?.venue ? ` · ${appt.venue}` : ''}`,
+    `💄 *Service:* ${appt?.service || ''}`,
+    artists ? `👩‍🎨 *Artist:* ${artists}` : null,
+    '',
+    totalAmount > 0 ? `💰 *Total Amount:* ₹${totalAmount.toLocaleString('en-IN')}` : null,
+    advancePaid > 0 ? `✅ *Advance Paid:* ₹${advancePaid.toLocaleString('en-IN')}` : null,
+    balanceDue  > 0 ? `⏳ *Balance Due:* ₹${balanceDue.toLocaleString('en-IN')} (payable on the day)` : null,
+    '',
+    `Please arrive 10 minutes early. Looking forward to making you look stunning! ✨`,
+    '',
+    `— *${studioName}*`,
+  ].filter(line => line !== null).join('\n')
+
+  const rawPhone = appt?.phone || appt?.clientPhone || ''
+  const phoneNum = waPhone(rawPhone)
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+  if (phoneNum) {
+    return isMobile
+      ? `https://api.whatsapp.com/send/?phone=${phoneNum}&text=${encodeURIComponent(msg)}`
+      : `https://web.whatsapp.com/send/?phone=${phoneNum}&text=${encodeURIComponent(msg)}`
+  }
+  return isMobile
+    ? `https://api.whatsapp.com/send/?text=${encodeURIComponent(msg)}`
+    : `https://web.whatsapp.com/send/`
+}
+
 export async function sendBalanceInvoiceViaWhatsApp(appt) {
   const { fileName, file } = await generateBalanceInvoicePDF(appt)
   const waUrl = buildWhatsAppBalanceInvoice(appt)

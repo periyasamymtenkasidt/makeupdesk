@@ -32,6 +32,19 @@ export function MultiArtistPicker({
   // Group artists by category
   const categories = Array.from(new Set(artists.map(a => a.category || 'Other Artists')))
 
+  function isCategoryFullyBooked(cat) {
+    if (!date && !time) return false
+    const group = artists.filter(a => (a.category || 'Other Artists') === cat && a.availability !== 'Inactive')
+    if (group.length === 0) return false
+    return group.every(artist => {
+      const bookCheck = checkArtistAvailability(artist.name, date, time, appointments, currentApptId, durationMins)
+      const dayName = date ? DAY_NAMES[new Date(date + 'T00:00:00').getDay()] : null
+      const worksToday = !date || (artist.workDays || DAY_NAMES).includes(dayName)
+      const inShift = !date || !time || isArtistAvailableAt(artist, date, time, durationMins)
+      return bookCheck.isBooked || !worksToday || !inShift
+    })
+  }
+
   function toggleArtist(artistName) {
     if (selected.includes(artistName)) {
       onChange(selected.filter(name => name !== artistName))
@@ -127,22 +140,31 @@ export function MultiArtistPicker({
           padding: '8px 0',
         }}>
           {categories.map(cat => {
-            const group = artists.filter(a => a.category === cat)
+            const group = artists.filter(a => (a.category || 'Other Artists') === cat)
             if (group.length === 0) return null
+            const allBooked = isCategoryFullyBooked(cat)
 
             return (
               <div key={cat} style={{ marginBottom: '6px' }}>
                 <div style={{
                   padding: '6px 14px', fontSize: '10.5px', fontWeight: 800,
-                  color: 'var(--color-rose-gold)', textTransform: 'uppercase', letterSpacing: '0.08em',
-                  background: 'var(--dash-subtle-row-bg)', borderBottom: '1px solid var(--dash-border-subtle)',
+                  color: allBooked ? 'var(--badge-rejected)' : 'var(--color-rose-gold)',
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  background: allBooked ? 'var(--badge-rejected-bg)' : 'var(--dash-subtle-row-bg)',
+                  borderBottom: '1px solid var(--dash-border-subtle)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                  {cat}s
+                  <span>{cat}s</span>
+                  {allBooked && (
+                    <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                      ALL BOOKED
+                    </span>
+                  )}
                 </div>
 
                 {group.map(artist => {
                   const isSelected = selected.includes(artist.name)
-                  const bookCheck = checkArtistAvailability(artist.name, date, time, appointments, currentApptId)
+                  const bookCheck = checkArtistAvailability(artist.name, date, time, appointments, currentApptId, durationMins)
 
                   const worksToday = !date || (() => {
                     const dayName = DAY_NAMES[new Date(date + 'T00:00:00').getDay()]

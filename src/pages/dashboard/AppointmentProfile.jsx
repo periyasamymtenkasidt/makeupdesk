@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign, Users, Check, Hourglass, Smartphone, Banknote } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign, Users, Check, Hourglass, Smartphone, Banknote, Send, Activity } from 'lucide-react'
 import { useAppointments } from '../../context/AppointmentContext'
 import { useClients } from '../../context/ClientContext'
 import { useToast } from '../../context/ToastContext'
@@ -10,12 +10,12 @@ import { Modal } from '../../components/ui/Modal'
 import EditAppointmentModal from '../../components/dashboard/EditAppointmentModal'
 import MarkDoneFlow from '../../components/dashboard/MarkDoneFlow'
 import SendQuoteModal from '../../components/dashboard/SendQuoteModal'
-import { sendQuoteViaWhatsApp } from '../../utils/whatsapp'
+import { sendQuoteViaWhatsApp, buildWhatsAppConfirmation } from '../../utils/whatsapp'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Card, CardHeader } from '../../components/ui/Card'
 import { formatCurrency } from '../../utils/formatCurrency'
-import { PIPELINE_NEXT } from '../../data/navigation'
+import { PIPELINE_NEXT, STATUS_CONFIG } from '../../data/navigation'
 
 function InfoRow({ label, value, muted }) {
   return (
@@ -83,6 +83,12 @@ export default function AppointmentProfile() {
 
   const nextAction = PIPELINE_NEXT[appt.status]
 
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const apptDate = new Date(appt.date)
+  apptDate.setHours(0, 0, 0, 0)
+  const canMarkDone = apptDate <= today
+
   return (
     <>
       <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -118,11 +124,14 @@ export default function AppointmentProfile() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {nextAction && (
               <Button
                 variant="primary" size="sm"
+                disabled={nextAction.action === 'mark-done' && !canMarkDone}
+                title={nextAction.action === 'mark-done' && !canMarkDone ? `Available on ${appt.date}` : undefined}
                 onClick={() => {
+                  if (nextAction.action === 'mark-done' && !canMarkDone) return
                   if (nextAction.action === 'send-quote')    return setSendQuoteOpen(true)
                   if (nextAction.action === 'mark-done')     return setMarkDoneOpen(true)
                   updateAppointment(appt.id, {
@@ -133,13 +142,29 @@ export default function AppointmentProfile() {
                 }}
                 style={{
                   gap: '6px',
-                  ...(nextAction.action === 'mark-done' && {
+                  ...(nextAction.action === 'mark-done' && !canMarkDone && {
+                    opacity: 0.45,
+                    cursor: 'not-allowed',
+                    background: 'var(--dash-border)',
+                    boxShadow: 'none',
+                  }),
+                  ...(nextAction.action === 'mark-done' && canMarkDone && {
                     background: 'linear-gradient(135deg,#22c55e,#16a34a)',
                     boxShadow: '0 2px 8px rgba(34,197,94,0.3)',
                   }),
                 }}
               >
                 <CheckCircle size={14} /> {nextAction.label}
+              </Button>
+            )}
+            {['Advance Paid', 'Confirmed', 'In Progress', 'Completed'].includes(appt.status) && (
+              <Button
+                variant="ghost" size="sm"
+                onClick={() => window.open(buildWhatsAppConfirmation(appt), '_blank')}
+                style={{ gap: '6px', color: '#25d366', borderColor: 'rgba(37,211,102,0.35)' }}
+                title="Send appointment confirmation on WhatsApp"
+              >
+                <Send size={14} /> Send Confirmation
               </Button>
             )}
             <Button variant="primary" size="sm" onClick={() => setEditOpen(true)}>
@@ -548,6 +573,91 @@ export default function AppointmentProfile() {
                   </div>
                 )}
               </Modal>
+            </Card>
+          )
+        })()}
+
+        {/* Activity Log */}
+        {(() => {
+          const statusChanges = (appt.changeLog || [])
+            .filter(entry => entry.changes.some(c => c.field === 'status'))
+            .map(entry => {
+              const sc = entry.changes.find(c => c.field === 'status')
+              return { timestamp: entry.timestamp, to: sc.to }
+            })
+
+          const initialStatus = (() => {
+            const first = (appt.changeLog || []).find(entry =>
+              entry.changes.some(c => c.field === 'status')
+            )
+            return first ? first.changes.find(c => c.field === 'status').from : appt.status
+          })()
+
+          const timeline = [...statusChanges].reverse()
+
+          return (
+            <Card style={{ padding: '20px 24px' }}>
+              <CardHeader style={{ padding: '0 0 14px', borderBottom: '1px solid var(--dash-border)', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <Activity size={15} style={{ color: 'var(--color-rose-gold)' }} /> Activity Log
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--dash-text-muted)' }}>
+                  {timeline.length + 1} event{timeline.length + 1 !== 1 ? 's' : ''}
+                </span>
+              </CardHeader>
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {timeline.map((entry, i) => {
+                  const cfg = STATUS_CONFIG[entry.to] || {}
+                  const d = new Date(entry.timestamp)
+                  return (
+                    <div key={i} style={{ display: 'flex', gap: '14px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 10 }}>
+                        <div style={{
+                          width: 10, height: 10, borderRadius: '50%', marginTop: 4, flexShrink: 0,
+                          background: cfg.color || 'var(--dash-text-muted)',
+                          boxShadow: `0 0 0 3px ${cfg.bg || 'var(--dash-surface)'}`,
+                        }} />
+                        <div style={{ width: 1, flex: 1, marginTop: 4, background: 'var(--dash-border)', minHeight: 24 }} />
+                      </div>
+                      <div style={{ paddingBottom: 16, flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)' }}>{entry.to}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--dash-text-muted)', marginTop: '2px' }}>
+                          {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · {d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {/* Initial / created status — always at the bottom */}
+                {(() => {
+                  const cfg = STATUS_CONFIG[initialStatus] || {}
+                  const d = appt.createdAt ? new Date(appt.createdAt) : null
+                  return (
+                    <div style={{ display: 'flex', gap: '14px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 10 }}>
+                        <div style={{
+                          width: 10, height: 10, borderRadius: '50%', marginTop: 4, flexShrink: 0,
+                          background: cfg.color || 'var(--dash-text-muted)',
+                          boxShadow: `0 0 0 3px ${cfg.bg || 'var(--dash-surface)'}`,
+                        }} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)' }}>
+                          {initialStatus}
+                          <span style={{ fontSize: '12px', fontWeight: 400, color: 'var(--dash-text-muted)', marginLeft: '6px' }}>· Created</span>
+                        </div>
+                        {d && (
+                          <div style={{ fontSize: '11px', color: 'var(--dash-text-muted)', marginTop: '2px' }}>
+                            {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · {d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
             </Card>
           )
         })()}

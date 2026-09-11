@@ -1,5 +1,6 @@
 import { useMaster } from './useMaster'
 import { VENDOR_KEY, VENDOR_DEFAULTS } from '../data/vendors'
+import { parseDurationMins } from '../utils/slots'
 
 export const BOOKING_STAFF_CATEGORIES = [
   'Makeup Artist',
@@ -56,18 +57,41 @@ function isAssignedTo(appt, artistName) {
   return false
 }
 
+// Parses both "HH:MM" (24h) and "HH:MM AM/PM" (12h) to minutes from midnight
+function toMins(str) {
+  if (!str) return null
+  const parts = str.trim().split(' ')
+  const [h, m] = parts[0].split(':').map(Number)
+  let hours = h
+  if (parts[1] === 'PM' && h !== 12) hours += 12
+  if (parts[1] === 'AM' && h === 12) hours = 0
+  return hours * 60 + (m || 0)
+}
+
 /**
- * Checks if a specific artist is booked (appointment conflict) AND available per their schedule.
+ * Checks if a specific artist has a conflicting appointment at the given date & time.
+ * When selectedTime is provided, checks actual time overlap (not just same-day).
  */
-export function checkArtistAvailability(artistName, selectedDate, selectedTime, appointments = [], currentApptId = null) {
+export function checkArtistAvailability(artistName, selectedDate, selectedTime, appointments = [], currentApptId = null, durationMins = 120) {
   if (!artistName || !selectedDate) return { isBooked: false }
+
+  const newStart = toMins(selectedTime)
+  const newEnd   = newStart !== null ? newStart + durationMins : null
 
   const conflict = appointments.find(a => {
     if (currentApptId && String(a.id) === String(currentApptId)) return false
     if (a.status === 'Rejected' || a.status === 'Closed') return false
     const sameDate = String(a.date).toLowerCase() === String(selectedDate).toLowerCase()
     if (!sameDate) return false
-    return isAssignedTo(a, artistName)
+    if (!isAssignedTo(a, artistName)) return false
+
+    // If no time given, any appointment on this date counts
+    if (newStart === null) return true
+
+    // Check actual time overlap
+    const existStart = toMins(a.time)
+    const existEnd   = existStart + parseDurationMins(a.duration)
+    return newStart < existEnd && newEnd > existStart
   })
 
   if (conflict) {

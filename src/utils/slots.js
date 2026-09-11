@@ -15,6 +15,7 @@ export function earliestBookableMins(dateStr) {
 }
 
 const BLOCKING_STATUSES = new Set([
+  'Inquiry',
   'Shift Reserved', 'Approved', 'Payment Pending',
   'Advance Paid', 'Confirmed', 'In Progress',
   'Completed', 'Balance Paid', 'Closed',

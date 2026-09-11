@@ -1,13 +1,23 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Wallet, TrendingDown, CheckCircle, Clock, Check, Hourglass, Smartphone, Banknote, CreditCard, Users } from 'lucide-react'
 import StatsCard from '../../components/dashboard/StatsCard'
 import { Card, CardHeader } from '../../components/ui/Card'
+import { TableControls } from '../../components/ui/TableControls'
 import { formatCurrency, formatCurrencyShort } from '../../utils/formatCurrency'
 import { Pagination } from '../../components/ui/Pagination'
 import { usePagination } from '../../hooks/usePagination'
+import { useTableFilters } from '../../hooks/useTableFilters'
 import { useAppointments } from '../../context/AppointmentContext'
 import { Modal } from '../../components/ui/Modal'
 import { EmptyState } from '../../components/ui/EmptyState'
+
+const SORTS = [
+  { label: 'Date (Newest)',  key: 'apptDate',    dir: 'desc' },
+  { label: 'Date (Oldest)',  key: 'apptDate',    dir: 'asc'  },
+  { label: 'Amount ↓',       key: 'amount',      dir: 'desc' },
+  { label: 'Amount ↑',       key: 'amount',      dir: 'asc'  },
+  { label: 'Vendor A–Z',     key: 'vendorName',  dir: 'asc'  },
+]
 
 function VendorPayBadge({ paid }) {
   return (
@@ -43,17 +53,29 @@ const lbl = {
 export default function VendorPayments() {
   const { appointments, updateVendorPayments } = useAppointments()
 
-  const rows = appointments
-    .filter(a => Array.isArray(a.vendorPayments) && a.vendorPayments.length > 0)
-    .flatMap(appt =>
-      appt.vendorPayments.map(vp => ({
-        ...vp,
-        apptId:     appt.id,
-        apptDate:   appt.date,
-        clientName: appt.name,
-        service:    appt.service,
-      }))
-    )
+  const [paidFilter, setPaidFilter] = useState('all')
+
+  const rows = useMemo(
+    () => appointments
+      .filter(a => Array.isArray(a.vendorPayments) && a.vendorPayments.length > 0)
+      .flatMap(appt =>
+        appt.vendorPayments.map(vp => ({
+          ...vp,
+          apptId:     appt.id,
+          apptDate:   appt.date,
+          clientName: appt.name,
+          service:    appt.service,
+        }))
+      ),
+    [appointments]
+  )
+
+  const preFiltered = useMemo(
+    () => paidFilter === 'all'
+      ? rows
+      : rows.filter(r => paidFilter === 'paid' ? r.paid : !r.paid),
+    [rows, paidFilter]
+  )
 
   const totalCost    = rows.reduce((s, r) => s + (r.amount || 0), 0)
   const totalPaid    = rows.filter(r => r.paid).reduce((s, r) => s + (r.amount || 0), 0)
@@ -67,11 +89,33 @@ export default function VendorPayments() {
     { label: 'Awaiting Payment',   value: `${pendingCount} vendors`,         delta: '', icon: Wallet,       color: 'var(--icon-booking)',    bg: 'var(--icon-booking-bg)'    },
   ]
 
+  const {
+    result, search, setSearch, dateFrom, setDateFrom, dateTo, setDateTo,
+    sort, setSort, sorts, hasFilters, clearFilters,
+  } = useTableFilters(preFiltered, { searchFields: ['vendorName', 'clientName', 'service'], dateField: 'apptDate', sorts: SORTS })
+
+  const allHasFilters = hasFilters || paidFilter !== 'all'
+  function clearAll() { clearFilters(); setPaidFilter('all') }
+
+  const filterFields = [
+    {
+      label: 'Payment Status',
+      value: paidFilter,
+      onChange: setPaidFilter,
+      options: [
+        { label: 'All',     value: 'all'     },
+        { label: 'Paid',    value: 'paid'    },
+        { label: 'Pending', value: 'pending' },
+      ],
+    },
+  ]
+
   const [payModal, setPayModal] = useState(null)
   const [method, setMethod]     = useState('UPI')
   const [txnRef, setTxnRef]     = useState('')
 
-  const { page, setPage, totalPages, paginated } = usePagination(rows, 8)
+  const resetKey = `${paidFilter}|${search}|${dateFrom}|${dateTo}|${sort?.key}|${sort?.dir}`
+  const { page, setPage, totalPages, paginated } = usePagination(result, 8, resetKey)
 
   function openPayModal(row) {
     setPayModal({ apptId: row.apptId, vendorName: row.vendorName, amount: row.amount })
@@ -108,7 +152,19 @@ export default function VendorPayments() {
           subtitle="Assign artists to appointments and use the Team Payments section on each appointment to set up vendor payment tracking."
         />
       ) : (
-        <Card style={{ flex: 1, minHeight: 0, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column' }}>
+        <>
+          {/* Controls */}
+          <div style={{ flexShrink: 0 }}>
+            <TableControls
+              search={search} onSearch={setSearch} searchPlaceholder="Search by vendor, client or service…"
+              dateFrom={dateFrom} dateTo={dateTo} onDateFrom={setDateFrom} onDateTo={setDateTo}
+              sorts={sorts} sort={sort} onSort={setSort}
+              filterFields={filterFields}
+              hasFilters={allHasFilters} onClear={clearAll}
+            />
+          </div>
+
+          <Card style={{ flex: 1, minHeight: 0, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column' }}>
           <CardHeader style={{ flexShrink: 0 }}>
             <span style={{ fontFamily: 'Playfair Display,serif', fontWeight: 600, color: 'var(--dash-text-primary)', fontSize: '17px' }}>
               Vendor Payment Tracker
@@ -203,11 +259,12 @@ export default function VendorPayments() {
             background: 'var(--dash-subtle-row-bg)', flexWrap: 'wrap', gap: '12px',
           }}>
             <span style={{ fontSize: '12.5px', color: 'var(--dash-text-secondary)', fontWeight: 500 }}>
-              Showing {rows.length > 0 ? Math.min((page - 1) * 8 + 1, rows.length) : 0}–{Math.min(page * 8, rows.length)} of {rows.length} entries
+              Showing {result.length > 0 ? Math.min((page - 1) * 8 + 1, result.length) : 0}–{Math.min(page * 8, result.length)} of {result.length} entries
             </span>
             <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         </Card>
+        </>
       )}
 
       {/* Mark Paid Modal */}
