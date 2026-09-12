@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { parseToISO } from '../utils/formatDate'
 
 export function useTableFilters(items, {
   searchFields = [],
@@ -31,10 +32,11 @@ export function useTableFilters(items, {
     }
 
     if (dateFrom || dateTo) {
-      const from = dateFrom ? new Date(dateFrom).setHours(0, 0, 0, 0)     : null
-      const to   = dateTo   ? new Date(dateTo).setHours(23, 59, 59, 999)  : null
+      const from = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : null
+      const to   = dateTo   ? new Date(dateTo   + 'T23:59:59').getTime() : null
       out = out.filter(item => {
-        const ts = item[dateField] ? new Date(item[dateField]).getTime() : null
+        const iso = item[dateField] ? parseToISO(item[dateField]) : null
+        const ts  = iso ? new Date(iso + 'T00:00:00').getTime() : null
         if (!ts || isNaN(ts)) return true
         if (from && ts < from) return false
         if (to   && ts > to)   return false

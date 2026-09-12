@@ -2,18 +2,19 @@ import { createContext, useContext, useState, useMemo, useEffect } from 'react'
 import { SERVICES } from '../data/services'
 import { VENDOR_KEY, VENDOR_DEFAULTS } from '../data/vendors'
 import { useClients } from './ClientContext'
+import { parseToISO } from '../utils/formatDate'
 
 const KEY = 'md_appointments'
 
 const INITIAL = [
-  { id: 'APT-001', vendorId: 1, clientId: 'CLT-001', name: 'Priya Mehta',   phone: '98765 43210', service: 'Bridal Makeup',    date: 'Jul 26, 2026', time: '05:30 AM', duration: '3 hrs',    status: 'Confirmed',       amount: 12000, advanceAmount: 4000, advancePaid: true,  balancePaid: false, location: 'Venue', venue: 'Grand Convention Center (EC)' },
-  { id: 'APT-002', vendorId: 1, clientId: 'CLT-002', name: 'Anjali Sharma', phone: ' 91234 56789', service: 'Party Makeup',     date: 'Jul 27, 2026', time: '06:00 PM', duration: '2 hrs',    status: 'Payment Pending', amount: 4500,  advanceAmount: 1500, advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
-  { id: 'APT-003', vendorId: 7, clientId: 'CLT-003', name: 'Kavya Nair',    phone: ' 99887 76655', service: 'HD Makeup',        date: 'Jul 28, 2026', time: '02:00 PM', duration: '1.75 hrs', status: 'Quotation Sent',  amount: 5000,  advanceAmount: 2000, advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
-  { id: 'APT-004', vendorId: 1, clientId: 'CLT-004', name: 'Ritika Joshi',  phone: ' 87654 32109', service: 'Pre-Wedding',      date: 'Jul 30, 2026', time: '07:00 AM', duration: '2.5 hrs',  status: 'Confirmed',       amount: 7500,  advanceAmount: 2500, advancePaid: true,  balancePaid: false, location: 'Venue', venue: '5-Star Hotel Ballroom (EC)' },
-  { id: 'APT-005', vendorId: 7, clientId: 'CLT-005', name: 'Meera Iyer',    phone: ' 76543 21098', service: 'Airbrush Makeup',  date: 'Aug 01, 2026', time: '05:00 AM', duration: '3.5 hrs',  status: 'Inquiry',         amount: 6000,  advanceAmount: 2000, advancePaid: false, balancePaid: false, location: 'Venue', venue: 'Luxury Resort Property (EC)' },
-  { id: 'APT-006', vendorId: 1, clientId: 'CLT-006', name: 'Sunita Rao',    phone: ' 85432 10987', service: 'Editorial Makeup', date: 'Aug 03, 2026', time: '10:00 AM', duration: '2 hrs',    status: 'Advance Paid',    amount: 8000,  advanceAmount: 3000, advancePaid: true,  balancePaid: false, location: 'Studio', venue: '' },
-  { id: 'APT-007', vendorId: 1, clientId: 'CLT-007', name: 'Deepa Verma',   phone: ' 74321 09876', service: 'Bridal Makeup',    date: 'Aug 05, 2026', time: '05:30 AM', duration: '3 hrs',    status: 'Shift Reserved',  amount: 15000, advanceAmount: 5000, advancePaid: false, balancePaid: false, location: 'Venue', venue: 'Outdoor Garden & Farmhouse' },
-  { id: 'APT-008', vendorId: 7, clientId: 'CLT-008', name: 'Nisha Patil',   phone: ' 63210 98765', service: 'Party Makeup',     date: 'Aug 07, 2026', time: '06:00 PM', duration: '2 hrs',    status: 'Rejected',        amount: 3500,  advanceAmount: 0,    advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
+  { id: 'APT-001', vendorId: 1, clientId: 'CLT-001', name: 'Priya Mehta',   phone: '98765 43210', service: 'Bridal Makeup',    date: '2026-07-26', time: '05:30 AM', duration: '3 hrs',    status: 'Confirmed',       amount: 12000, advanceAmount: 4000, advancePaid: true,  balancePaid: false, location: 'Venue', venue: 'Grand Convention Center (EC)' },
+  { id: 'APT-002', vendorId: 1, clientId: 'CLT-002', name: 'Anjali Sharma', phone: ' 91234 56789', service: 'Party Makeup',     date: '2026-07-27', time: '06:00 PM', duration: '2 hrs',    status: 'Payment Pending', amount: 4500,  advanceAmount: 1500, advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
+  { id: 'APT-003', vendorId: 7, clientId: 'CLT-003', name: 'Kavya Nair',    phone: ' 99887 76655', service: 'HD Makeup',        date: '2026-07-28', time: '02:00 PM', duration: '1.75 hrs', status: 'Quotation Sent',  amount: 5000,  advanceAmount: 2000, advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
+  { id: 'APT-004', vendorId: 1, clientId: 'CLT-004', name: 'Ritika Joshi',  phone: ' 87654 32109', service: 'Pre-Wedding',      date: '2026-07-30', time: '07:00 AM', duration: '2.5 hrs',  status: 'Confirmed',       amount: 7500,  advanceAmount: 2500, advancePaid: true,  balancePaid: false, location: 'Venue', venue: '5-Star Hotel Ballroom (EC)' },
+  { id: 'APT-005', vendorId: 7, clientId: 'CLT-005', name: 'Meera Iyer',    phone: ' 76543 21098', service: 'Airbrush Makeup',  date: '2026-08-01', time: '05:00 AM', duration: '3.5 hrs',  status: 'Inquiry',         amount: 6000,  advanceAmount: 2000, advancePaid: false, balancePaid: false, location: 'Venue', venue: 'Luxury Resort Property (EC)' },
+  { id: 'APT-006', vendorId: 1, clientId: 'CLT-006', name: 'Sunita Rao',    phone: ' 85432 10987', service: 'Editorial Makeup', date: '2026-08-03', time: '10:00 AM', duration: '2 hrs',    status: 'Advance Paid',    amount: 8000,  advanceAmount: 3000, advancePaid: true,  balancePaid: false, location: 'Studio', venue: '' },
+  { id: 'APT-007', vendorId: 1, clientId: 'CLT-007', name: 'Deepa Verma',   phone: ' 74321 09876', service: 'Bridal Makeup',    date: '2026-08-05', time: '05:30 AM', duration: '3 hrs',    status: 'Shift Reserved',  amount: 15000, advanceAmount: 5000, advancePaid: false, balancePaid: false, location: 'Venue', venue: 'Outdoor Garden & Farmhouse' },
+  { id: 'APT-008', vendorId: 7, clientId: 'CLT-008', name: 'Nisha Patil',   phone: ' 63210 98765', service: 'Party Makeup',     date: '2026-08-07', time: '06:00 PM', duration: '2 hrs',    status: 'Rejected',        amount: 3500,  advanceAmount: 0,    advancePaid: false, balancePaid: false, location: 'Studio', venue: '' },
 ]
 
 const isTimestampId = id => {
@@ -33,6 +34,12 @@ function load() {
   try {
     const raw = localStorage.getItem(KEY)
     let records = raw ? JSON.parse(raw) : INITIAL.map(r => ({ ...r }))
+
+    // normalise legacy locale-format dates ('Jul 26, 2026') to ISO ('2026-07-26')
+    records = records.map(a => {
+      const iso = parseToISO(a.date)
+      return iso && iso !== a.date ? { ...a, date: iso } : a
+    })
 
     // backfill clientId for records saved before it was added
     records = records.map(a => {

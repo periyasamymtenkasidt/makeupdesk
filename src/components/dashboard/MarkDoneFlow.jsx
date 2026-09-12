@@ -5,8 +5,9 @@ import { formatCurrency } from '../../utils/formatCurrency'
 import { sendBalanceInvoiceViaWhatsApp } from '../../utils/whatsapp'
 
 // ── Collect Balance Modal ─────────────────────────────────────────────────────
-function CollectBalanceModal({ appt, onClose, onConfirm }) {
+function CollectBalanceModal({ appt, onClose, onConfirm, onUpdate }) {
   const [method, setMethod] = useState('Cash')
+  const [invoiceSent, setInvoiceSent] = useState(!!appt.balanceInvoiceSent)
   const advance    = appt.advancePaid ? (appt.advanceAmount || 0) : 0
   const balanceDue = Math.max(0, (appt.amount || 0) - advance)
 
@@ -62,23 +63,36 @@ function CollectBalanceModal({ appt, onClose, onConfirm }) {
 
           {/* Send Balance Invoice Banner */}
           <div style={{ borderTop: '1px solid var(--dash-border-subtle)', paddingTop: '14px' }}>
-            <button
-              onClick={async () => {
-                const res = await sendBalanceInvoiceViaWhatsApp(appt)
-                if (res?.method === 'download_and_whatsapp') {
-                  alert(`📄 Balance Invoice PDF downloaded (${res.fileName})\n📲 WhatsApp launched for ${appt.name}! Click the attachment 📎 icon in WhatsApp to send the PDF.`)
-                }
-              }}
-              style={{
+            {invoiceSent ? (
+              <div style={{
                 width: '100%', padding: '10px 14px', borderRadius: '10px',
-                background: '#25D366', color: 'white', border: 'none',
-                fontWeight: 700, fontSize: '12.5px', cursor: 'pointer',
+                background: 'rgba(37,211,102,0.10)', border: '1.5px solid rgba(37,211,102,0.35)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                fontFamily: 'Inter, sans-serif', boxShadow: '0 2px 8px rgba(37,211,102,0.3)',
-              }}
-            >
-              <Smartphone size={15} /> Send Balance Invoice on WhatsApp
-            </button>
+                fontSize: '12.5px', fontWeight: 700, color: '#16a34a',
+              }}>
+                <CheckCircle size={15} /> Invoice Sent
+              </div>
+            ) : (
+              <button
+                onClick={async () => {
+                  const res = await sendBalanceInvoiceViaWhatsApp(appt)
+                  if (res?.method === 'download_and_whatsapp') {
+                    alert(`📄 Balance Invoice PDF downloaded (${res.fileName})\n📲 WhatsApp launched for ${appt.name}! Click the attachment 📎 icon in WhatsApp to send the PDF.`)
+                  }
+                  setInvoiceSent(true)
+                  onUpdate({ balanceInvoiceSent: true })
+                }}
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: '10px',
+                  background: '#25D366', color: 'white', border: 'none',
+                  fontWeight: 700, fontSize: '12.5px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  fontFamily: 'Inter, sans-serif', boxShadow: '0 2px 8px rgba(37,211,102,0.3)',
+                }}
+              >
+                <Smartphone size={15} /> Send Balance Invoice on WhatsApp
+              </button>
+            )}
           </div>
         </div>
 
@@ -263,7 +277,7 @@ export default function MarkDoneFlow({ appt, onUpdate, onDone, startAt = 'balanc
   }
 
   if (step === 'balance') {
-    return <CollectBalanceModal appt={appt} onClose={onDone} onConfirm={handleBalanceConfirmed} />
+    return <CollectBalanceModal appt={appt} onClose={onDone} onConfirm={handleBalanceConfirmed} onUpdate={onUpdate} />
   }
   return <FeedbackModal appt={appt} onSkip={handleFeedbackSkip} onSave={handleFeedbackSave} />
 }

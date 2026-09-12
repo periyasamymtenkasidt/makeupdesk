@@ -20,10 +20,7 @@ import { CustomSelect } from "../ui/CustomSelect"
 import { DatePicker } from "../ui/DatePicker"
 
 function formatDateForStorage(dateStr) {
-  const [y, m, d] = dateStr.split("-").map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric"
-  })
+  return dateStr  // already YYYY-MM-DD from <input type="date">
 }
 
 function minsToLabel(mins) {

@@ -20,6 +20,7 @@ import Venues        from './pages/dashboard/masters/Venues'
 import Vendors       from './pages/dashboard/masters/Vendors'
 import VendorProfile from './pages/dashboard/masters/VendorProfile'
 import Settings      from './pages/dashboard/Settings'
+import NotFound      from './pages/NotFound'
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="masters/vendors/:vendorId" element={<VendorProfile />} />
           <Route path="settings"             element={<Settings />}     />
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
     </AppointmentProvider>

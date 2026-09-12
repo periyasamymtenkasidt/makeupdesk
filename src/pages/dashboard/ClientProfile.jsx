@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Phone, Mail, MessageCircle, Pencil, Calendar, TrendingUp, DollarSign, CreditCard, AlertTriangle, Sparkles } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MessageCircle, Pencil, Calendar, TrendingUp, DollarSign, CreditCard, AlertTriangle, Sparkles, Trash2, CalendarPlus } from 'lucide-react'
 import { useClients } from '../../context/ClientContext'
 import { useAppointments } from '../../context/AppointmentContext'
 import AppointmentTable from '../../components/dashboard/AppointmentTable'
-import EditAppointmentModal from '../../components/dashboard/EditAppointmentModal'
+import NewBookingModal from '../../components/dashboard/NewBookingModal'
 import { Card, CardHeader } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
@@ -46,12 +46,13 @@ function StatBox({ icon: Icon, label, value, color, bg }) {
 export default function ClientProfile() {
   const { clientId } = useParams()
   const navigate = useNavigate()
-  const { clients, updateClient } = useClients()
+  const { clients, updateClient, removeClient } = useClients()
   const { appointments } = useAppointments()
 
-  const [editOpen, setEditOpen]     = useState(false)
-  const [editForm, setEditForm]     = useState({})
-  const [editAppt, setEditAppt]     = useState(null)
+  const [editOpen,       setEditOpen]       = useState(false)
+  const [editForm,       setEditForm]       = useState({})
+  const [deleteConfirm,  setDeleteConfirm]  = useState(false)
+  const [bookingOpen,    setBookingOpen]    = useState(false)
   const setF = (k, v) => setEditForm(f => ({ ...f, [k]: v }))
 
   const client = clients.find(c => c.id === clientId)
@@ -161,8 +162,18 @@ export default function ClientProfile() {
             >
               <MessageCircle size={16} />
             </button>
+            <Button variant="primary" size="sm" onClick={() => setBookingOpen(true)} style={{ gap: '6px' }}>
+              <CalendarPlus size={14} /> Book Appointment
+            </Button>
             <Button variant="ghost" size="sm" onClick={openEdit}>
               <Pencil size={14} /> Edit Profile
+            </Button>
+            <Button
+              variant="ghost" size="sm"
+              onClick={() => setDeleteConfirm(true)}
+              style={{ gap: '6px', color: 'var(--badge-rejected)', borderColor: 'rgba(220,38,38,0.3)' }}
+            >
+              <Trash2 size={14} /> Delete
             </Button>
           </div>
         </div>
@@ -219,7 +230,7 @@ export default function ClientProfile() {
             </div>
           </CardHeader>
           {clientApts.length > 0 ? (
-            <AppointmentTable appointments={clientApts} onEdit={setEditAppt} />
+            <AppointmentTable appointments={clientApts} />
           ) : (
             <div style={{ padding: '48px', textAlign: 'center', color: 'var(--dash-text-muted)', fontSize: '14px' }}>
               No appointments yet for this client.
@@ -229,7 +240,36 @@ export default function ClientProfile() {
 
       </div>
 
-      {editAppt && <EditAppointmentModal appt={editAppt} onClose={() => setEditAppt(null)} />}
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={deleteConfirm}
+        onClose={() => setDeleteConfirm(false)}
+        title="Delete Client"
+        onSave={() => {
+          removeClient(client.id)
+          navigate('/dashboard/clients')
+        }}
+        saveLabel="Yes, Delete"
+        saveVariant="danger"
+        width="400px"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--dash-text-primary)', lineHeight: 1.6 }}>
+            Are you sure you want to delete <strong>{client.name}</strong>'s profile?
+          </p>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--dash-text-muted)' }}>
+            This action cannot be undone.
+          </p>
+        </div>
+      </Modal>
+
+      {bookingOpen && (
+        <NewBookingModal
+          open={bookingOpen}
+          onClose={() => setBookingOpen(false)}
+          initialData={{ clientId: client.id, client: client.name, phone: client.phone }}
+        />
+      )}
 
       {/* Edit Profile Modal */}
       <Modal

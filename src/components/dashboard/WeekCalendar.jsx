@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '../ui/Card'
 import { useAppointments } from '../../context/AppointmentContext'
+import { parseToISO } from '../../utils/formatDate'
 
 const TYPE_COLOR = {
   bridal:     'var(--color-rose-gold)',
@@ -50,7 +51,7 @@ export default function WeekCalendar() {
   // Map real or mock appointments into the Sunday-Saturday week
   const weekData = weekDates.map((dateObj, idx) => {
     const dateStr = dateObj.toISOString().split('T')[0]
-    const realAppts = appointments.filter(a => String(a.date) === dateStr && a.status !== 'Rejected')
+    const realAppts = appointments.filter(a => parseToISO(a.date) === dateStr && a.status !== 'Rejected')
 
     const appts = realAppts.length > 0
       ? realAppts.map(a => ({

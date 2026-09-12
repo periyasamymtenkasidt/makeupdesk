@@ -1,4 +1,5 @@
 import { checkTimeAvailability, getFreeWindows } from '../../utils/slots'
+import { parseToISO } from '../../utils/formatDate'
 import { SlotTimePicker, parseSlotHour, slotTo24h } from './SlotTimePicker'
 
 const EARLIEST = 5 * 60
@@ -45,9 +46,7 @@ export function DashTimePicker({
       'Confirmed', 'In Progress', 'Completed', 'Balance Paid', 'Closed',
     ])
     if (!BS.has(a.status)) return false
-    const [y, mo, dy] = date.split('-').map(Number)
-    const d = new Date(a.date)
-    if (d.getFullYear() !== y || d.getMonth() + 1 !== mo || d.getDate() !== dy) return false
+    if (parseToISO(a.date) !== date) return false
     if (vendorId !== null && a.vendorId !== vendorId) return false
     return true
   })

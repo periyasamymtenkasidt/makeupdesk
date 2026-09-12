@@ -25,6 +25,10 @@ const TITLES = {
     title: "Payments",
     subtitle: "Track advance and balance payments.",
   },
+  "/dashboard/vendor-payments": {
+    title: "Vendor Payments",
+    subtitle: "Track and manage payments owed to your team.",
+  },
   "/dashboard/masters/services": {
     title: "Service Master",
     subtitle: "Manage makeup services and base pricing.",

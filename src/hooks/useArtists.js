@@ -1,6 +1,7 @@
 import { useMaster } from './useMaster'
 import { VENDOR_KEY, VENDOR_DEFAULTS } from '../data/vendors'
 import { parseDurationMins } from '../utils/slots'
+import { parseToISO } from '../utils/formatDate'
 
 export const BOOKING_STAFF_CATEGORIES = [
   'Makeup Artist',
@@ -81,7 +82,7 @@ export function checkArtistAvailability(artistName, selectedDate, selectedTime, 
   const conflict = appointments.find(a => {
     if (currentApptId && String(a.id) === String(currentApptId)) return false
     if (a.status === 'Rejected' || a.status === 'Closed') return false
-    const sameDate = String(a.date).toLowerCase() === String(selectedDate).toLowerCase()
+    const sameDate = parseToISO(a.date) === parseToISO(selectedDate)
     if (!sameDate) return false
     if (!isAssignedTo(a, artistName)) return false
 

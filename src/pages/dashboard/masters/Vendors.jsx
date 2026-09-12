@@ -2,11 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
-  Search,
-  Pencil,
-  Trash2,
   Phone,
-  MessageCircle,
   Filter,
   Sparkles,
   Building2,
@@ -24,7 +20,6 @@ import {
   VENDOR_KEY,
   VENDOR_DEFAULTS,
   VENDOR_CATEGORIES,
-  ALL_DAYS,
 } from "../../../data/vendors";
 import { CustomSelect } from "../../../components/ui/CustomSelect";
 
@@ -42,9 +37,6 @@ const EMPTY = {
   availability: "Available",
   rating: 5,
   notes: "",
-  workDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  shiftStart: "08:00",
-  shiftEnd: "20:00",
 };
 
 const AVAIL_COLORS = {
@@ -100,11 +92,10 @@ function Stars({ rating }) {
 
 export default function Vendors() {
   const navigate = useNavigate()
-  const { items, add, update, remove } = useMaster(VENDOR_KEY, DEFAULTS);
+  const { items, add } = useMaster(VENDOR_KEY, DEFAULTS);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -127,27 +118,7 @@ export default function Vendors() {
   );
 
   function openAdd() {
-    setEditing(null);
     setForm(EMPTY);
-    setOpen(true);
-  }
-  function openEdit(i) {
-    setEditing(i.id);
-    setForm({
-      name: i.name,
-      category: i.category,
-      customCategory: i.customCategory || "",
-      contact: i.contact,
-      whatsapp: i.whatsapp,
-      charges: i.charges,
-      serviceArea: i.serviceArea,
-      availability: i.availability,
-      rating: i.rating,
-      notes: i.notes,
-      workDays: i.workDays || ["Mon","Tue","Wed","Thu","Fri","Sat"],
-      shiftStart: i.shiftStart || "08:00",
-      shiftEnd: i.shiftEnd || "20:00",
-    });
     setOpen(true);
   }
   function handleSave() {
@@ -161,21 +132,8 @@ export default function Vendors() {
     if (form.whatsapp && form.whatsapp.replace(/\s/g, '').length !== 10) {
       alert('WhatsApp number must be exactly 10 digits.'); return;
     }
-    const data = {
-      ...form,
-      charges: Number(form.charges) || 0,
-      rating: Number(form.rating),
-    };
-    editing ? update(editing, data) : add(data);
+    add({ ...form, charges: Number(form.charges) || 0, rating: Number(form.rating) });
     setOpen(false);
-  }
-  function handleDelete(id) {
-    if (window.confirm("Remove this vendor?")) remove(id);
-  }
-  function openWhatsApp(v) {
-    const phone =
-      v.whatsapp?.replace(/[^0-9]/g, "") || v.contact?.replace(/[^0-9]/g, "");
-    if (phone) window.open(`https://wa.me/${phone}`, "_blank");
   }
 
   const availCount = items.filter((i) => i.availability === "Available").length;
@@ -417,7 +375,6 @@ export default function Vendors() {
                   "Service Area",
                   "Availability",
                   "Rating",
-                  "Actions",
                 ].map((h) => (
                   <th
                     key={h}
@@ -617,71 +574,6 @@ export default function Vendors() {
                       <Stars rating={item.rating} />
                     </td>
 
-                    {/* Actions */}
-                    <td style={{ padding: "14px 16px" }}>
-                      <div style={{ display: "flex", gap: "6px" }}>
-                        <button
-                          onClick={() => openWhatsApp(item)}
-                          title="WhatsApp"
-                          style={{
-                            width: "30px",
-                            height: "30px",
-                            borderRadius: "8px",
-                            border: "1.5px solid rgba(37,211,102,0.3)",
-                            background: "rgba(37,211,102,0.1)",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <MessageCircle
-                            size={13}
-                            style={{ color: "#25D366" }}
-                          />
-                        </button>
-                        <button
-                          onClick={() => openEdit(item)}
-                          title="Edit"
-                          style={{
-                            width: "30px",
-                            height: "30px",
-                            borderRadius: "8px",
-                            border: "1.5px solid var(--btn-ghost-border)",
-                            background: "var(--btn-ghost-bg)",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Pencil
-                            size={13}
-                            style={{ color: "var(--icon-booking)" }}
-                          />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          title="Delete"
-                          style={{
-                            width: "30px",
-                            height: "30px",
-                            borderRadius: "8px",
-                            border: "1.5px solid var(--badge-rejected-bg)",
-                            background: "var(--badge-rejected-bg)",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Trash2
-                            size={13}
-                            style={{ color: "var(--badge-rejected)" }}
-                          />
-                        </button>
-                      </div>
-                    </td>
                   </tr>
                 );
               })}
@@ -716,9 +608,9 @@ export default function Vendors() {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title={editing ? "Edit Vendor" : "Add Vendor"}
+        title="Add Vendor"
         onSave={handleSave}
-        saveLabel={editing ? "Update" : "Add Vendor"}
+        saveLabel="Add Vendor"
         width="580px"
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -835,57 +727,6 @@ export default function Vendors() {
               onChange={(val) => set("rating", Number(val))}
             />
           </div>
-          {/* Working Days */}
-          <div>
-            <label style={lbl}>Working Days</label>
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-              {ALL_DAYS.map((day) => {
-                const active = (form.workDays || []).includes(day);
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => {
-                      const cur = form.workDays || [];
-                      set("workDays", active ? cur.filter((d) => d !== day) : [...cur, day]);
-                    }}
-                    style={{
-                      padding: "5px 11px", borderRadius: "8px", fontSize: "12px",
-                      fontWeight: 600, cursor: "pointer", border: "1.5px solid",
-                      borderColor: active ? "var(--icon-booking)" : "var(--dash-border)",
-                      background: active ? "var(--icon-booking-bg)" : "var(--dash-input-bg)",
-                      color: active ? "var(--icon-booking)" : "var(--dash-text-muted)",
-                    }}
-                  >
-                    {day}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Shift Hours */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div>
-              <label style={lbl}>Shift Start</label>
-              <input
-                type="time"
-                style={inp}
-                value={form.shiftStart || "08:00"}
-                onChange={(e) => set("shiftStart", e.target.value)}
-              />
-            </div>
-            <div>
-              <label style={lbl}>Shift End</label>
-              <input
-                type="time"
-                style={inp}
-                value={form.shiftEnd || "20:00"}
-                onChange={(e) => set("shiftEnd", e.target.value)}
-              />
-            </div>
-          </div>
-
           <div>
             <label style={lbl}>Notes</label>
             <input

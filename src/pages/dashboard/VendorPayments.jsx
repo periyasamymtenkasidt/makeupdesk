@@ -80,7 +80,7 @@ export default function VendorPayments() {
   const totalCost    = rows.reduce((s, r) => s + (r.amount || 0), 0)
   const totalPaid    = rows.filter(r => r.paid).reduce((s, r) => s + (r.amount || 0), 0)
   const totalPending = totalCost - totalPaid
-  const pendingCount = rows.filter(r => !r.paid).length
+  const pendingCount = new Set(rows.filter(r => !r.paid).map(r => r.vendorName)).size
 
   const STATS = [
     { label: 'Total Vendor Cost',  value: formatCurrencyShort(totalCost),    delta: '', icon: TrendingDown, color: 'var(--badge-pending)',   bg: 'var(--badge-pending-bg)'   },

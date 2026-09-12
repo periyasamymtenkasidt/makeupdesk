@@ -4,6 +4,7 @@ import { Card, CardHeader, CardBody } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { useAppointments } from '../../context/AppointmentContext'
 import { useClients } from '../../context/ClientContext'
+import { parseToISO } from '../../utils/formatDate'
 
 export default function SkinAlertsWidget() {
   const navigate = useNavigate()
@@ -16,8 +17,10 @@ export default function SkinAlertsWidget() {
   const upcoming = appointments
     .filter(a => {
       if (['Rejected', 'Closed'].includes(a.status)) return false
-      const d = new Date(a.date)
-      return !isNaN(d.getTime()) && d >= now && d <= in7Days
+      const iso = parseToISO(a.date)
+      if (!iso) return false
+      const d = new Date(iso + 'T00:00:00')
+      return d >= now && d <= in7Days
     })
     .map(a => {
       const client = clients.find(c => c.id === a.clientId || c.phone === a.phone)

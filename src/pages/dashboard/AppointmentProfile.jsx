@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign, Users, Check, Hourglass, Smartphone, Banknote, Send, Activity } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign, Users, Check, Hourglass, Smartphone, Banknote, Send, Activity, XCircle, Trash2 } from 'lucide-react'
 import { useAppointments } from '../../context/AppointmentContext'
 import { useClients } from '../../context/ClientContext'
 import { useToast } from '../../context/ToastContext'
@@ -15,7 +15,7 @@ import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Card, CardHeader } from '../../components/ui/Card'
 import { formatCurrency } from '../../utils/formatCurrency'
-import { PIPELINE_NEXT, STATUS_CONFIG } from '../../data/navigation'
+import { PIPELINE_NEXT, STATUS_CONFIG, TERMINAL_STATUSES } from '../../data/navigation'
 
 function InfoRow({ label, value, muted }) {
   return (
@@ -51,14 +51,16 @@ function StatBox({ icon: Icon, label, value, color, bg }) {
 export default function AppointmentProfile() {
   const { appointmentId } = useParams()
   const navigate = useNavigate()
-  const { appointments, updateAppointment, updateVendorPayments } = useAppointments()
+  const { appointments, updateAppointment, deleteAppointment, updateVendorPayments } = useAppointments()
   const { clients } = useClients()
   const { showToast } = useToast()
   const { items: allVendors } = useMaster(VENDOR_KEY, VENDOR_DEFAULTS)
-  const [editOpen,      setEditOpen]      = useState(false)
-  const [markDoneOpen,  setMarkDoneOpen]  = useState(false)
-  const [sendQuoteOpen, setSendQuoteOpen] = useState(false)
-  const [vendorPayModal, setVendorPayModal] = useState(null)
+  const [editOpen,        setEditOpen]        = useState(false)
+  const [markDoneOpen,    setMarkDoneOpen]    = useState(false)
+  const [sendQuoteOpen,   setSendQuoteOpen]   = useState(false)
+  const [deleteConfirm,   setDeleteConfirm]   = useState(false)
+  const [rejectConfirm,   setRejectConfirm]   = useState(false)
+  const [vendorPayModal,  setVendorPayModal]  = useState(null)
   const [vpMethod, setVpMethod]   = useState('UPI')
   const [vpTxnRef, setVpTxnRef]   = useState('')
 
@@ -142,18 +144,48 @@ export default function AppointmentProfile() {
                 <CheckCircle size={14} /> {nextAction.label}
               </Button>
             )}
-            {['Advance Paid', 'Confirmed', 'In Progress', 'Completed'].includes(appt.status) && (
-              <Button
-                variant="ghost" size="sm"
-                onClick={() => window.open(buildWhatsAppConfirmation(appt), '_blank')}
-                style={{ gap: '6px', color: '#25d366', borderColor: 'rgba(37,211,102,0.35)' }}
-                title="Send appointment confirmation on WhatsApp"
-              >
-                <Send size={14} /> Send Confirmation
-              </Button>
+            {['Advance Paid', 'Confirmed', 'In Progress'].includes(appt.status) && (
+              appt.confirmationSent ? (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+                  color: '#16a34a', background: 'rgba(37,211,102,0.10)',
+                  border: '1px solid rgba(37,211,102,0.35)',
+                }}>
+                  <CheckCircle size={14} /> Confirmation Sent
+                </div>
+              ) : (
+                <Button
+                  variant="ghost" size="sm"
+                  onClick={() => {
+                    window.open(buildWhatsAppConfirmation(appt), '_blank')
+                    updateAppointment(appt.id, { confirmationSent: true })
+                  }}
+                  style={{ gap: '6px', color: '#25d366', borderColor: 'rgba(37,211,102,0.35)' }}
+                  title="Send appointment confirmation on WhatsApp"
+                >
+                  <Send size={14} /> Send Confirmation
+                </Button>
+              )
             )}
             <Button variant="primary" size="sm" onClick={() => setEditOpen(true)}>
               Edit Appointment
+            </Button>
+            {!TERMINAL_STATUSES.has(appt.status) && appt.status !== 'Rejected' && (
+              <Button
+                variant="ghost" size="sm"
+                onClick={() => setRejectConfirm(true)}
+                style={{ gap: '6px', color: 'var(--badge-rejected)', borderColor: 'rgba(220,38,38,0.3)' }}
+              >
+                <XCircle size={14} /> Reject
+              </Button>
+            )}
+            <Button
+              variant="ghost" size="sm"
+              onClick={() => setDeleteConfirm(true)}
+              style={{ gap: '6px', color: 'var(--badge-rejected)', borderColor: 'rgba(220,38,38,0.3)' }}
+            >
+              <Trash2 size={14} /> Delete
             </Button>
           </div>
         </div>
@@ -688,6 +720,52 @@ export default function AppointmentProfile() {
           onDone={() => setMarkDoneOpen(false)}
         />
       )}
+
+      <Modal
+        open={rejectConfirm}
+        onClose={() => setRejectConfirm(false)}
+        title="Reject Appointment"
+        onSave={() => {
+          updateAppointment(appt.id, { status: 'Rejected' })
+          showToast('Appointment rejected.', 'info')
+          setRejectConfirm(false)
+        }}
+        saveLabel="Yes, Reject"
+        saveVariant="danger"
+        width="400px"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--dash-text-primary)', lineHeight: 1.6 }}>
+            Are you sure you want to reject the appointment for <strong>{appt.name}</strong>?
+          </p>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--dash-text-muted)' }}>
+            The status will be changed to <strong>Rejected</strong>.
+          </p>
+        </div>
+      </Modal>
+
+      <Modal
+        open={deleteConfirm}
+        onClose={() => setDeleteConfirm(false)}
+        title="Delete Appointment"
+        onSave={() => {
+          deleteAppointment(appt.id)
+          showToast('Appointment deleted.', 'info')
+          navigate('/dashboard/appointments')
+        }}
+        saveLabel="Yes, Delete"
+        saveVariant="danger"
+        width="400px"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--dash-text-primary)', lineHeight: 1.6 }}>
+            Are you sure you want to delete the appointment for <strong>{appt.name}</strong>?
+          </p>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--dash-text-muted)' }}>
+            This action cannot be undone.
+          </p>
+        </div>
+      </Modal>
     </>
   )
 }

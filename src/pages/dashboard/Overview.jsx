@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react'
 import { earliestBookableMins } from '../../utils/slots'
+import { parseToISO } from '../../utils/formatDate'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Users, TrendingUp, Clock, ChevronRight, Plus } from 'lucide-react'
 import StatsCard from '../../components/dashboard/StatsCard'
@@ -52,10 +53,10 @@ export default function Overview() {
   }
 
   // ── today ────────────────────────────────────────────────────────
-  const todayStr   = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const todayStr   = new Date().toISOString().split('T')[0]
   const nowMins    = new Date().getHours() * 60 + new Date().getMinutes()
   const todayAppts = appointments.filter(a =>
-    a.date === todayStr && !['Rejected', 'Closed'].includes(a.status)
+    parseToISO(a.date) === todayStr && !['Rejected', 'Closed'].includes(a.status)
   )
   const onVenue   = todayAppts.filter(a => a.location && !a.location.toLowerCase().includes('studio')).length
   const inStudio  = todayAppts.length - onVenue
@@ -92,12 +93,16 @@ export default function Overview() {
   const lm = cm === 0 ? 11 : cm - 1, ly = cm === 0 ? cy - 1 : cy
 
   const thisMonth = appointments.filter(a => {
-    const d = new Date(a.date)
-    return !isNaN(d) && d.getMonth() === cm && d.getFullYear() === cy && a.status !== 'Rejected'
+    const iso = parseToISO(a.date)
+    if (!iso) return false
+    const [y, mo] = iso.split('-').map(Number)
+    return mo - 1 === cm && y === cy && a.status !== 'Rejected'
   })
   const lastMonth = appointments.filter(a => {
-    const d = new Date(a.date)
-    return !isNaN(d) && d.getMonth() === lm && d.getFullYear() === ly && a.status !== 'Rejected'
+    const iso = parseToISO(a.date)
+    if (!iso) return false
+    const [y, mo] = iso.split('-').map(Number)
+    return mo - 1 === lm && y === ly && a.status !== 'Rejected'
   })
   const thisMonthRevenue  = thisMonth.reduce((s, a) => s + (a.amount || 0), 0)
   const lastMonthRevenue  = lastMonth.reduce((s, a) => s + (a.amount || 0), 0)
@@ -194,8 +199,10 @@ export default function Overview() {
 
     const upcoming = appointments.filter(a => {
       if (['Rejected', 'Closed'].includes(a.status)) return false
-      const d = new Date(a.date)
-      return !isNaN(d.getTime()) && d > now && d <= in24h
+      const iso = parseToISO(a.date)
+      if (!iso) return false
+      const d = new Date(iso + 'T00:00:00')
+      return d > now && d <= in24h
     })
 
     upcoming.forEach((a, i) => {

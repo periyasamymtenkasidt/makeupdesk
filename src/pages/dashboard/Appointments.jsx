@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { Plus } from 'lucide-react'
 import AppointmentTable from '../../components/dashboard/AppointmentTable'
 import NewBookingModal from '../../components/dashboard/NewBookingModal'
-import MarkDoneFlow from '../../components/dashboard/MarkDoneFlow'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Pagination } from '../../components/ui/Pagination'
@@ -22,10 +21,9 @@ const SORTS = [
 ]
 
 export default function Appointments() {
-  const { appointments, updateStatus, updateAppointment, deleteAppointment } = useAppointments()
-  const [activeTab,    setActiveTab]    = useState('All')
-  const [openNew,      setOpenNew]      = useState(false)
-  const [markDoneAppt, setMarkDoneAppt] = useState(null)
+  const { appointments } = useAppointments()
+  const [activeTab, setActiveTab] = useState('All')
+  const [openNew,   setOpenNew]   = useState(false)
 
   const [locFilter, setLocFilter] = useState('all')
 
@@ -97,15 +95,7 @@ export default function Appointments() {
 
         {/* Table */}
         <Card style={{ flex: 1, minHeight: 0, overflow: 'hidden', padding: 0, display: 'flex', flexDirection: 'column' }}>
-          <AppointmentTable
-            appointments={paginated}
-            onMarkDone={appt => setMarkDoneAppt(appt)}
-            onReject={appt => {
-              if (window.confirm(`Reject booking for ${appt.name}? This will mark the appointment as rejected.`))
-                updateStatus(appt.id, 'Rejected')
-            }}
-            onDelete={id => deleteAppointment(id)}
-          />
+          <AppointmentTable appointments={paginated} />
         </Card>
 
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', paddingTop: '4px' }}>
@@ -114,14 +104,6 @@ export default function Appointments() {
       </div>
 
       {openNew && <NewBookingModal open={openNew} onClose={() => setOpenNew(false)} />}
-
-      {markDoneAppt && (
-        <MarkDoneFlow
-          appt={markDoneAppt}
-          onUpdate={data => updateAppointment(markDoneAppt.id, data)}
-          onDone={() => setMarkDoneAppt(null)}
-        />
-      )}
     </>
   )
 }

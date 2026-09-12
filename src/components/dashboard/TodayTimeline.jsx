@@ -6,6 +6,7 @@ import { to24h } from '../../utils/timeFormat'
 import { useAppointments } from '../../context/AppointmentContext'
 import { useMaster } from '../../hooks/useMaster'
 import { VENUE_DEFAULTS } from '../../data/venues'
+import { parseToISO } from '../../utils/formatDate'
 
 function parse12h(t) {
   if (!t) return null
@@ -46,14 +47,14 @@ export default function TodayTimeline({ onBookSlot }) {
 
   const timeline = useMemo(() => {
     const now       = new Date()
-    const todayStr  = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const todayStr  = now.toISOString().split('T')[0]
     const nowMins   = now.getHours() * 60 + now.getMinutes()
     const cutoff    = nowMins + 120
     const workStart = 5 * 60
     const workEnd   = 21 * 60
 
     const todayAppts = appointments
-      .filter(a => a.date === todayStr && !['Rejected', 'Closed'].includes(a.status))
+      .filter(a => parseToISO(a.date) === todayStr && !['Rejected', 'Closed'].includes(a.status))
       .map(a => {
         const startMins = parse12h(a.time)
         if (startMins == null) return null

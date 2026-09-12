@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Clock } from 'lucide-react'
 import { getFreeWindows, earliestBookableMins } from '../../utils/slots'
+import { parseToISO } from '../../utils/formatDate'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -75,9 +76,7 @@ export function SlotTimePicker({
       'Confirmed', 'In Progress', 'Completed', 'Balance Paid', 'Closed',
     ])
     if (!BS.has(a.status)) return false
-    const [y, mo, dy] = date.split('-').map(Number)
-    const d = new Date(a.date)
-    if (d.getFullYear() !== y || d.getMonth() + 1 !== mo || d.getDate() !== dy) return false
+    if (parseToISO(a.date) !== date) return false
     if (vendorId !== null && a.vendorId !== vendorId) return false
     return true
   })
