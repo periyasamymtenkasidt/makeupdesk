@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
 import { Check, X, Users, ChevronDown } from 'lucide-react'
 import { checkArtistAvailability, isArtistAvailableAt } from '../../hooks/useArtists'
+import { getBlockConflict } from '../../utils/slots'
+
+function fmt12h(hhmm) {
+  if (!hhmm) return ''
+  const [h, m] = hhmm.split(':').map(Number)
+  const ap = h >= 12 ? 'PM' : 'AM'
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${String(m).padStart(2, '0')} ${ap}`
+}
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -37,6 +46,7 @@ export function MultiArtistPicker({
     const group = artists.filter(a => (a.category || 'Other Artists') === cat && a.availability !== 'Inactive')
     if (group.length === 0) return false
     return group.every(artist => {
+      if (date && getBlockConflict(artist.blockedDates, date, time, durationMins)) return true
       const bookCheck = checkArtistAvailability(artist.name, date, time, appointments, currentApptId, durationMins)
       const dayName = date ? DAY_NAMES[new Date(date + 'T00:00:00').getDay()] : null
       const worksToday = !date || (artist.workDays || DAY_NAMES).includes(dayName)
@@ -171,10 +181,18 @@ export function MultiArtistPicker({
                     return (artist.workDays || DAY_NAMES).includes(dayName)
                   })()
                   const inShift = !date || !time || isArtistAvailableAt(artist, date, time, durationMins)
-                  const isUnavailable = bookCheck.isBooked || !worksToday || !inShift
+                  const blockConflict  = date ? getBlockConflict(artist.blockedDates, date, time, durationMins) : null
+                  const isDateBlocked  = !!blockConflict
+                  const isUnavailable  = isDateBlocked || bookCheck.isBooked || !worksToday || !inShift
 
                   let statusLabel, statusColor
-                  if (bookCheck.isBooked) {
+                  if (isDateBlocked) {
+                    const isFullDay = !blockConflict.timeFrom || !blockConflict.timeTo
+                    statusLabel = isFullDay
+                      ? '🚫 Unavailable'
+                      : `🚫 Blocked ${fmt12h(blockConflict.timeFrom)}–${fmt12h(blockConflict.timeTo)}`
+                    statusColor = 'var(--badge-rejected)'
+                  } else if (bookCheck.isBooked) {
                     statusLabel = `⚠️ Booked (${bookCheck.bookedTime})`
                     statusColor = 'var(--badge-pending)'
                   } else if (!worksToday) {

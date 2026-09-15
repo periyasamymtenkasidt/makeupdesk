@@ -14,7 +14,7 @@ function parseYMD(str) {
   return { y, m, d }
 }
 
-export function DatePicker({ label, value, onChange, min, dark = false }) {
+export function DatePicker({ label, value, onChange, min, dark = false, blockedDates = [] }) {
   const today = new Date()
   const todayParts = { y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() }
   const minParts = min ? parseYMD(min) : todayParts
@@ -75,6 +75,11 @@ export function DatePicker({ label, value, onChange, min, dark = false }) {
     return cells
   }
 
+  function isBlocked(d) {
+    if (!d) return false
+    return blockedDates.includes(toYMD(viewYear, viewMonth + 1, d))
+  }
+
   function isPast(d) {
     if (!d) return true
     const m = viewMonth + 1
@@ -89,7 +94,7 @@ export function DatePicker({ label, value, onChange, min, dark = false }) {
   }
 
   function selectDay(d) {
-    if (!d || isPast(d)) return
+    if (!d || isPast(d) || isBlocked(d)) return
     onChange(toYMD(viewYear, viewMonth + 1, d))
     setOpen(false)
   }
@@ -192,28 +197,33 @@ export function DatePicker({ label, value, onChange, min, dark = false }) {
           {/* Date cells */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
             {getDays().map((d, i) => {
-              const past = isPast(d)
-              const sel  = isSelected(d)
+              const past    = isPast(d)
+              const blocked = isBlocked(d)
+              const sel     = isSelected(d)
+              const disabled = !d || past || blocked
               return (
                 <button
                   key={i}
                   type="button"
-                  disabled={!d || past}
+                  disabled={disabled}
+                  title={blocked ? 'Artist unavailable on this date' : undefined}
                   onClick={() => selectDay(d)}
                   style={{
                     height: '34px', borderRadius: '8px', border: 'none',
-                    background: sel ? accentColor : 'none',
+                    background: sel ? accentColor : blocked ? 'rgba(220,38,38,0.08)' : 'none',
                     color: !d ? 'transparent'
-                      : past ? textDisabled
-                      : sel  ? '#fff'
+                      : past    ? textDisabled
+                      : blocked ? '#dc2626'
+                      : sel     ? '#fff'
                       : textPrimary,
-                    cursor: !d || past ? 'default' : 'pointer',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
                     fontSize: '13px', fontWeight: sel ? 700 : 400,
+                    textDecoration: blocked ? 'line-through' : 'none',
                     transition: 'background 0.12s',
                     opacity: !d ? 0 : 1,
                   }}
-                  onMouseEnter={e => { if (d && !past && !sel) e.currentTarget.style.background = hoverBg }}
-                  onMouseLeave={e => { if (!sel) e.currentTarget.style.background = 'none' }}
+                  onMouseEnter={e => { if (d && !past && !blocked && !sel) e.currentTarget.style.background = hoverBg }}
+                  onMouseLeave={e => { if (!sel) e.currentTarget.style.background = blocked ? 'rgba(220,38,38,0.08)' : 'none' }}
                 >
                   {d || ''}
                 </button>

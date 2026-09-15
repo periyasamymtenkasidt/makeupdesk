@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Calendar, Clock, MapPin, DollarSign, CreditCard, TrendingUp, CheckCircle, Star, MessageSquare, History, Wallet, BadgeDollarSign, Users, Check, Hourglass, Smartphone, Banknote, Send, Activity, XCircle, Trash2 } from 'lucide-react'
 import { useAppointments } from '../../context/AppointmentContext'
@@ -70,7 +70,7 @@ export default function AppointmentProfile() {
     return (
       <div style={{ padding: '80px', textAlign: 'center' }}>
         <p style={{ color: 'var(--dash-text-muted)', marginBottom: '20px' }}>Appointment not found.</p>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/appointments')}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/appointments')}>
           <ArrowLeft size={15} /> Back to Appointments
         </Button>
       </div>
@@ -219,7 +219,7 @@ export default function AppointmentProfile() {
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)' }}>Client</span>
               {client && (
                 <button
-                  onClick={() => navigate(`/dashboard/clients/${client.id}`)}
+                  onClick={() => navigate(`/clients/${client.id}`)}
                   style={{
                     fontSize: '11.5px', fontWeight: 600, color: 'var(--icon-booking)',
                     background: 'none', border: 'none', cursor: 'pointer',
@@ -751,7 +751,7 @@ export default function AppointmentProfile() {
         onSave={() => {
           deleteAppointment(appt.id)
           showToast('Appointment deleted.', 'info')
-          navigate('/dashboard/appointments')
+          navigate('/appointments')
         }}
         saveLabel="Yes, Delete"
         saveVariant="danger"

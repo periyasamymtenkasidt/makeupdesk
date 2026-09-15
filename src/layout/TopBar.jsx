@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Sun, Moon, Search, Sparkles, Menu } from 'lucide-react'
-import { useTheme } from '../../context/ThemeContext'
-import GlobalSearchModal from './GlobalSearchModal'
+import { useTheme } from '../context/ThemeContext'
+import GlobalSearchModal from '../components/dashboard/GlobalSearchModal'
 
 export default function TopBar({ onMenuToggle }) {
   const { theme, toggleTheme } = useTheme()

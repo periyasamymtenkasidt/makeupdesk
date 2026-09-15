@@ -1,47 +1,47 @@
 import { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import Sidebar from "../components/dashboard/Sidebar";
-import TopBar from "../components/dashboard/TopBar";
+import Sidebar from "./Sidebar";
+import TopBar from "./TopBar";
 
 const TITLES = {
-  "/dashboard": {
+  "/overview": {
     title: "Overview",
     subtitle: "Here's what's happening with your bookings today.",
   },
-  "/dashboard/appointments": {
+  "/appointments": {
     title: "Appointments",
     subtitle: "Manage all your bookings in one place.",
   },
-  "/dashboard/clients": {
+  "/clients": {
     title: "Clients",
     subtitle: "Your complete client directory.",
   },
-  "/dashboard/quotations": {
+  "/quotations": {
     title: "Quotations",
     subtitle: "Generate and track client quotations.",
   },
-  "/dashboard/payments": {
+  "/payments": {
     title: "Payments",
     subtitle: "Track advance and balance payments.",
   },
-  "/dashboard/vendor-payments": {
+  "/payments/vendors": {
     title: "Vendor Payments",
     subtitle: "Track and manage payments owed to your team.",
   },
-  "/dashboard/masters/services": {
+  "/masters/services": {
     title: "Service Master",
     subtitle: "Manage makeup services and base pricing.",
   },
-  "/dashboard/masters/venues": {
+  "/masters/venues": {
     title: "Venue Pricing Master",
     subtitle: "Configure price adjustments per venue type.",
   },
-  "/dashboard/masters/vendors": {
+  "/masters/vendors": {
     title: "Vendor Master",
     subtitle: "Manage your external professionals and partners.",
   },
-  "/dashboard/settings": {
+  "/settings": {
     title: "Settings",
     subtitle:
       "Manage studio profile, payment options, templates & preferences.",
@@ -50,19 +50,25 @@ const TITLES = {
 
 function getPageTitle(pathname) {
   if (TITLES[pathname]) return TITLES[pathname];
-  if (pathname.startsWith("/dashboard/appointments/"))
+  if (pathname.startsWith("/appointments/"))
     return {
       title: "Appointment Details",
       subtitle: "View and manage appointment details.",
-      backPath: "/dashboard/appointments",
+      backPath: "/appointments",
     };
-  if (pathname.startsWith("/dashboard/clients/"))
+  if (pathname.startsWith("/clients/"))
     return {
       title: "Client Profile",
       subtitle: "Full booking history and payment record.",
-      backPath: "/dashboard/clients",
+      backPath: "/clients",
     };
-  return TITLES["/dashboard"];
+  if (pathname.startsWith("/masters/vendors/"))
+    return {
+      title: "Vendor Profile",
+      subtitle: "Vendor details, assigned appointments and payment history.",
+      backPath: "/masters/vendors",
+    };
+  return TITLES["/overview"];
 }
 
 export default function Dashboard() {
@@ -146,13 +152,28 @@ export default function Dashboard() {
                   onClick={() => navigate(backPath)}
                   title="Go back"
                   style={{
-                    width: 28, height: 28, borderRadius: "50%", border: "none",
-                    background: "var(--dash-subtle-row-bg)", cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "var(--dash-text-secondary)", transition: "all 0.15s", flexShrink: 0,
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    border: "none",
+                    background: "var(--dash-subtle-row-bg)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--dash-text-secondary)",
+                    transition: "all 0.15s",
+                    flexShrink: 0,
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "var(--dash-row-hover)"; e.currentTarget.style.color = "var(--dash-text-primary)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "var(--dash-subtle-row-bg)"; e.currentTarget.style.color = "var(--dash-text-secondary)"; }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--dash-row-hover)";
+                    e.currentTarget.style.color = "var(--dash-text-primary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background =
+                      "var(--dash-subtle-row-bg)";
+                    e.currentTarget.style.color = "var(--dash-text-secondary)";
+                  }}
                 >
                   <ArrowLeft size={14} />
                 </button>

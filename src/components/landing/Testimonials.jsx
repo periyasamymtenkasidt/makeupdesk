@@ -3,10 +3,6 @@ import { Star, X, MessageSquare, ArrowRight, Play, Volume2, VolumeX } from 'luci
 import { TESTIMONIALS } from '../../data/testimonials'
 import { useReveal } from '../../hooks/useReveal'
 import { useMaster } from '../../hooks/useMaster'
-import vid1 from '../../assets/videos/testimonal_1.mp4'
-import vid2 from '../../assets/videos/testimonal_2.mp4'
-import vid3 from '../../assets/videos/testimonal_3.mp4'
-
 function Stars({ count = 5 }) {
   return (
     <div className="flex gap-1">
@@ -24,7 +20,11 @@ const AVATAR_GRADIENTS = [
   'linear-gradient(135deg, #9b51e0, #e8a4b8)',
 ]
 
-const VIDEO_SOURCES = [vid1, vid2, vid3]
+const VIDEO_SOURCES = [
+  '/videos/testimonal_1.mp4',
+  '/videos/testimonal_2.mp4',
+  '/videos/testimonal_3.mp4',
+]
 
 function VideoTestiCard({ item, index }) {
   const videoRef            = useRef(null)

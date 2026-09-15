@@ -5,24 +5,24 @@ import {
   Settings, Scissors, MapPin, UserCheck, LogOut,
   Layers, ChevronDown, X, Sparkles
 } from 'lucide-react'
-import { Modal } from '../ui/Modal'
+import { Modal } from '../components/ui/Modal'
 
 const MAIN_NAV = [
-  { icon: LayoutDashboard, label: 'Overview',     to: '/dashboard' },
-  { icon: Calendar,        label: 'Appointments', to: '/dashboard/appointments' },
-  { icon: Users,           label: 'Clients',      to: '/dashboard/clients' },
-  { icon: FileText,        label: 'Quotations',   to: '/dashboard/quotations' },
+  { icon: LayoutDashboard, label: 'Overview',     to: '/overview' },
+  { icon: Calendar,        label: 'Appointments', to: '/appointments' },
+  { icon: Users,           label: 'Clients',      to: '/clients' },
+  { icon: FileText,        label: 'Quotations',   to: '/quotations' },
 ]
 
 const PAYMENTS_NAV = [
-  { icon: CreditCard, label: 'Client Payments', to: '/dashboard/payments' },
-  { icon: Wallet,     label: 'Vendor Pay',      to: '/dashboard/vendor-payments' },
+  { icon: CreditCard, label: 'Client Payments', to: '/payments',         end: true },
+  { icon: Wallet,     label: 'Vendor Pay',      to: '/payments/vendors', end: false },
 ]
 
 const MASTER_NAV = [
-  { icon: Scissors,   label: 'Services',      to: '/dashboard/masters/services'     },
-  { icon: MapPin,     label: 'Venues',        to: '/dashboard/masters/venues'       },
-  { icon: UserCheck,  label: 'Vendors',       to: '/dashboard/masters/vendors'      },
+  { icon: Scissors,   label: 'Services',      to: '/masters/services' },
+  { icon: MapPin,     label: 'Venues',        to: '/masters/venues'   },
+  { icon: UserCheck,  label: 'Vendors',       to: '/masters/vendors'  },
 ]
 
 const navStyle = (isActive) => ({
@@ -38,15 +38,15 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
   const navigate  = useNavigate()
   const location  = useLocation()
   const [mastersOpen, setMastersOpen] = useState(() =>
-    location.pathname.startsWith('/dashboard/masters')
+    location.pathname.startsWith('/masters')
   )
   const [paymentsOpen, setPaymentsOpen] = useState(() =>
-    location.pathname.startsWith('/dashboard/payments') || location.pathname.startsWith('/dashboard/vendor-payments')
+    location.pathname.startsWith('/payments')
   )
 
   useEffect(() => {
-    if (location.pathname.startsWith('/dashboard/masters')) setMastersOpen(true)
-    if (location.pathname.startsWith('/dashboard/payments') || location.pathname.startsWith('/dashboard/vendor-payments')) setPaymentsOpen(true)
+    if (location.pathname.startsWith('/masters')) setMastersOpen(true)
+    if (location.pathname.startsWith('/payments')) setPaymentsOpen(true)
   }, [location.pathname])
 
   // Close mobile drawer on route change
@@ -70,7 +70,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
           Main Menu
         </p>
         {MAIN_NAV.map(({ icon: Icon, label, to }) => (
-          <NavLink key={to} to={to} end={to === '/dashboard'}
+          <NavLink key={to} to={to} end={to === '/overview'}
             onClick={onClose}
             className={({ isActive }) => `sidebar-nav-link${isActive ? ' sidebar-nav-active' : ''}`}
             style={({ isActive }) => navStyle(isActive)}>
@@ -111,8 +111,8 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
           {paymentsOpen && (
             <div style={{ marginTop: '2px', paddingLeft: '14px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <div style={{ borderLeft: '1.5px solid var(--sidebar-accent-border)', paddingLeft: '10px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                {PAYMENTS_NAV.map(({ icon: Icon, label, to }) => (
-                  <NavLink key={to} to={to}
+                {PAYMENTS_NAV.map(({ icon: Icon, label, to, end }) => (
+                  <NavLink key={to} to={to} end={end}
                     onClick={onClose}
                     className={({ isActive }) => `sidebar-nav-link${isActive ? ' sidebar-nav-active' : ''}`}
                     style={({ isActive }) => ({
@@ -182,7 +182,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
 
       {/* Bottom section */}
       <div style={{ padding: '18px 14px 28px', marginTop: 'auto' }}>
-        <NavLink to="/dashboard/settings"
+        <NavLink to="/settings"
           onClick={onClose}
           style={({ isActive }) => ({
             display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px', borderRadius:'12px',
@@ -215,7 +215,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
     <>
       <nav className="no-scrollbar" style={{ flex: 1, padding: '16px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', overflowY: 'auto' }}>
         {MAIN_NAV.map(({ icon: Icon, label, to }) => (
-          <NavLink key={to} to={to} end={to === '/dashboard'}
+          <NavLink key={to} to={to} end={to === '/overview'}
             onClick={onClose}
             data-tooltip={label}
             className={({ isActive }) => `sidebar-nav-link${isActive ? ' sidebar-nav-active' : ''}`}
@@ -230,8 +230,8 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
         ))}
 
         {/* Payment Icons */}
-        {PAYMENTS_NAV.map(({ icon: Icon, label, to }) => (
-          <NavLink key={to} to={to}
+        {PAYMENTS_NAV.map(({ icon: Icon, label, to, end }) => (
+          <NavLink key={to} to={to} end={end}
             onClick={onClose}
             data-tooltip={label}
             className={({ isActive }) => `sidebar-nav-link${isActive ? ' sidebar-nav-active' : ''}`}
@@ -264,7 +264,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
 
       {/* Bottom section */}
       <div style={{ padding: '16px 8px 24px', marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-        <NavLink to="/dashboard/settings"
+        <NavLink to="/settings"
           onClick={onClose}
           data-tooltip="Settings"
           style={({ isActive }) => ({

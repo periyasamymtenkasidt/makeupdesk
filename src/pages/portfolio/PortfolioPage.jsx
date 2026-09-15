@@ -5,8 +5,8 @@ import {
   ITEMS,
   CATEGORIES,
   PortfolioCard,
-} from "../components/landing/Portfolio";
-import PortfolioLightboxModal from "../components/landing/PortfolioLightboxModal";
+} from "../../components/landing/Portfolio";
+import PortfolioLightboxModal from "../../components/landing/PortfolioLightboxModal";
 
 const PHOTO_CATEGORIES = CATEGORIES.filter((c) => c !== "Video");
 const photoItems = ITEMS.filter((i) => !i.video);

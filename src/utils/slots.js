@@ -1,4 +1,41 @@
 /**
+ * Normalise any blocked-date entry to { date, timeFrom, timeTo }.
+ * Handles: plain string, old { date } object, new { dateFrom } object.
+ */
+export function normalizeBlock(b) {
+  if (typeof b === 'string') return { date: b, timeFrom: '', timeTo: '' }
+  if (b.dateFrom) return { date: b.dateFrom, timeFrom: b.timeFrom || '', timeTo: b.timeTo || '' }
+  return { date: b.date || '', timeFrom: b.timeFrom || '', timeTo: b.timeTo || '' }
+}
+
+/**
+ * Returns the conflicting block entry if the proposed date/time slot overlaps
+ * a vendor's blocked date, or null if there is no conflict.
+ *
+ * Full-day blocks (no timeFrom/timeTo) always conflict on that date.
+ * Time-range blocks only conflict when a time is provided and the slot overlaps.
+ * If timeHHMM is omitted, only full-day blocks are matched (useful for calendar display).
+ */
+export function getBlockConflict(blockedDates, dateStr, timeHHMM = '', durationMins = 0) {
+  if (!blockedDates || !dateStr) return null
+  for (const raw of blockedDates) {
+    const b = normalizeBlock(raw)
+    if (b.date !== dateStr) continue
+    if (!b.timeFrom || !b.timeTo) return b          // full-day block
+    if (!timeHHMM) continue                          // partial block but no time to check
+    const [bfh, bfm] = b.timeFrom.split(':').map(Number)
+    const [bth, btm] = b.timeTo.split(':').map(Number)
+    const [sh,  sm]  = timeHHMM.split(':').map(Number)
+    const blockStart = bfh * 60 + bfm
+    const blockEnd   = bth * 60 + btm
+    const slotStart  = sh  * 60 + sm
+    const slotEnd    = slotStart + Math.max(durationMins, 1)
+    if (slotStart < blockEnd && slotEnd > blockStart) return b
+  }
+  return null
+}
+
+/**
  * Returns the earliest bookable minute-of-day for a given date.
  * - Past date  → Infinity  (nothing bookable)
  * - Today      → now + 120 min (2-hour lead time)

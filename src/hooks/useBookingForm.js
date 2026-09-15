@@ -7,12 +7,12 @@ const INITIAL = {
 }
 
 export function useBookingForm() {
-  const [step, setStep]           = useState(1)
-  const [form, setFormState]      = useState(INITIAL)
-  const [step1Touched, setStep1Touched] = useState(false)
+  const [form,    setFormState] = useState(INITIAL)
+  const [touched, setTouched]  = useState(false)
 
   const filterName  = v => v.replace(/[^a-zA-Z\s.'`-]/g, '')
   const filterPhone = v => v.replace(/[^0-9 ]/g, '').slice(0, 15)
+
   const setField = (key, value) =>
     setFormState(f => ({
       ...f,
@@ -21,21 +21,17 @@ export function useBookingForm() {
            : value,
     }))
 
-  const step1Valid = Boolean(
+  const isVenue   = form.locationType === 'Venue'
+  const formValid = Boolean(
     form.name.trim() &&
     form.phone.replace(/\s/g, '').length === 10 &&
-    form.service
+    form.service &&
+    form.date &&
+    form.time &&
+    (!isVenue || form.venueAddress.trim())
   )
 
-  const nextStep = () => {
-    if (!step1Valid) { setStep1Touched(true); return }
-    setStep(2)
-  }
-  const prevStep = () => setStep(1)
-  const reset    = () => { setStep(1); setFormState(INITIAL); setStep1Touched(false) }
+  const reset = () => { setFormState(INITIAL); setTouched(false) }
 
-  const isVenue = form.locationType === 'Venue'
-  const step2Valid = Boolean(form.date && form.time && (!isVenue || form.venueAddress.trim()))
-
-  return { step, form, setField, nextStep, prevStep, reset, step1Valid, step1Touched, step2Valid }
+  return { form, setField, reset, formValid, touched, setTouched }
 }

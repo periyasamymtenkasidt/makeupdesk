@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Calendar, Users, Sparkles, UserCheck, ArrowRight, X } from 'lucide-react'
 import { useAppointments } from '../../context/AppointmentContext'
@@ -80,10 +80,10 @@ export default function GlobalSearchModal({ open, onClose }) {
 
   // Combine results flat list for keyboard arrow selection
   const allResults = [
-    ...matchedAppts.map(item => ({ type: 'appt', item, path: '/dashboard/appointments' })),
-    ...matchedClients.map(item => ({ type: 'client', item, path: '/dashboard/clients' })),
-    ...matchedServices.map(item => ({ type: 'service', item, path: '/dashboard/masters/services' })),
-    ...matchedVendors.map(item => ({ type: 'vendor', item, path: '/dashboard/masters/vendors' })),
+    ...matchedAppts.map(item => ({ type: 'appt', item, path: `/appointments/${item.id}` })),
+    ...matchedClients.map(item => ({ type: 'client', item, path: `/clients/${item.id}` })),
+    ...matchedServices.map(item => ({ type: 'service', item, path: '/masters/services' })),
+    ...matchedVendors.map(item => ({ type: 'vendor', item, path: `/masters/vendors/${item.id}` })),
   ]
 
   function handleSelect(res) {
@@ -183,7 +183,7 @@ export default function GlobalSearchModal({ open, onClose }) {
               {matchedAppts.map(a => (
                 <div
                   key={a.id}
-                  onClick={() => handleSelect({ type: 'appt', item: a, path: '/dashboard/appointments' })}
+                  onClick={() => handleSelect({ type: 'appt', item: a, path: `/appointments/${a.id}` })}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
@@ -220,7 +220,7 @@ export default function GlobalSearchModal({ open, onClose }) {
               {matchedClients.map(c => (
                 <div
                   key={c.id}
-                  onClick={() => handleSelect({ type: 'client', item: c, path: '/dashboard/clients' })}
+                  onClick={() => handleSelect({ type: 'client', item: c, path: `/clients/${c.id}` })}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
@@ -258,7 +258,7 @@ export default function GlobalSearchModal({ open, onClose }) {
               {matchedServices.map(s => (
                 <div
                   key={s.id}
-                  onClick={() => handleSelect({ type: 'service', item: s, path: '/dashboard/masters/services' })}
+                  onClick={() => handleSelect({ type: 'service', item: s, path: '/masters/services' })}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
@@ -289,7 +289,7 @@ export default function GlobalSearchModal({ open, onClose }) {
               {matchedVendors.map(v => (
                 <div
                   key={v.id}
-                  onClick={() => handleSelect({ type: 'vendor', item: v, path: '/dashboard/masters/vendors' })}
+                  onClick={() => handleSelect({ type: 'vendor', item: v, path: `/masters/vendors/${v.id}` })}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',

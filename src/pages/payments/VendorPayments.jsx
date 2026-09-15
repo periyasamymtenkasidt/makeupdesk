@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Wallet, TrendingDown, CheckCircle, Clock, Check, Hourglass, Smartphone, Banknote, CreditCard, Users } from 'lucide-react'
 import StatsCard from '../../components/dashboard/StatsCard'
 import { Card, CardHeader } from '../../components/ui/Card'
@@ -51,6 +52,7 @@ const lbl = {
 }
 
 export default function VendorPayments() {
+  const navigate = useNavigate()
   const { appointments, updateVendorPayments } = useAppointments()
 
   const [paidFilter, setPaidFilter] = useState('all')
@@ -196,7 +198,8 @@ export default function VendorPayments() {
                 {paginated.map((row, i) => (
                   <tr
                     key={`${row.apptId}-${row.vendorName}-${i}`}
-                    style={{ borderBottom: '1px solid var(--dash-border-subtle)', transition: 'background 0.15s' }}
+                    onClick={() => navigate(`/appointments/${row.apptId}`)}
+                    style={{ borderBottom: '1px solid var(--dash-border-subtle)', transition: 'background 0.15s', cursor: 'pointer' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
@@ -230,7 +233,7 @@ export default function VendorPayments() {
                     <td style={{ padding: '14px 16px' }}>
                       {!row.paid ? (
                         <button
-                          onClick={() => openPayModal(row)}
+                          onClick={e => { e.stopPropagation(); openPayModal(row) }}
                           style={{
                             padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
                             border: '1.5px solid #c9956c',

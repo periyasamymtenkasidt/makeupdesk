@@ -1,22 +1,24 @@
-import { useState } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { usePagination } from '../../../hooks/usePagination'
-import { Pagination } from '../../../components/ui/Pagination'
+import { usePagination } from '../../hooks/usePagination'
+import { Pagination } from '../../components/ui/Pagination'
 import {
   ArrowLeft, Phone, MessageCircle, Pencil, Calendar,
   Wallet, Clock, MapPin, TrendingUp, Check, Hourglass, Trash2,
-  CalendarX2, X, Plus,
+  CalendarX2, X, Plus, FileText,
 } from 'lucide-react'
-import { useMaster } from '../../../hooks/useMaster'
-import { useAppointments } from '../../../context/AppointmentContext'
-import { VENDOR_KEY, VENDOR_DEFAULTS, VENDOR_CATEGORIES } from '../../../data/vendors'
-import { Card, CardHeader } from '../../../components/ui/Card'
-import { Button } from '../../../components/ui/Button'
-import { Modal } from '../../../components/ui/Modal'
-import { Badge } from '../../../components/ui/Badge'
-import { CustomSelect } from '../../../components/ui/CustomSelect'
-import { formatCurrency } from '../../../utils/formatCurrency'
-import { formatDate } from '../../../utils/formatDate'
+import { useMaster } from '../../hooks/useMaster'
+import { useAppointments } from '../../context/AppointmentContext'
+import { VENDOR_KEY, VENDOR_DEFAULTS, VENDOR_CATEGORIES } from '../../data/vendors'
+import { Card, CardHeader } from '../../components/ui/Card'
+import { Button } from '../../components/ui/Button'
+import { Modal } from '../../components/ui/Modal'
+import { Badge } from '../../components/ui/Badge'
+import { CustomSelect } from '../../components/ui/CustomSelect'
+import { formatCurrency } from '../../utils/formatCurrency'
+import { formatDate } from '../../utils/formatDate'
+import { DatePickerPopup } from '../../components/ui/DatePickerPopup'
+import { TimePickerPopup } from '../../components/ui/TimePickerPopup'
 
 const AVAIL_COLORS = {
   Available: { color: 'var(--badge-confirmed)', bg: 'var(--badge-confirmed-bg)' },
@@ -73,8 +75,42 @@ export default function VendorProfile() {
   const [editOpen,      setEditOpen]      = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [form,          setForm]          = useState({})
-  const [blockInput,    setBlockInput]    = useState('')
+  const [blockEntry,  setBlockEntry]  = useState({ date: '', timeFrom: '', timeTo: '' })
+  const [openPicker,  setOpenPicker]  = useState(null) // 'date' | 'timeFrom' | 'timeTo'
+  const [timeError,   setTimeError]   = useState('')
+  const setBlockField = (k, v) => setBlockEntry(e => ({ ...e, [k]: v }))
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const pickerRef = useRef(null)
+
+  useEffect(() => {
+    if (!openPicker) return
+    function onDown(e) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) setOpenPicker(null)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [openPicker])
+
+  function normalizeBlock(b) {
+    if (typeof b === 'string') return { date: b, timeFrom: '', timeTo: '' }
+    if (b.dateFrom) return { date: b.dateFrom, timeFrom: b.timeFrom || '', timeTo: b.timeTo || '' }
+    return b
+  }
+
+  function fmtDateShort(s) {
+    if (!s) return ''
+    const [y, m, d] = s.split('-')
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    return `${Number(d)} ${months[Number(m)-1]} ${y}`
+  }
+
+  function fmt12h(hhmm) {
+    if (!hhmm) return ''
+    const [h, m] = hhmm.split(':').map(Number)
+    const ap = h >= 12 ? 'PM' : 'AM'
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+    return `${h12}:${String(m).padStart(2, '0')} ${ap}`
+  }
 
   const vendor = items.find(v => String(v.id) === String(vendorId))
 
@@ -82,7 +118,7 @@ export default function VendorProfile() {
     return (
       <div style={{ padding: '80px', textAlign: 'center' }}>
         <p style={{ color: 'var(--dash-text-muted)', marginBottom: '20px' }}>Vendor not found.</p>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/masters/vendors')}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/masters/vendors')}>
           <ArrowLeft size={15} /> Back to Vendors
         </Button>
       </div>
@@ -140,16 +176,29 @@ export default function VendorProfile() {
   }
 
   function handleBlockDate() {
-    if (!blockInput) return
-    const existing = vendor.blockedDates || []
-    if (existing.includes(blockInput)) { setBlockInput(''); return }
-    update(vendor.id, { blockedDates: [...existing, blockInput].sort() })
-    setBlockInput('')
+    if (!blockEntry.date) return
+    if (blockEntry.timeFrom && blockEntry.timeTo && blockEntry.timeTo <= blockEntry.timeFrom) {
+      setTimeError('"To" time must be later than "From" time.'); return
+    }
+    setTimeError('')
+    const existing = (vendor.blockedDates || []).map(normalizeBlock)
+    if (existing.some(b => b.date === blockEntry.date)) {
+      setBlockEntry({ date: '', timeFrom: '', timeTo: '' }); return
+    }
+    const updated = [...existing, blockEntry].sort((a, b) => a.date.localeCompare(b.date))
+    update(vendor.id, { blockedDates: updated })
+    setBlockEntry({ date: '', timeFrom: '', timeTo: '' })
   }
 
   function handleUnblockDate(date) {
-    update(vendor.id, { blockedDates: (vendor.blockedDates || []).filter(d => d !== date) })
+    update(vendor.id, {
+      blockedDates: (vendor.blockedDates || []).map(normalizeBlock).filter(b => b.date !== date),
+    })
   }
+
+  const allBlocked = (vendor.blockedDates || []).map(normalizeBlock)
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const activeBlocked = allBlocked.filter(b => b.date >= todayStr)
 
   return (
     <>
@@ -233,7 +282,7 @@ export default function VendorProfile() {
             >
               <Trash2 size={14} /> Delete
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/masters/vendors')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/masters/vendors')}>
               <ArrowLeft size={14} /> Back
             </Button>
           </div>
@@ -247,107 +296,213 @@ export default function VendorProfile() {
           <StatBox icon={Clock}      label="Std. Charges"    value={formatCurrency(vendor.charges || 0)} color="var(--icon-revenue)" bg="var(--icon-revenue-bg)" />
         </div>
 
-        {/* Notes + Blocked Dates — single full-width card */}
+        {/* Notes — full width row */}
         <Card style={{ padding: '20px 24px' }}>
-
-          {/* Notes section (only if exists) */}
-          {vendor.notes && (
-            <div style={{ paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid var(--dash-border)' }}>
-              <div style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>
-                Notes
-              </div>
-              <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--dash-text-primary)', lineHeight: 1.6 }}>
-                {vendor.notes}
-              </p>
-            </div>
-          )}
-
-          {/* Blocked Dates header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--dash-text-primary)', display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <CalendarX2 size={14} style={{ color: '#dc2626' }} /> Blocked Dates
-            </span>
-            {(vendor.blockedDates || []).length > 0 && (
-              <span style={{
-                fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px',
-                background: 'rgba(220,38,38,0.1)', color: '#dc2626',
-              }}>
-                {(vendor.blockedDates || []).length} blocked
-              </span>
-            )}
+          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <FileText size={13} /> Notes
           </div>
-
-          {/* Add date row */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-            <input
-              type="date"
-              value={blockInput}
-              onChange={e => setBlockInput(e.target.value)}
-              min={new Date().toISOString().slice(0, 10)}
-              style={{ ...inp, flex: 1 }}
-            />
-            <button
-              onClick={handleBlockDate}
-              disabled={!blockInput}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '0 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
-                border: '1.5px solid rgba(220,38,38,0.3)',
-                background: blockInput ? 'rgba(220,38,38,0.08)' : 'var(--dash-input-bg)',
-                color: blockInput ? '#dc2626' : 'var(--dash-text-muted)',
-                cursor: blockInput ? 'pointer' : 'not-allowed',
-                whiteSpace: 'nowrap', height: '40px',
-              }}
-            >
-              <Plus size={13} /> Block
-            </button>
-          </div>
-
-          {/* Chips */}
-          {(vendor.blockedDates || []).length === 0 ? (
+          {vendor.notes ? (
+            <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--dash-text-primary)', lineHeight: 1.6 }}>
+              {vendor.notes}
+            </p>
+          ) : (
             <div style={{
-              padding: '20px', borderRadius: '10px', textAlign: 'center',
+              padding: '18px 20px', borderRadius: '10px', textAlign: 'center',
               background: 'var(--dash-surface)', border: '1.5px dashed var(--dash-border)',
               fontSize: '12.5px', color: 'var(--dash-text-muted)',
             }}>
-              No dates blocked — vendor is available for all events.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {(vendor.blockedDates || []).map(date => {
-                const isPast = date < new Date().toISOString().slice(0, 10)
-                const [y, m, d] = date.split('-')
-                const label = `${d} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(m)-1]} ${y}`
-                return (
-                  <span key={date} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '5px 10px 5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
-                    border: '1.5px solid',
-                    ...(isPast
-                      ? { background: 'var(--dash-surface)', color: 'var(--dash-text-muted)', borderColor: 'var(--dash-border-subtle)' }
-                      : { background: 'rgba(220,38,38,0.07)', color: '#dc2626', borderColor: 'rgba(220,38,38,0.25)' }
-                    ),
-                  }}>
-                    {label}
-                    <button
-                      onClick={() => handleUnblockDate(date)}
-                      title="Remove block"
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        width: 16, height: 16, borderRadius: '50%', border: 'none',
-                        background: isPast ? 'var(--dash-border)' : 'rgba(220,38,38,0.15)',
-                        color: isPast ? 'var(--dash-text-muted)' : '#dc2626',
-                        cursor: 'pointer', padding: 0, lineHeight: 1,
-                      }}
-                    >
-                      <X size={10} />
-                    </button>
-                  </span>
-                )
-              })}
+              No notes added. Use <strong>Edit Profile</strong> to add notes.
             </div>
           )}
         </Card>
+
+        {/* Blocked Dates — 2 equal cards side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+
+          {/* Left card — selector */}
+          <Card style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CalendarX2 size={13} style={{ color: '#dc2626' }} /> Block a Date
+            </div>
+
+            {/* Date picker trigger */}
+            <div ref={openPicker === 'date' ? pickerRef : null} style={{ position: 'relative' }}>
+              <label style={lbl}>Date</label>
+              <button
+                onClick={() => setOpenPicker(p => p === 'date' ? null : 'date')}
+                style={{
+                  width: '100%', padding: '9.5px 14px', borderRadius: '10px',
+                  border: `1.5px solid ${openPicker === 'date' ? '#c9956c' : 'var(--dash-border)'}`,
+                  background: 'var(--dash-input-bg)', cursor: 'pointer',
+                  fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none',
+                  color: blockEntry.date ? 'var(--dash-input-text)' : 'var(--dash-text-muted)',
+                  display: 'flex', alignItems: 'center', gap: '8px', boxSizing: 'border-box',
+                }}
+              >
+                <Calendar size={13} style={{ color: '#c9956c', flexShrink: 0 }} />
+                {blockEntry.date ? fmtDateShort(blockEntry.date) : 'Select date…'}
+              </button>
+              {openPicker === 'date' && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 200 }}>
+                  <DatePickerPopup
+                    value={blockEntry.date}
+                    min={todayStr}
+                    onChange={date => { setBlockField('date', date); setOpenPicker(null) }}
+                    onClose={() => setOpenPicker(null)}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* From time picker trigger */}
+            <div ref={openPicker === 'timeFrom' ? pickerRef : null} style={{ position: 'relative' }}>
+              <label style={lbl}>From Time</label>
+              <button
+                onClick={() => setOpenPicker(p => p === 'timeFrom' ? null : 'timeFrom')}
+                style={{
+                  width: '100%', padding: '9.5px 14px', borderRadius: '10px',
+                  border: `1.5px solid ${openPicker === 'timeFrom' ? '#c9956c' : 'var(--dash-border)'}`,
+                  background: 'var(--dash-input-bg)', cursor: 'pointer',
+                  fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none',
+                  color: blockEntry.timeFrom ? 'var(--dash-input-text)' : 'var(--dash-text-muted)',
+                  display: 'flex', alignItems: 'center', gap: '8px', boxSizing: 'border-box',
+                }}
+              >
+                <Clock size={13} style={{ color: '#c9956c', flexShrink: 0 }} />
+                {blockEntry.timeFrom ? fmt12h(blockEntry.timeFrom) : 'Select time…'}
+              </button>
+              {openPicker === 'timeFrom' && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 200 }}>
+                  <TimePickerPopup
+                    value={blockEntry.timeFrom || '09:00'}
+                    label="From Time"
+                    onChange={v => setBlockField('timeFrom', v)}
+                    onClose={() => setOpenPicker(null)}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* To time picker trigger */}
+            <div ref={openPicker === 'timeTo' ? pickerRef : null} style={{ position: 'relative' }}>
+              <label style={lbl}>To Time</label>
+              <button
+                onClick={() => setOpenPicker(p => p === 'timeTo' ? null : 'timeTo')}
+                style={{
+                  width: '100%', padding: '9.5px 14px', borderRadius: '10px',
+                  border: `1.5px solid ${openPicker === 'timeTo' ? '#c9956c' : 'var(--dash-border)'}`,
+                  background: 'var(--dash-input-bg)', cursor: 'pointer',
+                  fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none',
+                  color: blockEntry.timeTo ? 'var(--dash-input-text)' : 'var(--dash-text-muted)',
+                  display: 'flex', alignItems: 'center', gap: '8px', boxSizing: 'border-box',
+                }}
+              >
+                <Clock size={13} style={{ color: '#c9956c', flexShrink: 0 }} />
+                {blockEntry.timeTo ? fmt12h(blockEntry.timeTo) : 'Select time…'}
+              </button>
+              {openPicker === 'timeTo' && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 200 }}>
+                  <TimePickerPopup
+                    value={blockEntry.timeTo || '18:00'}
+                    label="To Time"
+                    onChange={v => { setBlockField('timeTo', v); setTimeError('') }}
+                    onClose={() => setOpenPicker(null)}
+                  />
+                </div>
+              )}
+            </div>
+
+            {timeError && (
+              <div style={{
+                fontSize: '11.5px', fontWeight: 600, color: '#dc2626',
+                background: 'rgba(220,38,38,0.07)', border: '1px solid rgba(220,38,38,0.2)',
+                borderRadius: '8px', padding: '7px 10px',
+              }}>
+                {timeError}
+              </div>
+            )}
+
+            <button
+              onClick={handleBlockDate}
+              disabled={!blockEntry.date}
+              style={{
+                marginTop: 'auto',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                width: '100%', padding: '9px 0', borderRadius: '10px',
+                fontSize: '12px', fontWeight: 700,
+                border: '1.5px solid rgba(220,38,38,0.3)',
+                background: blockEntry.date ? 'rgba(220,38,38,0.08)' : 'var(--dash-input-bg)',
+                color: blockEntry.date ? '#dc2626' : 'var(--dash-text-muted)',
+                cursor: blockEntry.date ? 'pointer' : 'not-allowed',
+              }}
+            >
+              <Plus size={13} /> Block Date
+            </button>
+          </Card>
+
+          {/* Right card — list */}
+          <Card style={{ padding: '20px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--dash-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CalendarX2 size={13} style={{ color: '#dc2626' }} /> Blocked Dates
+              </div>
+              {activeBlocked.length > 0 && (
+                <span style={{
+                  fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px',
+                  background: 'rgba(220,38,38,0.1)', color: '#dc2626',
+                }}>
+                  {activeBlocked.length} blocked
+                </span>
+              )}
+            </div>
+            {allBlocked.length === 0 ? (
+              <div style={{
+                padding: '20px', borderRadius: '10px', textAlign: 'center',
+                background: 'var(--dash-surface)', border: '1.5px dashed var(--dash-border)',
+                fontSize: '12.5px', color: 'var(--dash-text-muted)',
+              }}>
+                No dates blocked — vendor is available for all events.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignContent: 'flex-start' }}>
+                {allBlocked.map(block => {
+                  const { date, timeFrom, timeTo } = block
+                  const isPast = date < todayStr
+                  const dateLabel = fmtDateShort(date)
+                  const timeLabel = timeFrom && timeTo
+                    ? ` · ${fmt12h(timeFrom)}–${fmt12h(timeTo)}`
+                    : timeFrom ? ` · from ${fmt12h(timeFrom)}` : ''
+                  return (
+                    <span key={date} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      padding: '5px 10px 5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                      border: '1.5px solid',
+                      ...(isPast
+                        ? { background: 'var(--dash-surface)', color: 'var(--dash-text-muted)', borderColor: 'var(--dash-border-subtle)' }
+                        : { background: 'rgba(220,38,38,0.07)', color: '#dc2626', borderColor: 'rgba(220,38,38,0.25)' }
+                      ),
+                    }}>
+                      {dateLabel}{timeLabel}
+                      <button
+                        onClick={() => handleUnblockDate(date)}
+                        title="Remove block"
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: 16, height: 16, borderRadius: '50%', border: 'none',
+                          background: isPast ? 'var(--dash-border)' : 'rgba(220,38,38,0.15)',
+                          color: isPast ? 'var(--dash-text-muted)' : '#dc2626',
+                          cursor: 'pointer', padding: 0, lineHeight: 1,
+                        }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
 
         {/* Collaboration History */}
         <Card style={{ overflow: 'hidden', padding: 0 }}>
@@ -389,7 +544,7 @@ export default function VendorProfile() {
                     return (
                       <tr
                         key={a.id}
-                        onClick={() => navigate(`/dashboard/appointments/${a.id}`)}
+                        onClick={() => navigate(`/appointments/${a.id}`)}
                         style={{ borderBottom: '1px solid var(--dash-border-subtle)', transition: 'background 0.15s', cursor: 'pointer' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -450,7 +605,7 @@ export default function VendorProfile() {
         open={deleteConfirm}
         onClose={() => setDeleteConfirm(false)}
         title="Delete Vendor"
-        onSave={() => { remove(vendor.id); navigate('/dashboard/masters/vendors') }}
+        onSave={() => { remove(vendor.id); navigate('/masters/vendors') }}
         saveLabel="Yes, Delete"
         saveVariant="danger"
         width="400px"

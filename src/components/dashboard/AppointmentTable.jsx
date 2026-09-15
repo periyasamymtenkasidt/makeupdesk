@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+﻿import { useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Badge'
 import { MapPin, Clock, Calendar } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatCurrency'
@@ -39,7 +39,7 @@ export default function AppointmentTable({ appointments }) {
           {appointments.map((appt, i) => (
             <tr
               key={appt.id ?? i}
-              onClick={() => navigate(`/dashboard/appointments/${appt.id}`)}
+              onClick={() => navigate(`/appointments/${appt.id}`)}
               style={{
                 borderBottom: '1px solid var(--dash-border-subtle)',
                 background: 'transparent',

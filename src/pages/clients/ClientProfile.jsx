@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, MessageCircle, Pencil, Calendar, TrendingUp, DollarSign, CreditCard, AlertTriangle, Sparkles, Trash2, CalendarPlus } from 'lucide-react'
 import { useClients } from '../../context/ClientContext'
@@ -61,7 +61,7 @@ export default function ClientProfile() {
     return (
       <div style={{ padding: '80px', textAlign: 'center' }}>
         <p style={{ color: 'var(--dash-text-muted)', marginBottom: '20px' }}>Client not found.</p>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/clients')}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/clients')}>
           <ArrowLeft size={15} /> Back to Clients
         </Button>
       </div>
@@ -247,7 +247,7 @@ export default function ClientProfile() {
         title="Delete Client"
         onSave={() => {
           removeClient(client.id)
-          navigate('/dashboard/clients')
+          navigate('/clients')
         }}
         saveLabel="Yes, Delete"
         saveVariant="danger"

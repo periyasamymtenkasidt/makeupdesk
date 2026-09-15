@@ -8,7 +8,7 @@ import { Input } from "../ui/Input"
 import { Button } from "../ui/Button"
 import { SERVICE_MASTER_DEFAULTS } from "../../data/services"
 import { to12h } from "../../utils/timeFormat"
-import { parseDurationMins } from "../../utils/slots"
+import { parseDurationMins, getBlockConflict } from "../../utils/slots"
 import { BOOKING_STAFF_CATEGORIES, useArtists, checkArtistAvailability } from "../../hooks/useArtists"
 import { useSettings } from "../../hooks/useSettings"
 import { useMaster } from "../../hooks/useMaster"
@@ -57,13 +57,13 @@ function BookingModal({ onClose }) {
     return () => { document.body.style.overflow = '' }
   }, [])
 
-  const { step, form, setField, nextStep, prevStep, reset, step1Valid, step1Touched, step2Valid } = useBookingForm()
+  const { form, setField, reset, formValid, touched, setTouched } = useBookingForm()
   const { appointments, addAppointment, genId } = useAppointments()
   const { clients, addClient, updateClient } = useClients()
-  const { items: venues }      = useMaster('md_venues', VENUE_DEFAULTS)
+  const { items: venues }         = useMaster('md_venues', VENUE_DEFAULTS)
   const { items: masterServices } = useMaster('md_services', SERVICE_MASTER_DEFAULTS)
-  const artists                = useArtists()
-  const { settings }           = useSettings()
+  const artists                   = useArtists()
+  const { settings }              = useSettings()
   const [confirmed, setConfirmed] = useState(null)
   const [showSlots, setShowSlots] = useState(false)
   const [conflictError, setConflictError] = useState(null)
@@ -84,24 +84,26 @@ function BookingModal({ onClose }) {
   const selectedVenueObj = venues.find(v => v.category === form.venue)
   const venueExtra       = selectedVenueObj ? ((selectedVenueObj.adjustment || 0) + (selectedVenueObj.travelCharge || 0)) : 0
   const totalAmount      = Math.max(0, servicePriceRaw + venueExtra)
+  const isVenue          = form.locationType === 'Venue'
+
+  const requestedRoles = form.addOns && form.addOns.length ? form.addOns : ['Makeup Artist']
 
   function handleRegister() {
-    if (!step2Valid) return
+    setTouched(true)
+    if (!formValid) return
 
-    if (form.time) {
-      const storedDateCheck = formatDateForStorage(form.date)
-      const requestedRoles = form.addOns && form.addOns.length ? form.addOns : ['Makeup Artist']
-
-      for (const role of requestedRoles) {
-        const roleArtists = artists.filter(a => a.category === role)
-        if (roleArtists.length === 0) continue
-        const anyFree = roleArtists.some(
-          a => !checkArtistAvailability(a.name, storedDateCheck, form.time, appointments, null, durationMins).isBooked
-        )
-        if (!anyFree) {
-          setConflictError(`All ${role}s are fully booked on this date & time. Please choose a different slot.`)
-          return
-        }
+    const storedDateCheck = formatDateForStorage(form.date)
+    for (const role of requestedRoles) {
+      const roleArtists = artists.filter(a => a.category === role)
+      if (roleArtists.length === 0) continue
+      const anyFree = roleArtists.some(a => {
+        const appointmentConflict = checkArtistAvailability(a.name, storedDateCheck, form.time, appointments, null, durationMins).isBooked
+        const blockConflict = getBlockConflict(a.blockedDates, storedDateCheck, form.time, durationMins)
+        return !appointmentConflict && !blockConflict
+      })
+      if (!anyFree) {
+        setConflictError(`All ${role}s are unavailable on this date & time. Please choose a different slot.`)
+        return
       }
     }
 
@@ -118,12 +120,10 @@ function BookingModal({ onClose }) {
     }
 
     const addOns = form.addOns && form.addOns.length ? form.addOns : ['Makeup Artist']
-    const isVenue = form.locationType === 'Venue'
-    const finalAmount = isVenue ? totalAmount : servicePriceRaw
+    const finalAmount   = isVenue ? totalAmount : servicePriceRaw
     const finalLocation = isVenue ? (form.venueAddress || 'On-Location') : `In-Studio (${settings.studioName || 'Studio'})`
 
-    // Auto-assign first available artist for each requested role
-    const storedDate = formatDateForStorage(form.date)
+    const storedDate  = formatDateForStorage(form.date)
     const autoAssigned = []
     for (const role of addOns) {
       const pick = artists
@@ -147,7 +147,7 @@ function BookingModal({ onClose }) {
       assignedArtists: autoAssigned,
       addOns,
       vendorCost:      autoVendorCost || undefined,
-      date:            formatDateForStorage(form.date),
+      date:            storedDate,
       time:            to12h(form.time),
       duration:        minsToLabel(durationMins),
       location:        finalLocation,
@@ -169,6 +169,8 @@ function BookingModal({ onClose }) {
 
   function handleClose() { reset(); setConfirmed(null); onClose() }
 
+  const errStyle = { fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
@@ -189,14 +191,12 @@ function BookingModal({ onClose }) {
             }}>
               <CheckCircle size={36} color="#fff" />
             </div>
-
             <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "22px", fontWeight: 700, color: "#f5e1c0", marginBottom: "8px" }}>
               Slot Request Submitted!
             </h3>
             <p style={{ fontSize: "13.5px", color: "rgba(255,255,255,0.55)", marginBottom: "24px" }}>
               Thank you, <strong style={{ color: "#f5e1c0" }}>{confirmed.name}</strong>. We've received your booking request for <strong style={{ color: "#f5e1c0" }}>{confirmed.service}</strong> on <strong style={{ color: "#f5e1c0" }}>{confirmed.date}</strong> at <strong style={{ color: "#f5e1c0" }}>{confirmed.time}</strong>.
             </p>
-
             <div style={{ background: "rgba(201,149,108,0.08)", borderRadius: "16px", padding: "16px 20px", marginBottom: "24px", border: "1px solid rgba(201,149,108,0.2)", textAlign: "center", fontSize: "13px" }}>
               <p style={{ color: "rgba(255,255,255,0.55)", margin: "0 0 6px", lineHeight: 1.6 }}>
                 Your personalised quote will be sent to your WhatsApp within <strong style={{ color: "#e8c4a0" }}>2 hours</strong>.
@@ -205,10 +205,7 @@ function BookingModal({ onClose }) {
                 Team Requested — <span style={{ color: "#f5e1c0", fontWeight: 600 }}>{(confirmed.addOns || [confirmed.artist]).join(', ')}</span>
               </p>
             </div>
-
-            <Button variant="primary" size="lg" fullWidth onClick={handleClose}>
-              Done
-            </Button>
+            <Button variant="primary" size="lg" fullWidth onClick={handleClose}>Done</Button>
           </div>
         ) : (
           <>
@@ -219,264 +216,205 @@ function BookingModal({ onClose }) {
                       style={{ background: "rgba(255,255,255,0.1)", color: "#fff" }}>
                 <X size={16} />
               </button>
-
               <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#e8c4a0", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>
                 <Sparkles size={13} /> Exclusive Studio Appointment
               </div>
               <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "20px", fontWeight: 700, margin: 0 }}>
                 Reserve Your Glam Session
               </h3>
-              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", margin: "4px 0 0" }}>
-                Step {step} of 2 — {step === 1 ? "Your Details & Preferences" : "Date, Slot & Location"}
+              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", margin: "4px 0 0" }}>
+                Fill in your details and preferred slot — we'll confirm on WhatsApp.
               </p>
-
-              {/* step indicator */}
-              <div style={{ display: "flex", gap: "6px", marginTop: "16px" }}>
-                <div style={{ flex: 1, height: "3px", borderRadius: "2px",
-                             background: step >= 1 ? "#c9956c" : "rgba(255,255,255,0.2)" }} />
-                <div style={{ flex: 1, height: "3px", borderRadius: "2px",
-                             background: step === 2 ? "#c9956c" : "rgba(255,255,255,0.2)" }} />
-              </div>
             </div>
 
-            {/* ── body ── */}
+            {/* ── single-step body ── */}
             <div className="p-8 space-y-4">
-              {step === 1 ? (
-                <>
-                  <div>
-                    <Input label="Full Name *" icon={User} placeholder="e.g. Priya Sharma"
-                           value={form.name} onChange={e => setField("name", e.target.value)} />
-                    {step1Touched && !form.name.trim() && (
-                      <p style={{ fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }}>
-                        Please enter your full name.
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Input label="WhatsApp Number *" icon={Phone} placeholder="98765 43210"
-                           value={form.phone} onChange={e => setField("phone", e.target.value)} />
-                    {step1Touched && !form.phone.trim() && (
-                      <p style={{ fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }}>
-                        Please enter your WhatsApp number.
-                      </p>
-                    )}
-                    {step1Touched && form.phone.trim() && form.phone.replace(/\s/g, '').length !== 10 && (
-                      <p style={{ fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }}>
-                        Phone number must be exactly 10 digits.
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <CustomSelect
-                      label="Service Package *"
-                      value={form.service}
-                      placeholder="Select a service package…"
-                      options={activeServices.map(s => s.name)}
-                      onChange={val => setField("service", val)}
-                    />
-                    {step1Touched && !form.service && (
-                      <p style={{ fontSize: "11.5px", color: "#e8748a", marginTop: "4px", marginLeft: "2px" }}>
-                        Please select a service package.
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label style={lblStyle}>Team Required</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      {BOOKING_STAFF_CATEGORIES.map(cat => {
-                        const isBase = cat === 'Makeup Artist'
-                        const checked = isBase || (form.addOns || []).includes(cat)
-                        return (
-                          <label key={cat} style={{
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                            padding: '10px 12px', borderRadius: '10px',
-                            border: `1.5px solid ${checked ? 'rgba(201,149,108,0.5)' : 'var(--dash-border)'}`,
-                            background: checked ? 'rgba(201,149,108,0.12)' : 'transparent',
-                            cursor: isBase ? 'default' : 'pointer',
-                            transition: 'all 0.15s',
-                          }}>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              disabled={isBase}
-                              onChange={() => {
-                                if (isBase) return
-                                const current = form.addOns || []
-                                setField('addOns', checked
-                                  ? current.filter(a => a !== cat)
-                                  : [...current, cat])
-                              }}
-                              style={{ accentColor: '#c9956c', width: 14, height: 14, cursor: isBase ? 'default' : 'pointer' }}
-                            />
-                            <span style={{ fontSize: '12px', fontWeight: checked ? 600 : 400, color: checked ? 'var(--icon-booking)' : 'var(--dash-text-secondary)' }}>
-                              {ARTIST_EMOJI[cat] || '🎨'} {cat}
-                            </span>
-                          </label>
-                        )
-                      })}
+
+              {/* Name */}
+              <div>
+                <Input label="Full Name *" icon={User} placeholder="e.g. Priya Sharma"
+                       value={form.name} onChange={e => setField("name", e.target.value)} />
+                {touched && !form.name.trim() && <p style={errStyle}>Please enter your full name.</p>}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <Input label="WhatsApp Number *" icon={Phone} placeholder="98765 43210"
+                       value={form.phone} onChange={e => setField("phone", e.target.value)} />
+                {touched && !form.phone.trim() && <p style={errStyle}>Please enter your WhatsApp number.</p>}
+                {touched && form.phone.trim() && form.phone.replace(/\s/g, '').length !== 10 && (
+                  <p style={errStyle}>Phone number must be exactly 10 digits.</p>
+                )}
+              </div>
+
+              {/* Date */}
+              <div>
+                <DatePicker label="Event Date *" dark={true}
+                  min={new Date().toISOString().split('T')[0]}
+                  value={form.date}
+                  onChange={val => { setField("date", val); setField("time", "") }} />
+                {touched && !form.date && <p style={errStyle}>Please select an event date.</p>}
+              </div>
+
+              {/* Time */}
+              {form.date && (
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}>
+                    <input type="checkbox" checked={showSlots} onChange={e => setShowSlots(e.target.checked)}
+                           style={{ accentColor: '#c9956c', width: 15, height: 15, cursor: 'pointer' }} />
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Show Available Slots
+                    </span>
+                  </label>
+                  {showSlots ? (
+                    <SlotTimePicker value={form.time} onChange={v => setField("time", v)}
+                      dark={true} date={form.date} appointments={appointments} durationMins={durationMins} />
+                  ) : (
+                    <DrumRollTimePicker value={form.time} onChange={v => setField("time", v)}
+                      theme="dark" date={form.date} appointments={appointments} durationMins={durationMins} />
+                  )}
+                  {form.time && durationMins > 0 && (
+                    <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      Ends at:&nbsp;<strong style={{ color: '#e8c4a0' }}>{to12h(computeEndTime(form.time, durationMins))}</strong>
+                      <span style={{ opacity: 0.5 }}>· {durationMins}m session</span>
                     </div>
+                  )}
+                  {touched && !form.time && <p style={errStyle}>Please select a time.</p>}
+                </div>
+              )}
+
+              {/* Service */}
+              <div>
+                <CustomSelect label="Service Package *" value={form.service}
+                  placeholder="Select a service package…"
+                  options={activeServices.map(s => s.name)}
+                  onChange={val => setField("service", val)} />
+                {touched && !form.service && <p style={errStyle}>Please select a service package.</p>}
+              </div>
+
+              {/* Team Required — date-specific availability when date is chosen */}
+              <div>
+                <label style={lblStyle}>Team Required</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {BOOKING_STAFF_CATEGORIES.map(cat => {
+                    const isBase     = cat === 'Makeup Artist'
+                    const checked    = isBase || (form.addOns || []).includes(cat)
+                    const catArtists = artists.filter(a => a.category === cat)
+
+                    let statusText, statusColor, allUnavailable
+                    if (form.date && catArtists.length > 0) {
+                      const freeCount = catArtists.filter(a => {
+                        if (a.availability === 'Inactive') return false
+                        if (getBlockConflict(a.blockedDates, form.date, form.time, durationMins)) return false
+                        if (form.time && checkArtistAvailability(a.name, form.date, form.time, appointments, null, durationMins).isBooked) return false
+                        return true
+                      }).length
+                      allUnavailable = freeCount === 0
+                      statusText  = allUnavailable ? 'Unavailable this day' : `${freeCount} free this day`
+                      statusColor = allUnavailable ? '#f87171' : 'rgba(52,211,153,0.9)'
+                    } else {
+                      const available = catArtists.filter(a => a.availability === 'Available').length
+                      const active    = catArtists.filter(a => a.availability !== 'Inactive').length
+                      allUnavailable  = catArtists.length > 0 && active === 0
+                      const allBusy   = catArtists.length > 0 && active > 0 && available === 0
+                      statusText  = allUnavailable ? 'Unavailable'
+                        : allBusy ? 'Currently busy'
+                        : catArtists.length > 0 ? `${available} available`
+                        : null
+                      statusColor = allUnavailable ? '#f87171' : allBusy ? '#fbbf24' : 'rgba(52,211,153,0.9)'
+                    }
+
+                    return (
+                      <label key={cat} style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '10px 12px', borderRadius: '10px',
+                        border: `1.5px solid ${checked ? 'rgba(201,149,108,0.5)' : 'var(--dash-border)'}`,
+                        background: checked ? 'rgba(201,149,108,0.12)' : 'transparent',
+                        cursor: isBase ? 'default' : 'pointer', transition: 'all 0.15s',
+                        opacity: allUnavailable && !isBase ? 0.55 : 1,
+                      }}>
+                        <input type="checkbox" checked={checked} disabled={isBase}
+                          onChange={() => {
+                            if (isBase) return
+                            const current = form.addOns || []
+                            setField('addOns', checked ? current.filter(a => a !== cat) : [...current, cat])
+                          }}
+                          style={{ accentColor: '#c9956c', width: 14, height: 14, cursor: isBase ? 'default' : 'pointer', flexShrink: 0 }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                          <span style={{ fontSize: '12px', fontWeight: checked ? 600 : 400, color: checked ? 'var(--icon-booking)' : 'var(--dash-text-secondary)' }}>
+                            {ARTIST_EMOJI[cat] || '🎨'} {cat}
+                          </span>
+                          {statusText && (
+                            <span style={{ fontSize: '10px', fontWeight: 600, color: statusColor, letterSpacing: '0.02em' }}>
+                              {statusText}
+                            </span>
+                          )}
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Location */}
+              <CustomSelect label="Appointment Location *" value={form.locationType || 'Studio'}
+                options={[
+                  { value: 'Studio', label: `🏠 In-Studio (${settings.studioName || 'Studio'})` },
+                  { value: 'Venue',  label: '📍 On-Location / Client Venue' },
+                ]}
+                onChange={val => {
+                  setField("locationType", val)
+                  if (val === 'Studio') { setField("venue", ""); setField("venueAddress", "") }
+                }} />
+
+              {/* Venue fields */}
+              {isVenue ? (
+                <>
+                  <CustomSelect label="Venue Category" value={form.venue}
+                    placeholder="Select venue type…"
+                    options={venues.map(v => ({ value: v.category, label: `${v.badge || '🏨'} ${v.category}` }))}
+                    onChange={val => setField("venue", val)} />
+                  <div>
+                    <label style={{ ...lblStyle, marginBottom: 6 }}>Exact Venue Address / Landmark *</label>
+                    <NominatimVenueSearch value={form.venueAddress || ''}
+                      onChange={addr => setField("venueAddress", addr)}
+                      onCategoryDetect={cat => setField("venue", cat)}
+                      venues={venues} dark={true}
+                      placeholder="e.g. Taj Banjara, Banjara Hills" />
+                    {touched && !form.venueAddress.trim() && <p style={errStyle}>Please enter the venue address.</p>}
                   </div>
-                  <Button
-                    variant="primary" size="lg" fullWidth onClick={nextStep}
-                    style={{
-                      marginTop: "8px",
-                      opacity: step1Valid ? 1 : 0.55,
-                      cursor: step1Valid ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    Next Step →
-                  </Button>
                 </>
               ) : (
-                <>
-                  {/* Date */}
-                  <DatePicker
-                    label="Event Date *"
-                    dark={true}
-                    min={new Date().toISOString().split('T')[0]}
-                    value={form.date}
-                    onChange={val => { setField("date", val); setField("time", "") }}
-                  />
-
-                  {/* Time section */}
-                  {form.date && (
-                    <div>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}>
-                        <input
-                          type="checkbox"
-                          checked={showSlots}
-                          onChange={e => setShowSlots(e.target.checked)}
-                          style={{ accentColor: '#c9956c', width: 15, height: 15, cursor: 'pointer' }}
-                        />
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                          Show Available Slots
-                        </span>
-                      </label>
-
-                      {showSlots ? (
-                        <SlotTimePicker
-                          value={form.time}
-                          onChange={v => setField("time", v)}
-                          dark={true}
-                          date={form.date}
-                          appointments={appointments}
-                          durationMins={durationMins}
-                        />
-                      ) : (
-                        <DrumRollTimePicker
-                          value={form.time}
-                          onChange={v => setField("time", v)}
-                          theme="dark"
-                          date={form.date}
-                          appointments={appointments}
-                          durationMins={durationMins}
-                        />
-                      )}
-
-                      {form.time && durationMins > 0 && (
-                        <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                          Ends at:&nbsp;<strong style={{ color: '#e8c4a0' }}>{to12h(computeEndTime(form.time, durationMins))}</strong>
-                          <span style={{ opacity: 0.5 }}>· {durationMins}m session</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Appointment Location Type */}
-                  <CustomSelect
-                    label="Appointment Location *"
-                    value={form.locationType || 'Studio'}
-                    options={[
-                      { value: 'Studio', label: `🏠 In-Studio (${settings.studioName || 'Studio'})` },
-                      { value: 'Venue', label: '📍 On-Location / Client Venue' },
-                    ]}
-                    onChange={val => {
-                      setField("locationType", val)
-                      if (val === 'Studio') {
-                        setField("venue", "")
-                        setField("venueAddress", "")
-                      }
-                    }}
-                  />
-
-                  {/* Conditional Venue Category & Address Fields */}
-                  {form.locationType === 'Venue' ? (
-                    <>
-                      <CustomSelect
-                        label="Venue Category"
-                        value={form.venue}
-                        placeholder="Select venue type…"
-                        options={venues.map(v => {
-                          return {
-                            value: v.category,
-                            label: `${v.badge || '🏨'} ${v.category}`,
-                          }
-                        })}
-                        onChange={val => setField("venue", val)}
-                      />
-
-                      <div>
-                        <label style={{ ...lblStyle, marginBottom: 6 }}>Exact Venue Address / Landmark *</label>
-                        <NominatimVenueSearch
-                          value={form.venueAddress || ''}
-                          onChange={addr => setField("venueAddress", addr)}
-                          onCategoryDetect={cat => setField("venue", cat)}
-                          venues={venues}
-                          dark={true}
-                          placeholder="e.g. Taj Banjara, Banjara Hills"
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div style={{
-                      background: 'rgba(201,149,108,0.1)',
-                      border: '1px solid rgba(201,149,108,0.25)',
-                      borderRadius: '12px',
-                      padding: '10px 14px',
-                      fontSize: '12.5px',
-                      color: 'rgba(255,255,255,0.55)',
-                    }}>
-                      <MapPin size={13} style={{ display: 'inline', marginRight: '6px', color: '#c9956c' }} />
-                      <strong style={{ color: '#e8c4a0' }}>Studio Address:</strong> {settings.address || 'Contact us for address'}
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  <div>
-                    <label style={lblStyle}>Additional Notes</label>
-                    <textarea
-                      placeholder="Skin type, theme, reference images, etc."
-                      value={form.notes} onChange={e => setField("notes", e.target.value)}
-                      style={{ ...inpStyle, resize: "vertical", minHeight: "72px" }}
-                    />
-                  </div>
-
-                  {conflictError && (
-                    <div style={{
-                      padding: '10px 14px', borderRadius: '10px',
-                      background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)',
-                      color: '#f87171', fontSize: '13px', fontWeight: 500, lineHeight: 1.5,
-                    }}>
-                      {conflictError}
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 mt-2">
-                    <Button variant="ghost" size="lg" onClick={prevStep}
-                            style={{ flex: 1, justifyContent: "center", background: "var(--dash-surface, transparent)", color: "var(--dash-text-primary)", border: "1.5px solid var(--dash-border)" }}>
-                      ← Back
-                    </Button>
-                    <Button variant="primary" size="lg" onClick={handleRegister}
-                            style={{ flex: 1, justifyContent: "center", opacity: step2Valid ? 1 : 0.45 }}>
-                      Register Slot
-                    </Button>
-                  </div>
-
-                  <p style={{ textAlign: "center", fontSize: "11.5px", color: "rgba(255,255,255,0.35)", marginTop: "4px" }}>
-                    We'll send you a quote &amp; payment details on WhatsApp.
-                  </p>
-                </>
+                <div style={{ background: 'rgba(201,149,108,0.1)', border: '1px solid rgba(201,149,108,0.25)', borderRadius: '12px', padding: '10px 14px', fontSize: '12.5px', color: 'rgba(255,255,255,0.55)' }}>
+                  <MapPin size={13} style={{ display: 'inline', marginRight: '6px', color: '#c9956c' }} />
+                  <strong style={{ color: '#e8c4a0' }}>Studio Address:</strong> {settings.address || 'Contact us for address'}
+                </div>
               )}
+
+              {/* Notes */}
+              <div>
+                <label style={lblStyle}>Additional Notes</label>
+                <textarea placeholder="Skin type, theme, reference images, etc."
+                  value={form.notes} onChange={e => setField("notes", e.target.value)}
+                  style={{ ...inpStyle, resize: "vertical", minHeight: "72px" }} />
+              </div>
+
+              {/* Conflict error */}
+              {conflictError && (
+                <div style={{ padding: '10px 14px', borderRadius: '10px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', color: '#f87171', fontSize: '13px', fontWeight: 500, lineHeight: 1.5 }}>
+                  {conflictError}
+                </div>
+              )}
+
+              {/* Submit */}
+              <Button variant="primary" size="lg" fullWidth onClick={handleRegister}
+                      style={{ marginTop: "4px" }}>
+                Register Slot
+              </Button>
+              <p style={{ textAlign: "center", fontSize: "11.5px", color: "rgba(255,255,255,0.35)", marginTop: "4px" }}>
+                We'll send you a quote &amp; payment details on WhatsApp.
+              </p>
+
             </div>
           </>
         )}

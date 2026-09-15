@@ -306,7 +306,7 @@ export default function Overview() {
                     Manage upcoming makeup sessions
                   </p>
                 </div>
-                <Button variant="ghost" size="xs" onClick={() => navigate('/dashboard/appointments')}>
+                <Button variant="ghost" size="xs" onClick={() => navigate('/appointments')}>
                   View All <ChevronRight size={14} />
                 </Button>
               </CardHeader>

@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft,
   CheckCircle2, AlertCircle, X, ShieldCheck, Zap, Star,
   KeyRound, RefreshCw, Building2, User, BellRing, Award, Sun, Moon
 } from 'lucide-react'
-import bridePic from '../assets/images/Bride_1.png'
-import { CustomSelect } from '../components/ui/CustomSelect'
-import { useTheme } from '../context/ThemeContext'
+import bridePic from '../../assets/images/Bride_1.png'
+import { CustomSelect } from '../../components/ui/CustomSelect'
+import { useTheme } from '../../context/ThemeContext'
 
 const LIVE_NOTIFICATIONS = [
   { text: '✨ New Bridal Booking: Full Glam Package • ₹12,000 Advance Paid', time: 'Just now' },
@@ -172,7 +172,7 @@ export default function Login() {
     setTimeout(() => {
       setIsSubmitting(false)
       showToast('Welcome back! Loading your studio dashboard…')
-      setTimeout(() => navigate('/dashboard'), 1000)
+      setTimeout(() => navigate('/overview'), 1000)
     }, 1200)
   }
 
@@ -185,7 +185,7 @@ export default function Login() {
     setTimeout(() => {
       setIsSubmitting(false)
       showToast(`🎉 Studio "${regStudioName}" created! Redirecting to setup…`)
-      setTimeout(() => navigate('/dashboard'), 1200)
+      setTimeout(() => navigate('/overview'), 1200)
     }, 1400)
   }
 
@@ -194,7 +194,7 @@ export default function Login() {
     setTimeout(() => {
       setIsGoogleLoading(false)
       showToast('Authenticated via Google!')
-      setTimeout(() => navigate('/dashboard'), 1100)
+      setTimeout(() => navigate('/overview'), 1100)
     }, 1400)
   }
 

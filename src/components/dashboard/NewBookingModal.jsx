@@ -6,7 +6,7 @@ import { useClients } from '../../context/ClientContext'
 import { useSettings } from '../../hooks/useSettings'
 import { useToast } from '../../context/ToastContext'
 import { to12h } from '../../utils/timeFormat'
-import { parseDurationMins, checkTimeAvailability } from '../../utils/slots'
+import { parseDurationMins, checkTimeAvailability, normalizeBlock, getBlockConflict } from '../../utils/slots'
 import { useArtists, checkArtistAvailability } from '../../hooks/useArtists'
 import { DashTimePicker } from '../ui/DashTimePicker'
 import { DrumRollTimePicker } from '../ui/DrumRollTimePicker'
@@ -164,6 +164,18 @@ export default function NewBookingModal({ open, onClose, initialData }) {
       return
     }
 
+    // Check vendor blocked dates (full-day and time-range)
+    const blockedArtist = selectedArtistObjs.find(a =>
+      getBlockConflict(a.blockedDates, form.date, form.time || '', effectiveDurationMins)
+    )
+    if (blockedArtist) {
+      const conflict = getBlockConflict(blockedArtist.blockedDates, form.date, form.time || '', effectiveDurationMins)
+      const isFullDay = !conflict.timeFrom || !conflict.timeTo
+      const detail = isFullDay ? 'the entire day' : `${to12h(conflict.timeFrom)}–${to12h(conflict.timeTo)}`
+      showToast(`${blockedArtist.name} is blocked for ${detail} on this date. Choose a different date or time.`, 'warning', 6000)
+      return
+    }
+
     if (form.time) {
       const hasArtists = (form.selectedArtists || []).length > 0
       const checkVendorId = hasArtists ? vendorId : null
@@ -237,6 +249,12 @@ export default function NewBookingModal({ open, onClose, initialData }) {
   const durationMins           = parseDurationMins(form.duration)
   const effectiveDurationMins  = durationMins * (form.personCount || 1)
   const selectedArtistObjs     = artists.filter(a => (form.selectedArtists || []).includes(a.name))
+  // Only full-day blocks disable calendar dates; partial (time-range) blocks are caught at save time
+  const artistBlockedDates     = [...new Set(
+    selectedArtistObjs.flatMap(a =>
+      (a.blockedDates || []).map(normalizeBlock).filter(b => !b.timeFrom || !b.timeTo).map(b => b.date)
+    )
+  )]
 
   return (
     <Modal
@@ -374,6 +392,7 @@ export default function NewBookingModal({ open, onClose, initialData }) {
           min={new Date().toISOString().split('T')[0]}
           value={form.date}
           onChange={val => { set('date', val); set('time', '') }}
+          blockedDates={artistBlockedDates}
         />
 
         {/* Time section */}

@@ -11,11 +11,11 @@ import partyMakeup from "../../assets/images/Party_makeup.png";
 import engagementBride from "../../assets/images/Engagement_bridal.png";
 import haldi from "../../assets/images/Haldi_makeup.png";
 import reception from "../../assets/images/Reception_makeup.png";
-import pvid1 from "../../assets/videos/portfolio_1.mp4";
-import pvid2 from "../../assets/videos/portfolio_2.mp4";
-import pvid3 from "../../assets/videos/portfolio_3.mp4";
-import pvid4 from "../../assets/videos/portfolio_4.mp4";
-import pvid5 from "../../assets/videos/portfolio_5.mp4";
+const pvid1 = "/videos/portfolio_1.mp4";
+const pvid2 = "/videos/portfolio_2.mp4";
+const pvid3 = "/videos/portfolio_3.mp4";
+const pvid4 = "/videos/portfolio_4.mp4";
+const pvid5 = "/videos/portfolio_5.mp4";
 
 export const CATEGORIES = [
   "All",

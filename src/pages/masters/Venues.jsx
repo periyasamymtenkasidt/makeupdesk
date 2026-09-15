@@ -1,41 +1,32 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Plus,
+  Search,
   Pencil,
   Trash2,
-  Clock,
-  Search,
-  BookOpen,
-  Tag,
-  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  MapPin,
   Sparkles,
   Building2,
   Users,
+  BookOpen,
 } from "lucide-react";
-import { Card } from "../../../components/ui/Card";
-import { Modal } from "../../../components/ui/Modal";
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { useMaster } from "../../../hooks/useMaster";
-import { formatCurrency } from "../../../utils/formatCurrency";
-import { CustomSelect } from "../../../components/ui/CustomSelect";
-import { SERVICE_MASTER_DEFAULTS } from "../../../data/services";
-
-const CATEGORIES = ["All", "Bridal", "Events", "Photoshoot"];
-
-const DEFAULTS = SERVICE_MASTER_DEFAULTS.map(s => ({
-  ...s,
-  description: s.description || "",
-}));
+import { Card } from "../../components/ui/Card";
+import { Modal } from "../../components/ui/Modal";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { useMaster } from "../../hooks/useMaster";
+import { formatCurrency } from "../../utils/formatCurrency";
+import { VENUE_DEFAULTS } from "../../data/venues";
 
 const EMPTY = {
-  name: "",
-  category: "Bridal",
-  badge: "✨",
-  basePrice: "",
-  duration: "",
-  description: "",
-  active: true,
+  category: "",
+  badge: "🏨",
+  adjustment: "",
+  travelCharge: "",
+  notes: "",
 };
 
 const inp = {
@@ -60,76 +51,68 @@ const lbl = {
   letterSpacing: "0.06em",
 };
 
-function ToggleWithLabel({ on, onChange }) {
-  return (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-      <button
-        type="button"
-        onClick={onChange}
-        title={on ? "Click to deactivate" : "Click to activate"}
-        style={{
-          width: "38px",
-          height: "22px",
-          borderRadius: "11px",
-          border: "none",
-          cursor: "pointer",
-          position: "relative",
-          flexShrink: 0,
-          background: on ? "var(--badge-confirmed)" : "var(--dash-toggle-off)",
-          transition: "background 0.2s",
-          padding: 0,
-        }}
-      >
-        <span
-          style={{
-            position: "absolute",
-            top: "2.5px",
-            left: on ? "18.5px" : "2.5px",
-            width: "17px",
-            height: "17px",
-            borderRadius: "50%",
-            background: "white",
-            transition: "left 0.2s",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-          }}
-        />
-      </button>
+function AdjBadge({ value }) {
+  if (value > 0)
+    return (
       <span
         style={{
-          fontSize: "12px",
-          fontWeight: 600,
-          color: on ? "var(--badge-confirmed)" : "var(--dash-text-muted)",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+          color: "var(--badge-confirmed)",
+          fontWeight: 700,
+          fontSize: "15px",
+          fontFamily: "Inter, sans-serif",
         }}
       >
-        {on ? "Active" : "Inactive"}
+        <TrendingUp size={14} /> +{formatCurrency(value)}
       </span>
-    </div>
+    );
+  if (value < 0)
+    return (
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+          color: "var(--badge-rejected)",
+          fontWeight: 700,
+          fontSize: "15px",
+          fontFamily: "Inter, sans-serif",
+        }}
+      >
+        <TrendingDown size={14} /> −{formatCurrency(Math.abs(value))}
+      </span>
+    );
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+        color: "var(--dash-text-muted)",
+        fontWeight: 600,
+        fontSize: "14px",
+        fontFamily: "Inter, sans-serif",
+      }}
+    >
+      <Minus size={14} /> Base Rate
+    </span>
   );
 }
 
-export default function Services() {
-  const { items, add, update, remove, toggle } = useMaster(
-    "md_services",
-    DEFAULTS,
-  );
+export default function Venues() {
+  const { items, add, update, remove } = useMaster("md_venues", VENUE_DEFAULTS);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("All");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const filtered = items.filter((i) => {
-    const matchCat =
-      activeTab === "All" || (i.category || "Bridal") === activeTab;
-    const matchSearch =
-      !search ||
-      i.name.toLowerCase().includes(search.toLowerCase()) ||
-      (i.description &&
-        i.description.toLowerCase().includes(search.toLowerCase()));
-    return matchCat && matchSearch;
-  });
+  const filtered = items.filter(
+    (i) => !search || i.category.toLowerCase().includes(search.toLowerCase()),
+  );
 
   function openAdd() {
     setEditing(null);
@@ -139,42 +122,41 @@ export default function Services() {
   function openEdit(i) {
     setEditing(i.id);
     setForm({
-      name: i.name,
-      category: i.category || "Bridal",
-      badge: i.badge || "✨",
-      basePrice: i.basePrice,
-      duration: i.duration,
-      description: i.description,
-      active: i.active,
+      category: i.category,
+      badge: i.badge || "🏨",
+      adjustment: i.adjustment,
+      travelCharge: i.travelCharge,
+      notes: i.notes,
     });
     setOpen(true);
   }
-  function handleSave() {
-    if (!form.name.trim()) return;
-    const data = { ...form, basePrice: Number(form.basePrice) || 0 };
+  function handleSaveFixed() {
+    if (!form.category.trim()) return;
+    const data = {
+      category: form.category,
+      badge: form.badge || "🏨",
+      adjustment: Number(form.adjustment) || 0,
+      travelCharge: Number(form.travelCharge) || 0,
+      notes: form.notes,
+    };
     editing ? update(editing, data) : add(data);
     setOpen(false);
   }
   function handleDelete(id) {
-    if (window.confirm("Delete this service item?")) remove(id);
+    if (window.confirm("Delete this venue category?")) remove(id);
   }
 
-  const activeCount = items.filter((i) => i.active).length;
-  const avgPrice = items.length
-    ? Math.round(
-        items.reduce((acc, curr) => acc + (Number(curr.basePrice) || 0), 0) /
-          items.length,
-      )
-    : 0;
+  const sorted = [...filtered].sort((a, b) => b.adjustment - a.adjustment);
 
   return (
     <div
       style={{
-        padding: "20px 32px 24px 32px",
+        padding: "20px 32px 0 32px",
         display: "flex",
         flexDirection: "column",
         flex: 1,
         minHeight: 0,
+        overflow: "hidden",
         boxSizing: "border-box",
       }}
     >
@@ -199,25 +181,7 @@ export default function Services() {
           }}
         >
           <Link
-            to="/dashboard/masters/services"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              paddingBottom: "12px",
-              fontSize: "14px",
-              fontWeight: 700,
-              color: "var(--icon-booking)",
-              borderBottom: "2.5px solid var(--icon-booking)",
-              textDecoration: "none",
-              fontFamily: "Inter, sans-serif",
-            }}
-          >
-            <Sparkles size={15} style={{ color: "var(--icon-booking)" }} />{" "}
-            Service Master
-          </Link>
-          <Link
-            to="/dashboard/masters/venues"
+            to="/masters/services"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -231,10 +195,28 @@ export default function Services() {
               fontFamily: "Inter, sans-serif",
             }}
           >
-            <Building2 size={15} /> Venue Pricing Master
+            <Sparkles size={15} /> Service Master
           </Link>
           <Link
-            to="/dashboard/masters/vendors"
+            to="/masters/venues"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              paddingBottom: "12px",
+              fontSize: "14px",
+              fontWeight: 700,
+              color: "var(--icon-booking)",
+              borderBottom: "2.5px solid var(--icon-booking)",
+              textDecoration: "none",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            <Building2 size={15} style={{ color: "var(--icon-booking)" }} />{" "}
+            Venue Pricing Master
+          </Link>
+          <Link
+            to="/masters/vendors"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -262,7 +244,6 @@ export default function Services() {
             gap: "14px",
           }}
         >
-          {/* Stats Bar */}
           <div
             style={{
               display: "flex",
@@ -281,7 +262,7 @@ export default function Services() {
               }}
             >
               <BookOpen size={14} style={{ color: "var(--icon-booking)" }} />{" "}
-              <strong>{items.length}</strong> Total Services
+              <strong>{items.length}</strong> Venue Categories
             </span>
             <span
               style={{
@@ -292,27 +273,11 @@ export default function Services() {
                 gap: "6px",
               }}
             >
-              <CheckCircle2
-                size={14}
-                style={{ color: "var(--badge-confirmed)" }}
-              />{" "}
-              <strong>{activeCount}</strong> Active Services
-            </span>
-            <span
-              style={{
-                fontSize: "13px",
-                color: "var(--dash-text-secondary)",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
-              <Tag size={14} style={{ color: "var(--icon-booking)" }} />{" "}
-              <strong>{formatCurrency(avgPrice)}</strong> avg base price
+              <MapPin size={14} style={{ color: "var(--icon-booking)" }} />{" "}
+              <strong>₹750</strong> avg travel charge
             </span>
           </div>
 
-          {/* Controls Right */}
           <div
             style={{
               display: "flex",
@@ -321,50 +286,6 @@ export default function Services() {
               flexWrap: "wrap",
             }}
           >
-            {/* Category Pills */}
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "2px",
-                padding: "3px",
-                borderRadius: "8px",
-                background: "var(--dash-filter-wrap)",
-                border: "1px solid var(--dash-border)",
-              }}
-            >
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveTab(cat)}
-                  style={{
-                    padding: "5px 12px",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                    fontWeight: activeTab === cat ? 700 : 500,
-                    border: "none",
-                    background:
-                      activeTab === cat
-                        ? "var(--dash-filter-active-bg)"
-                        : "transparent",
-                    color:
-                      activeTab === cat
-                        ? "var(--dash-filter-active-tx)"
-                        : "var(--dash-filter-muted-tx)",
-                    cursor: "pointer",
-                    boxShadow:
-                      activeTab === cat
-                        ? "0 2px 6px var(--dash-shadow)"
-                        : "none",
-                    transition: "all 0.15s ease",
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
             <div style={{ position: "relative", width: "220px" }}>
               <Search
                 size={13}
@@ -377,7 +298,7 @@ export default function Services() {
                 }}
               />
               <input
-                placeholder="Search services…"
+                placeholder="Search venues…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
@@ -394,7 +315,6 @@ export default function Services() {
                 }}
               />
             </div>
-
             <button
               onClick={openAdd}
               style={{
@@ -418,13 +338,13 @@ export default function Services() {
               }
               onMouseLeave={(e) => (e.currentTarget.style.transform = "none")}
             >
-              <Plus size={15} /> Add Service
+              <Plus size={15} /> Add Venue
             </button>
           </div>
         </div>
       </div>
 
-      {/* Services Grid Container */}
+      {/* Venues Grid + Legend Container */}
       <div
         style={{
           flex: 1,
@@ -432,10 +352,13 @@ export default function Services() {
           overflowY: "auto",
           paddingRight: "4px",
           paddingBottom: "20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
         }}
         className="no-scrollbar"
       >
-        {/* Services Grid */}
+        {/* Venues Grid */}
         <div
           style={{
             display: "grid",
@@ -443,7 +366,7 @@ export default function Services() {
             gap: "18px",
           }}
         >
-          {filtered.map((item) => (
+          {sorted.map((item) => (
             <div
               key={item.id}
               style={{
@@ -482,7 +405,7 @@ export default function Services() {
                     lineHeight: 1.35,
                   }}
                 >
-                  {item.name}
+                  {item.category}
                 </h3>
                 <p
                   style={{
@@ -497,7 +420,7 @@ export default function Services() {
                     minHeight: "36px",
                   }}
                 >
-                  {item.description || "No service description specs provided."}
+                  {item.notes || "No venue notes specs provided."}
                 </p>
               </div>
 
@@ -507,7 +430,7 @@ export default function Services() {
                   alignItems: "center",
                   justifyContent: "space-between",
                   paddingTop: "12px",
-                  borderTop: "1px dashed var(--dash-border-subtle)",
+                  borderTop: "1px dashed rgba(var(--rgb-rose-gold),0.22)",
                   marginTop: "auto",
                 }}
               >
@@ -539,9 +462,9 @@ export default function Services() {
                       border: "1px solid var(--dash-border)",
                     }}
                   >
-                    {item.category || "Bridal"}
+                    Venue
                   </span>
-                  {item.duration && (
+                  {item.travelCharge > 0 && (
                     <span
                       style={{
                         fontSize: "11px",
@@ -552,11 +475,11 @@ export default function Services() {
                         gap: "3px",
                       }}
                     >
-                      <Clock
+                      <MapPin
                         size={11}
                         style={{ color: "var(--icon-booking)" }}
                       />{" "}
-                      {item.duration}
+                      {formatCurrency(item.travelCharge)}
                     </span>
                   )}
                 </div>
@@ -565,18 +488,7 @@ export default function Services() {
                   style={{ display: "flex", alignItems: "center", gap: "12px" }}
                 >
                   <div style={{ textAlign: "right" }}>
-                    <span
-                      style={{
-                        fontFamily: "Inter, sans-serif",
-                        fontSize: "17.5px",
-                        fontWeight: 800,
-                        color: "var(--dash-text-primary)",
-                        lineHeight: 1.1,
-                        display: "block",
-                      }}
-                    >
-                      {formatCurrency(item.basePrice)}
-                    </span>
+                    <AdjBadge value={item.adjustment} />
                     <span
                       style={{
                         fontSize: "10px",
@@ -587,10 +499,9 @@ export default function Services() {
                         letterSpacing: "0.04em",
                       }}
                     >
-                      base price
+                      price delta
                     </span>
                   </div>
-
                   <div
                     style={{
                       display: "flex",
@@ -603,14 +514,14 @@ export default function Services() {
                         e.stopPropagation();
                         openEdit(item);
                       }}
-                      title="Edit Service"
+                      title="Edit Venue"
                       style={{
                         width: "28px",
                         height: "28px",
                         borderRadius: "7px",
                         border: "none",
                         background: "var(--btn-ghost-bg)",
-                        color: "var(--btn-ghost-color)",
+                        color: "var(--icon-booking)",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
@@ -633,7 +544,7 @@ export default function Services() {
                         e.stopPropagation();
                         handleDelete(item.id);
                       }}
-                      title="Delete Service"
+                      title="Delete Venue"
                       style={{
                         width: "28px",
                         height: "28px",
@@ -665,61 +576,97 @@ export default function Services() {
           ))}
         </div>
 
-        {filtered.length === 0 && (
+        {sorted.length === 0 && (
           <EmptyState
-            icon={Sparkles}
-            title="No Services Found"
+            icon={Building2}
+            title="No Venue Categories Found"
             subtitle={
               search
-                ? `No service matches "${search}". Try adjusting your search or category filter.`
-                : "Click below to create your first service package."
+                ? `No venues match "${search}". Try adjusting your search query.`
+                : "Add your first venue pricing category to start tracking venue price adjustments."
             }
-            actionLabel={!search ? "+ Add Service" : undefined}
+            actionLabel={!search ? "+ Add Venue" : undefined}
             onAction={openAdd}
           />
         )}
       </div>
 
-      {/* Add / Edit Modal */}
+      {/* Legend - pinned at bottom, outside the scroll area */}
+      <div
+        style={{
+          flexShrink: 0,
+          background: "var(--dash-bg)",
+          paddingTop: "12px",
+          paddingBottom: "16px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            flexWrap: "wrap",
+            background: "var(--dash-card-bg)",
+            padding: "12px 18px",
+            borderRadius: "12px",
+            border: "1px solid var(--dash-border)",
+            boxShadow: "0 -4px 16px var(--dash-shadow)",
+          }}
+        >
+          {[
+            {
+              color: "var(--badge-confirmed)",
+              label: "Premium surcharge added to base price",
+            },
+            { color: "var(--dash-text-muted)", label: "No price change" },
+            {
+              color: "var(--badge-rejected)",
+              label: "Discount applied to base price",
+            },
+          ].map(({ color, label }) => (
+            <div
+              key={label}
+              style={{ display: "flex", alignItems: "center", gap: "7px" }}
+            >
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: color,
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: "12.5px",
+                  color: "var(--dash-text-secondary)",
+                  fontWeight: 500,
+                }}
+              >
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Modal */}
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title={editing ? "Edit Service" : "Add Service"}
-        onSave={handleSave}
-        saveLabel={editing ? "Update" : "Add Service"}
+        title={editing ? "Edit Venue Category" : "Add Venue Category"}
+        onSave={handleSaveFixed}
+        saveLabel={editing ? "Update" : "Add Venue"}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
-            <label style={lbl}>Service Name</label>
+            <label style={lbl}>Venue Category</label>
             <input
               style={inp}
-              placeholder="e.g. Bridal Makeup"
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-            />
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "12px",
-            }}
-          >
-            <CustomSelect
-              label="Category"
+              placeholder="e.g. Luxury Hotel"
               value={form.category}
-              options={["Bridal", "Events", "Photoshoot"]}
-              onChange={(val) => set("category", val)}
+              onChange={(e) => set("category", e.target.value)}
             />
-            <div>
-              <label style={lbl}>Emoji Icon Badge</label>
-              <input
-                style={inp}
-                placeholder="✨"
-                value={form.badge}
-                onChange={(e) => set("badge", e.target.value)}
-              />
-            </div>
           </div>
           <div
             style={{
@@ -729,43 +676,42 @@ export default function Services() {
             }}
           >
             <div>
-              <label style={lbl}>Base Price (₹)</label>
+              <label style={lbl}>Price Adjustment (₹)</label>
               <input
                 style={inp}
                 type="number"
-                placeholder="8000"
-                value={form.basePrice}
-                onChange={(e) => set("basePrice", e.target.value)}
+                placeholder="0 · use negative to deduct"
+                value={form.adjustment}
+                onChange={(e) => set("adjustment", e.target.value)}
               />
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "var(--dash-text-muted)",
+                  margin: "4px 0 0",
+                }}
+              >
+                Negative value = discount
+              </p>
             </div>
             <div>
-              <label style={lbl}>Duration</label>
+              <label style={lbl}>Travel Charge (₹)</label>
               <input
                 style={inp}
-                placeholder="e.g. 2–3 hrs"
-                value={form.duration}
-                onChange={(e) => set("duration", e.target.value)}
+                type="number"
+                placeholder="0"
+                value={form.travelCharge}
+                onChange={(e) => set("travelCharge", e.target.value)}
               />
             </div>
           </div>
           <div>
-            <label style={lbl}>Description</label>
-            <textarea
-              style={{
-                ...inp,
-                resize: "vertical",
-                minHeight: "80px",
-                lineHeight: 1.5,
-              }}
-              placeholder="Brief description of the service…"
-              value={form.description}
-              onChange={(e) => set("description", e.target.value)}
-            />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <ToggleWithLabel
-              on={form.active}
-              onChange={() => set("active", !form.active)}
+            <label style={lbl}>Notes</label>
+            <input
+              style={inp}
+              placeholder="Brief description of this venue type…"
+              value={form.notes}
+              onChange={(e) => set("notes", e.target.value)}
             />
           </div>
         </div>

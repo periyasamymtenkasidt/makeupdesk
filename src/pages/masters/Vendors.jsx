@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -8,20 +8,20 @@ import {
   Building2,
   Users,
 } from "lucide-react";
-import { Card } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
-import { Modal } from "../../../components/ui/Modal";
-import { Pagination } from "../../../components/ui/Pagination";
-import { EmptyState } from "../../../components/ui/EmptyState";
-import { useMaster } from "../../../hooks/useMaster";
-import { usePagination } from "../../../hooks/usePagination";
-import { formatCurrency } from "../../../utils/formatCurrency";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { Modal } from "../../components/ui/Modal";
+import { Pagination } from "../../components/ui/Pagination";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { useMaster } from "../../hooks/useMaster";
+import { usePagination } from "../../hooks/usePagination";
+import { formatCurrency } from "../../utils/formatCurrency";
 import {
   VENDOR_KEY,
   VENDOR_DEFAULTS,
   VENDOR_CATEGORIES,
-} from "../../../data/vendors";
-import { CustomSelect } from "../../../components/ui/CustomSelect";
+} from "../../data/vendors";
+import { CustomSelect } from "../../components/ui/CustomSelect";
 
 const CATEGORIES = VENDOR_CATEGORIES;
 const DEFAULTS = VENDOR_DEFAULTS;
@@ -170,7 +170,7 @@ export default function Vendors() {
           }}
         >
           <Link
-            to="/dashboard/masters/services"
+            to="/masters/services"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -187,7 +187,7 @@ export default function Vendors() {
             <Sparkles size={15} /> Service Master
           </Link>
           <Link
-            to="/dashboard/masters/venues"
+            to="/masters/venues"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -204,7 +204,7 @@ export default function Vendors() {
             <Building2 size={15} /> Venue Pricing Master
           </Link>
           <Link
-            to="/dashboard/masters/vendors"
+            to="/masters/vendors"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -406,9 +406,11 @@ export default function Vendors() {
                 return (
                   <tr
                     key={item.id}
+                    onClick={() => navigate(`/masters/vendors/${item.id}`)}
                     style={{
                       borderBottom: "1px solid var(--dash-border-subtle)",
                       transition: "background 0.15s",
+                      cursor: "pointer",
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.background =
@@ -441,19 +443,15 @@ export default function Vendors() {
                             fontSize: "13px",
                             fontWeight: 600,
                             color: "white",
-                            cursor: "pointer",
                           }}
-                          onClick={() => navigate(`/dashboard/masters/vendors/${item.id}`)}
                         >
                           {item.name.charAt(0)}
                         </div>
                         <div>
                           <div
-                            onClick={() => navigate(`/dashboard/masters/vendors/${item.id}`)}
                             style={{
                               fontWeight: 600,
                               color: "var(--icon-booking)",
-                              cursor: "pointer",
                               textDecoration: "underline",
                               textDecorationStyle: "dotted",
                               textUnderlineOffset: "3px",

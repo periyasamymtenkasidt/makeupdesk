@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Smartphone, DollarSign, TrendingUp, Clock, CheckCircle, Check, Hourglass } from 'lucide-react'
 import StatsCard from '../../components/dashboard/StatsCard'
 import { Card, CardHeader } from '../../components/ui/Card'
@@ -39,6 +40,7 @@ function PaymentStatus({ paid }) {
 }
 
 export default function Payments() {
+  const navigate = useNavigate()
   const { appointments } = useAppointments()
 
   const [advFilter, setAdvFilter] = useState('all')
@@ -156,7 +158,8 @@ export default function Payments() {
                 const balance = (p.amount || 0) - (p.advanceAmount || 0)
                 return (
                   <tr key={p.id ?? i}
-                    style={{ borderBottom: '1px solid var(--dash-border-subtle)', transition: 'background 0.15s' }}
+                    onClick={() => navigate(`/appointments/${p.id}`)}
+                    style={{ borderBottom: '1px solid var(--dash-border-subtle)', transition: 'background 0.15s', cursor: 'pointer' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--dash-row-hover)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
@@ -183,7 +186,8 @@ export default function Payments() {
                         <PaymentStatus paid={p.balancePaid} />
                         {!p.balancePaid && (
                           <button
-                            onClick={async () => {
+                            onClick={async e => {
+                              e.stopPropagation()
                               const res = await sendBalanceInvoiceViaWhatsApp(p)
                               if (res?.method === 'download_and_whatsapp') {
                                 alert(`📄 Balance Invoice PDF downloaded (${res.fileName})\n📲 WhatsApp launched for ${p.name}! Click the attachment 📎 icon in WhatsApp to send.`)

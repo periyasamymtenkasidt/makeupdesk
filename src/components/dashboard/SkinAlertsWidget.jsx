@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+﻿import { useNavigate } from 'react-router-dom'
 import { Sparkles, AlertTriangle, Calendar, ChevronRight } from 'lucide-react'
 import { Card, CardHeader, CardBody } from '../ui/Card'
 import { Button } from '../ui/Button'
@@ -112,7 +112,7 @@ export default function SkinAlertsWidget() {
           variant="ghost"
           size="sm"
           fullWidth
-          onClick={() => navigate('/dashboard/clients')}
+          onClick={() => navigate('/clients')}
           style={{ justifyContent: 'center', marginTop: '4px' }}
         >
           View All Client Profiles <ChevronRight size={14} />
